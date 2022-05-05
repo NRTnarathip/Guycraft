@@ -1,0 +1,323 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{eab57440-bc6b-4357-bf46-90690867f95b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Physics">
+      <UniqueIdentifier>{236207de-561c-4422-82f4-5561efa369ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL Class">
+      <UniqueIdentifier>{2364528a-79b7-4fd8-ad3e-c798201477dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Renderer">
+      <UniqueIdentifier>{acd7bced-62d7-4332-99a7-a1e053face9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Scenes">
+      <UniqueIdentifier>{372efaf5-4953-42f7-9b9d-79caca58c977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Shaders">
+      <UniqueIdentifier>{b110ffb1-3dd0-4406-982f-b51d716ce447}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Physics\BoxCollision.cpp">
+      <Filter>src\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\MeshGameObject.cpp">
+      <Filter>src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\shaderClass.cpp">
+      <Filter>src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scenes\SceneMainMenu.cpp">
+      <Filter>src\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIText.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\World.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Button.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CameraManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Chunk.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ChunkGroup.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ChunkManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ClientEngine.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComponentManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GenerateMeshChunk.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glad.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Image.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PlayerController.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Raycast.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RectTransform.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ResourceManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneMainGame.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sprite.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SpriteRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TerrainGen.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIContainer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIMenu.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIObject.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Physics\BoxCollision.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Physics\GameObject.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Physics\Transform.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\MeshGameObject.h">
+      <Filter>src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\shaderClass.h">
+      <Filter>src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scenes\SceneMainGame.h">
+      <Filter>src\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scenes\SceneMainMenu.h">
+      <Filter>src\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIText.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Voxel.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Window.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\World.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AABB.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Button.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CameraManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Chunk.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkGroup.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkHelper.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ClientEngine.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Component.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ComponentManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameObject.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GenerateMeshChunk.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicSetting.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Image.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PlayerController.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Raycast.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RectTransform.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ResourceManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartChunk.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartChunkPooling.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartQueue.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sprite.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SpriteRenderer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TerrainGen.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextRenderer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Transform2D.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIComponent.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIContainer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIMenu.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIObject.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Shaders\defualt.frag">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\defualt.vert">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\gameobject.frag">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\gameobject.vert">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\sky.frag">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\sky.vert">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\sprite.frag">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\sprite.vert">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\text.frag">
+      <Filter>src\Shaders</Filter>
+    </None>
+    <None Include="src\Shaders\text.vert">
+      <Filter>src\Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
