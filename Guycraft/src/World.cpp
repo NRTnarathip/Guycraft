@@ -9,81 +9,36 @@
 #include "PlayerController.h"
 #include "Physics/BoxCollision.h"
 #include "Renderer/MeshGameObject.h"
+#include "ClientEngine.h"
 
 World* World::instance = nullptr;
 void World::init() {
-	tickLastTime = Time::lastTime;
-
+	tickLastTime = 0;
 	Camera* mainCame = CameraManager::GetInstance().newCamera();
+	mainCame->setupCamera(ClientEngine::GetInstance().window->window,90.f, 0.001f, 1000.f);
 	CameraManager::SwitchCamera(mainCame);
 
 	auto* player = spawnGameObject();
-	player->transform.position = glm::vec3(0,85,0);
+	player->transform.position = glm::vec3(0,90,0);
 	player->addComponent<PlayerController>();
 	auto* boxCollision = player->addComponent<BoxCollision>();
-
-	auto* zombie = spawnGameObject();
-	zombie->mesh = new MeshGameObject();
-	zombie->mesh->setupGL();
-
-	typedef MeshGameObject::Vertex MeshVertex;
-	auto tempUV = glm::vec2(0);
-	auto tempNormal = glm::vec3(0,0,0);
-	std::vector<MeshVertex> tempMeshVerticesBlock = {
-		MeshVertex(glm::vec3(0,1,0), tempNormal, tempUV),
-		MeshVertex(glm::vec3(0,1,1), tempNormal, tempUV),
-		MeshVertex(glm::vec3(1,1,1), tempNormal, tempUV),
-		MeshVertex(glm::vec3(1,1,0), tempNormal, tempUV),
-
-		MeshVertex(glm::vec3(0,0,0), tempNormal, tempUV),
-		MeshVertex(glm::vec3(0,0,1), tempNormal, tempUV),
-		MeshVertex(glm::vec3(1,0,1), tempNormal, tempUV),
-		MeshVertex(glm::vec3(1,0,0), tempNormal, tempUV),
-	};
-	std::vector<unsigned int> tempMeshIndices = {
-		0,1,3, 2,3,1, //face top
-		5,4,6, 7,6,4, //face down
-		4,0,7, 3,7,0, //face south
-		6,2,5, 1,5,2, //face north
-		7,3,6, 2,6,3, //face east
-		5,1,4, 0,4,1, //face west
-	};
-	zombie->mesh->vertices = tempMeshVerticesBlock;
-	zombie->mesh->indices = tempMeshIndices;
-	zombie->transform.position = glm::vec3(0,85,0);
-	zombie->mesh->uploadDataMeshToGPU();
-
-
-	////init general component
-	//for (auto gameObject : m_gameObjects) {
-	//	auto comps = gameObject->getAllComponents();
-	//	for (auto c : comps) {
-	//		c->init();
-	//	}
-	//}
 }
 void World::tick() {
-	////update general component
-	//for (auto gameObject : m_gameObjects) {
-	//	auto comps = gameObject->getAllComponents();
-	//	for (auto c : comps) {
-	//		c->tick();
-	//	}
-	//}
+	for (auto gameObject : m_gameObjects) {
+		auto comps = gameObject->getAllComponents();
+		for (auto c : comps) {
+			c->tick();
+		}
+	}
 }
 void World::update() {
 	//update sun direction before render chunk
-	/*Shader* def = Game::ref->shaders.defaultShader;
-	def->Bind();
-	def->SetVec3("sunDirect", lighting.sunDirect);
-	def->SetFloat("sunIntensity", lighting.sunIntensity);*/
 	float timeNow = Time::lastTime;
 	if (timeNow - tickLastTime > tickUseTime) {
 		tickLastTime = timeNow;
 		tickCountter++;
 		tick();
 	}
-
 	//update general component
 	for (auto gameObject : m_gameObjects) {
 		auto comps = gameObject->getAllComponents();

@@ -7,11 +7,7 @@ in vec3 normal;
 in float sunLampLight;
 
 uniform sampler2D tex;
-uniform vec3 sunDirect;
-uniform float sunIntensity;
 uniform float aoStrength;
-uniform float fogMin;
-uniform float fogMax;
 
 void main()
 {
@@ -35,9 +31,4 @@ void main()
 		light -= aoTemp;
 	}
 	FragColor = vec4(texCol.rgb * light, texCol.a);
-
-	
-	float fog = clamp(((gl_FragCoord.z / gl_FragCoord.w) - fogMin) / (fogMax - fogMin), 0.0, 1.0);
-	vec3 fogColor = vec3(0.4,0.4,0.4);
-	FragColor = mix(FragColor, vec4(fogColor, 1.0), fog); // apply fog
 }

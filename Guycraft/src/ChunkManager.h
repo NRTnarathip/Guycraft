@@ -15,8 +15,16 @@
 #include <SmartQueue.h>
 #include <vector>
 #include <SmartChunkPooling.h>
+#include <GenerateMeshChunk.h>
+
 class ChunkManager {
+private:
+	static ChunkManager* m_instance;
 public:
+	ChunkManager() { m_instance = this; }
+	static ChunkManager* GetInstance() { return m_instance; }
+	GenMeshChunk* genMeshChunk = nullptr;
+
 	typedef std::unordered_map<glm::ivec2, SmartChunkGroup* > ChunkGroupContainer;
 	ChunkGroupContainer chunkGroups;
 	SmartQueueChunkGroup queSpawnChunkGroup;
@@ -28,7 +36,7 @@ public:
 
 	std::vector<std::thread> listThread;
 	TerrainGen terrainGen;
-	void init(glm::vec3 posCamera);
+	void init();
 	void render();
 	void update();
 	SmartChunkGroup* newChunkGroup(int x, int z);

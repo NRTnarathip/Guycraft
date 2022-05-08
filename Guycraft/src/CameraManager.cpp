@@ -17,10 +17,6 @@ Camera* CameraManager::newCamera() {
 		switchCamera(newCamera);
 	}
 	m_cameras.push_back(newCamera);
-	//auto& client = ClientEngine::GetInstance();
-	/*int width, height;
-	glfwGetWindowSize(client.window->glfwWindow, &width, &height);
-	newCamera->setupCamera(client.window->glfwWindow, 90.f, 0.005f, 1000.f);*/
 	return newCamera;
 }
 void CameraManager::uploadCameraMatrixToShader(Shader* shader) {
@@ -34,5 +30,6 @@ void CameraManager::uploadCameraMatrixToShader(Shader* shader) {
 	// Exports the camera matrix to the Vertex Shader
 	shader->Bind();
 	shader->SetMat4("view", view);
+	shader->SetMat4("projection", m_currentCamera->projection);
 	shader->UnBind();
 }

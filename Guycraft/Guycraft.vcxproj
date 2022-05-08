@@ -110,18 +110,6 @@
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\World.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Shaders\defualt.frag" />
-    <None Include="src\Shaders\defualt.vert" />
-    <None Include="src\Shaders\gameobject.frag" />
-    <None Include="src\Shaders\gameobject.vert" />
-    <None Include="src\Shaders\sky.frag" />
-    <None Include="src\Shaders\sky.vert" />
-    <None Include="src\Shaders\sprite.frag" />
-    <None Include="src\Shaders\sprite.vert" />
-    <None Include="src\Shaders\text.frag" />
-    <None Include="src\Shaders\text.vert" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

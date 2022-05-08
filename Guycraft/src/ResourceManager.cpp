@@ -46,31 +46,25 @@ void ResourceManager::loadAllResouces() {
         addShader(pathFileShader, filename);
         isFileExist++;
     }
-    //auto defaultShader = addShader("src/Shader/defualt", "default");
-    //addShader("src/Shader/gameobject", "gameobject");
-    //auto shaderRender2D = addShader("src/Shader/sprite", "sprite");
-    auto& graphicSetting = ClientEngine::GetInstance().graphicSetting;
-   /* defaultShader->Bind();
-    defaultShader->SetVar("tex", 0);
-    defaultShader->SetFloat("aoStrength", 0.45f);
-    defaultShader->SetFloat("fogMin", graphicSetting.fogMin);
-    defaultShader->SetFloat("fogMax", graphicSetting.fogMax);
-    defaultShader->UnBind();*/
-    std::string pathTextureGUI = "assets/textures/gui";
-    for (const auto& entry : fs::directory_iterator(pathTextureGUI)) {
-        std::string spriteName = entry.path().string();
+    std::vector<std::string> listPathTextures = {
+    "assets/textures/gui",
+    "assets/textures/blocks", };
+    for (auto pathTextures : listPathTextures) {
+        for (const auto& entry : fs::directory_iterator(pathTextures)) {
+            std::string spriteName = entry.path().string();
 
-        spriteName.replace(0, pathTextureGUI.length() + 1, "");
-        spriteName = spriteName.substr(0, spriteName.length() - 4);
+            spriteName.replace(0, pathTextures.length() + 1, "");
+            spriteName = spriteName.substr(0, spriteName.length() - 4);
 
-        std::string pathFile = entry.path().string();
-        std::replace(pathFile.begin(), pathFile.end(), '\\', '/');
-        auto texture = addTexture(pathFile.c_str(), false);
+            std::string pathFile = entry.path().string();
+            std::replace(pathFile.begin(), pathFile.end(), '\\', '/');
+            auto texture = addTexture(pathFile.c_str(), false);
 
-        auto spriteKeyName = pathTextureGUI + "/" + spriteName;
+            auto spriteKeyName = pathTextures + "/" + spriteName;
 
-        auto newSprite = new Sprite(texture);
-        newSprite->setupRenderData();
-        m_sprites.emplace(spriteKeyName, newSprite);
+            auto newSprite = new Sprite(texture);
+            newSprite->setupRenderData();
+            m_sprites.emplace(spriteKeyName, newSprite);
+        }
     }
 }

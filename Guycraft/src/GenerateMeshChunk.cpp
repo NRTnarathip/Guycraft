@@ -2,11 +2,14 @@
 #include <PlayerController.h>
 #include <ClientEngine.h>
 #include <SmartChunk.h>
+#include <ChunkManager.h>
+
 void useThreadGenMesh(GenMeshChunk* ref) {
-	auto queNeedGen = &ref->chManager->queNeedGenMeshChunkGroup;
+	auto chManager = ChunkManager::GetInstance();
+	auto queNeedGen = &chManager->queNeedGenMeshChunkGroup;
 	while (true) {
 
-		if (ref->chManager->queDeleteChunk.size() > 0) continue;
+		if (chManager->queDeleteChunk.size() > 0) continue;
 		//we should wait delete chunk all successfully 
 		//before run this.
 
@@ -36,6 +39,12 @@ void useThreadGenMesh(GenMeshChunk* ref) {
 		ref->queTransferGPU.push(smChunk);
 	}
 }
+void GenMeshChunk::init() {
+	std::thread thGenMesh(useThreadGenMesh, this);
+	listThreadGenMesh.push_back(std::move(thGenMesh));
+	//run only main threading
+	//we should transfer data chunk mesh to GPU
+}
 void GenMeshChunk::update() { //update every frame
 	int maxQuePerUpdate = 5;
 	for(int i =0;i< maxQuePerUpdate;i++) {
@@ -54,16 +63,4 @@ void GenMeshChunk::update() { //update every frame
 
 		smChunk->unlock();
 	}
-}
-void GenMeshChunk::init(ChunkManager* chunkManager) {
-	chManager = chunkManager;
-
-	std::thread thGenMesh(useThreadGenMesh, this);
-	//thGenMesh.detach();
-
-	listThreadGenMesh.push_back( std::move(thGenMesh));
-	
-	//run only main threading
-	//we should transfer data chunk mesh to GPU
-	return;
 }

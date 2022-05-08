@@ -12,4 +12,5 @@ public:
 	virtual void update() {};
 	virtual void lastUpdate() {};
 	virtual void draw() {};
+	virtual void tick() {};
 };

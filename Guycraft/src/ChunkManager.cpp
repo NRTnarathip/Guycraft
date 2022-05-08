@@ -6,6 +6,8 @@
 #include "CameraManager.h"
 #include "ClientEngine.h"
 
+ChunkManager* ChunkManager::m_instance = nullptr;
+
 void useThreadDelete(ChunkManager* chManager) {
 	auto queDel = &chManager->queDeleteChunk;
 	auto chunkPooling = &chManager->chunkPooling;
@@ -43,8 +45,8 @@ bool inRange(int x, int min, int max)
 {
 	return (x >= min) and (x <= max);
 }
-void ChunkManager::init(glm::vec3 posCamera) {
-	lastViewPos = glm::floor(posCamera);
+void ChunkManager::init() {
+	lastViewPos = CameraManager::GetCurrentCamera()->Postition;
 	std::thread th;
 	th = std::thread(useThreadPopulate, this);
 
@@ -53,6 +55,9 @@ void ChunkManager::init(glm::vec3 posCamera) {
 
 	listThread.push_back(std::move(th));
 	listThread.push_back(std::move(thDeleteChunk));
+
+	genMeshChunk = new GenMeshChunk();
+	genMeshChunk->init();
 }
 void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNearNorth,
 	SmartChunkGroup* cgNearSouth, SmartChunkGroup* cgNearEast, SmartChunkGroup* cgNearWest) {
@@ -159,6 +164,8 @@ bool ChunkManager::checkShouldNewChunk(glm::ivec3 posCamera) {
 }
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();
+	printf("pos cam y: %f\n", camera->Postition.y);
+
 	auto posCamera = camera->Postition;
 	unsigned char distRender = ClientEngine::GetInstance().graphicSetting.renderDistance;
 	// Create initial chunks
@@ -230,6 +237,7 @@ void ChunkManager::update() {
 
 		queNeedPopulate.push(smChunk);
 	}
+
 }
 bool ChunkManager::ChunkInRange(glm::vec3 playerPos, glm::ivec2 chunkPos, int distRender) const
 {
@@ -243,9 +251,14 @@ bool ChunkManager::ChunkInRange(glm::vec3 playerPos, glm::ivec2 chunkPos, int di
 	return true;
 }
 void ChunkManager::render() {
-	//per frame
-	glClearColor(0.f,0.f,0.f,1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	auto camera = CameraManager::GetCurrentCamera();
+	auto res = ResourceManager::GetInstance();
+	auto shaderChunkSolid = res->m_shaders["chunk_block_solid"];
+	shaderChunkSolid->Bind();
+	shaderChunkSolid->SetVar("tex", 0);
+	shaderChunkSolid->SetFloat("aoStrength", 0.45f);
+	CameraManager::GetInstance().uploadCameraMatrixToShader(shaderChunkSolid);
+
 	for (auto kvp : chunkGroups) {
 		auto smartChunk = kvp.second;
 		smartChunk->get()->render();

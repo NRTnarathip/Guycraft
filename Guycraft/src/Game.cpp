@@ -42,22 +42,9 @@ void Game::init() {
     auto mainMenu = new SceneMainMenu("Main Menu");
     sceneManager->addExistScene(mainMenu);
     mainMenu->setupMainMenu();
-    //implement engine core base
-
-    ////create world
-       //world = new World();
-   /* chManager = new ChunkManager();
-    genMeshChunk = new GenMeshChunk();*/
-    //world->init();
-    ////create system manager
-    //chManager->init(glm::vec3(0, 0, 0));
-    //genMeshChunk->init(chManager);
-
 }
 void Game::render() {
     sceneManager->render();
-    //chManager->render();
-    //world->render();
 }
 void Game::printCounter() {
     printf("FPS %d\n", Time::fps);
@@ -96,22 +83,12 @@ void Game::lastUpdate() {
     sceneManager->lastUpdate();
 }
 void Game::update() { //update every frame
-    //order call function!!!
-    //world update
-    //
-    //test event input 
     auto glWindow = window->window;
     if (glfwGetKey(glWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         exit();
         return;
     }
     sceneManager->update();
-    //world->update(Time::lastTime);
-
-    ////update chunk manager
-    //auto* camera = CameraManager::GetCurrentCamera();
-    //chManager->update();
-    //genMeshChunk->update();
 }
 void Game::exit() {
     glfwSetWindowShouldClose(window->window, true);
