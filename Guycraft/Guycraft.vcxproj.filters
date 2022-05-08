@@ -19,11 +19,14 @@
     <Filter Include="src\Scene System">
       <UniqueIdentifier>{3bcf8230-7da7-45bb-903b-dbd5419ce0e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Scripts">
-      <UniqueIdentifier>{bb0e1bd5-521d-4b9a-8736-bae0800b97f5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Chunk System">
       <UniqueIdentifier>{8df37374-8c3e-466a-b608-b4799904cd6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripts Addon Component">
+      <UniqueIdentifier>{d68bb134-bb9b-421c-97a3-2211b84de07e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Terrain Generate">
+      <UniqueIdentifier>{e5a0ef9f-5109-45f0-bb62-196116b439ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -102,9 +105,6 @@
     <ClCompile Include="src\SpriteRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\TerrainGen.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\TextRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -129,9 +129,6 @@
     <ClCompile Include="src\SceneMainGame.cpp">
       <Filter>src\Scenes</Filter>
     </ClCompile>
-    <ClCompile Include="src\PlayerController.cpp">
-      <Filter>src\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="src\Chunk.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
@@ -143,6 +140,15 @@
     </ClCompile>
     <ClCompile Include="src\GenerateMeshChunk.cpp">
       <Filter>src\Chunk System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PlayerController.cpp">
+      <Filter>Scripts Addon Component</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TerrainGen.cpp">
+      <Filter>src\Terrain Generate</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GenerateMap\GenerateMap.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -245,9 +251,6 @@
     <ClInclude Include="src\SpriteRenderer.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\TerrainGen.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\TextRenderer.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -275,9 +278,6 @@
     <ClInclude Include="src\Scene.h">
       <Filter>src\Scene System</Filter>
     </ClInclude>
-    <ClInclude Include="src\PlayerController.h">
-      <Filter>src\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="src\Chunk.h">
       <Filter>src\Chunk System</Filter>
     </ClInclude>
@@ -292,6 +292,15 @@
     </ClInclude>
     <ClInclude Include="src\GenerateMeshChunk.h">
       <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PlayerController.h">
+      <Filter>Scripts Addon Component</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TerrainGen.h">
+      <Filter>src\Terrain Generate</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GenerateMap\GenerateMap.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

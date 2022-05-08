@@ -6,7 +6,6 @@ class ChunkGroup {
 public:
 	std::mutex mutex;
 	static const unsigned int CHUNK_COUNT = 8;
-	unsigned char heightMap[Chunk::CHUNK_SIZE_SQUARED];
 	Chunk *chunks[CHUNK_COUNT];
 	ChunkGroup(glm::ivec2 initPos);
 	~ChunkGroup();

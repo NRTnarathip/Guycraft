@@ -8,7 +8,8 @@
 
 ChunkManager* ChunkManager::m_instance = nullptr;
 
-void useThreadDelete(ChunkManager* chManager) {
+void useThreadDelete() {
+	auto chManager = ChunkManager::GetInstance();
 	auto queDel = &chManager->queDeleteChunk;
 	auto chunkPooling = &chManager->chunkPooling;
 	while (true) {
@@ -20,10 +21,10 @@ void useThreadDelete(ChunkManager* chManager) {
 		chunkPooling->collectPooling(smChunk);
 
 		smChunk->unlock();
-		
 	}
 }
-void useThreadPopulate(ChunkManager* chManager) {
+void useThreadPopulate() {
+	auto chManager = ChunkManager::GetInstance();
 	auto terrainGen = chManager->terrainGen;
 	while (true) {
 
@@ -32,7 +33,6 @@ void useThreadPopulate(ChunkManager* chManager) {
 
 		smChunk->lock();
 		auto cg = smChunk->get();
-
 		terrainGen.populate(cg);
 		cg->needGenMeshChunk = true;
 
@@ -48,10 +48,10 @@ bool inRange(int x, int min, int max)
 void ChunkManager::init() {
 	lastViewPos = CameraManager::GetCurrentCamera()->Postition;
 	std::thread th;
-	th = std::thread(useThreadPopulate, this);
+	th = std::thread(useThreadPopulate);
 
 	std::thread thDeleteChunk;
-	thDeleteChunk = std::thread(useThreadDelete, this);
+	thDeleteChunk = std::thread(useThreadDelete);
 
 	listThread.push_back(std::move(th));
 	listThread.push_back(std::move(thDeleteChunk));

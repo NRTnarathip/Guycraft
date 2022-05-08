@@ -29,6 +29,7 @@
     <ClCompile Include="src\ComponentManager.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameObject.cpp" />
+    <ClCompile Include="src\GenerateMap\GenerateMap.cpp" />
     <ClCompile Include="src\GenerateMeshChunk.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\GUI.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="src\ComponentManager.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\GameObject.h" />
+    <ClInclude Include="src\GenerateMap\GenerateMap.h" />
     <ClInclude Include="src\GenerateMeshChunk.h" />
     <ClInclude Include="src\GraphicSetting.h" />
     <ClInclude Include="src\GUI.h" />

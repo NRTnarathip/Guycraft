@@ -1,13 +1,14 @@
 #pragma once
 #include <ChunkGroup.h>
 #include <iostream>
+#include <GenerateMap/GenerateMap.h>
 
+//tool for generate height, moiseture, heat map
 class TerrainGen {
 public:
-	int GetHeight(glm::vec2 pos);
+	GenerateMap genmap;
 	void populate(ChunkGroup* cg);
-	void getHeightMap(ChunkGroup * cg);
-	Voxel GetVoxelTerrain(Chunk*c,unsigned char heightMapVar,int x, int y, int z);
+	Voxel GetVoxelTerrain(Chunk*c, float genMapData[3], int localY);
 	int seed = 0;
 };
 

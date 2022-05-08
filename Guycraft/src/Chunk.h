@@ -5,14 +5,19 @@
 #include <Renderer/shaderClass.h>
 #include <glm/vec3.hpp> // glm::ivec3
 #include <mutex>
+#define Bitsift_ChunkSize << 5
+#define Bitsift_ChunkSizeSquared << 10
+#define BS_CH 5 //bitsift to Chunk Size
+#define BS_CH2 10 //bitshift to Chunk Size Squared
 
 class Chunk {
 public:
 	std::mutex mutex;
 	static const int CHUNK_SIZE = 32;
-	static const int CHUNK_SIZE_SQUARED = 32 * 32;
-	static const int CHUNK_SIZE_BLOCK = 32 * 32 * 32;
-	static const int CHUNK_SIZE_31 = 31; // range 0 -- 255
+	static const int CHUNK_SIZE_SQUARED = CHUNK_SIZE * CHUNK_SIZE;
+	static const int CHUNK_SIZE_BLOCK = CHUNK_SIZE_SQUARED * CHUNK_SIZE;
+	static const int CHUNK_SIZE_31 = 31;
+	static const int CHUNK_SIZE_MAX_INDEX = CHUNK_SIZE - 1;
 	static const int MAX_HEIGHT = 240; // index == 7, index 8 is out limit of array
 	Chunk(glm::ivec3 pos);
 	Voxel voxels[CHUNK_SIZE_BLOCK];
