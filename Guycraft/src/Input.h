@@ -22,6 +22,10 @@ public:
     static Input& GetInstance() { return *instance; }
     void initKeyMapping();
     void update();
+    bool isKey(int keycode);
+    bool isKeyUp(int keycode);
+    bool isKeyDown(int keycode);
+
     bool onMouseUp(int mouseButton);
     bool onMouseDown(int mouseButton);
     bool onMouse(int mouseButton);

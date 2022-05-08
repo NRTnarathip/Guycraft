@@ -4,13 +4,16 @@
 #define KEYBOARD 0
 #define MOUSE 1
 #define MOUSE_DOWN 1
-#define MOUSE_HOLD 2
 #define MOUSE_UP 3
+#define BUTTON_DOWN 1
+#define BUTTON_UP 3
+
 Input *Input::instance = nullptr;
 void Input::initKeyMapping() {
     registerKeyState(GLFW_MOUSE_BUTTON_LEFT, MOUSE);
     registerKeyState(GLFW_MOUSE_BUTTON_RIGHT, MOUSE);
     registerKeyState(GLFW_MOUSE_BUTTON_MIDDLE, MOUSE);
+    registerKeyState(GLFW_KEY_R, KEYBOARD);
 }
 void Input::registerKeyState(int glfwKeycode, int device) {
     std::unordered_map<int, int> *m_refMapping = nullptr;
@@ -40,6 +43,20 @@ void Input::update() {
     for (auto& item : m_mouseKeyState) {
         int state = item.second;
         int glfwState = glfwGetMouseButton(window, item.first);
+        if (glfwState == GLFW_PRESS and state < 2) {
+            state++;
+        }
+        else if (glfwState == 0 and state >= 2) {
+            state++;
+            if (state == 4) {
+                state = 0;
+            }
+        }
+        item.second = state;
+    }
+    for (auto& item : m_keyboardKeyState) {
+        int state = item.second;
+        int glfwState = glfwGetKey(window, item.first);
         if (glfwState == GLFW_PRESS and state < 2) {
             state++;
         }
@@ -85,5 +102,17 @@ glm::vec2 Input::getMousePosition() {
     int winWidth, winHeight;
     glfwGetWindowSize(glfwWindow, &winWidth, &winHeight);
     return glm::vec2(x, winHeight - y);
+}
+bool Input::isKey(int keycode) {
+    auto state = m_keyboardKeyState[keycode];
+    return state > 0 and state != BUTTON_UP;
+}
+bool Input::isKeyDown(int keycode) {
+    auto state = m_keyboardKeyState[keycode];
+    return state == BUTTON_DOWN;
+}
+bool Input::isKeyUp(int keycode) {
+    auto state = m_keyboardKeyState[keycode];
+    return state == BUTTON_UP;
 }
 

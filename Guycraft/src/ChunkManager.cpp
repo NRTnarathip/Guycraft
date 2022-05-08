@@ -25,7 +25,7 @@ void useThreadDelete() {
 }
 void useThreadPopulate() {
 	auto chManager = ChunkManager::GetInstance();
-	auto terrainGen = chManager->terrainGen;
+	TerrainGen terrainGen;
 	while (true) {
 
 		auto smChunk = chManager->queNeedPopulate.getFront();
@@ -47,17 +47,17 @@ bool inRange(int x, int min, int max)
 }
 void ChunkManager::init() {
 	lastViewPos = CameraManager::GetCurrentCamera()->Postition;
-	std::thread th;
-	th = std::thread(useThreadPopulate);
+	genMeshChunk = new GenMeshChunk();
+	genMeshChunk->init();
+
+	std::thread thPopulate;
+	thPopulate = std::thread(useThreadPopulate);
 
 	std::thread thDeleteChunk;
 	thDeleteChunk = std::thread(useThreadDelete);
 
-	listThread.push_back(std::move(th));
+	listThread.push_back(std::move(thPopulate));
 	listThread.push_back(std::move(thDeleteChunk));
-
-	genMeshChunk = new GenMeshChunk();
-	genMeshChunk->init();
 }
 void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNearNorth,
 	SmartChunkGroup* cgNearSouth, SmartChunkGroup* cgNearEast, SmartChunkGroup* cgNearWest) {
@@ -164,10 +164,7 @@ bool ChunkManager::checkShouldNewChunk(glm::ivec3 posCamera) {
 }
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();
-	printf("pos cam y: %f\n", camera->Postition.y);
-
 	auto posCamera = camera->Postition;
-	unsigned char distRender = ClientEngine::GetInstance().graphicSetting.renderDistance;
 	// Create initial chunks
 	auto posPlayerToChunk = ToChunkPosition(posCamera);
 	if (chunkGroups.size() > 0) {
@@ -176,6 +173,7 @@ void ChunkManager::update() {
 		}
 	}
 	
+	unsigned char distRender = ClientEngine::GetInstance().graphicSetting.renderDistance;
 	lastViewPos = posPlayerToChunk;
 	//render between -distance render to distance render
 	//example dist = 3. we will spawn chunk at -3,-2,-1, 0, 1, 2, 3
@@ -233,7 +231,7 @@ void ChunkManager::update() {
 		auto cgNearSouth = getChunkGroup(cgPosX, cgPosZ - Chunk::CHUNK_SIZE);
 		auto cgNearEast = getChunkGroup(cgPosX + Chunk::CHUNK_SIZE, cgPosZ);
 		auto cgNearWest = getChunkGroup(cgPosX - Chunk::CHUNK_SIZE, cgPosZ);
-		//initChunkNear(smChunk, cgNearNorth, cgNearSouth, cgNearEast, cgNearWest);
+		initChunkNear(smChunk, cgNearNorth, cgNearSouth, cgNearEast, cgNearWest);
 
 		queNeedPopulate.push(smChunk);
 	}
