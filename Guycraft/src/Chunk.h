@@ -3,7 +3,7 @@
 #include <Voxel.h>
 #include <Mesh.h>
 #include <Renderer/shaderClass.h>
-#include <glm/vec3.hpp> // glm::ivec3
+#include <glm/vec3.hpp>
 #include <mutex>
 #define Bitsift_ChunkSize << 5
 #define Bitsift_ChunkSizeSquared << 10
@@ -28,7 +28,9 @@ public:
 	void generateMeshChunk();
 	void genMeshCube(char x, char y, char z, Voxel vox,
 		bool useFuncitonGetVoxelOutChunk);
-
+	bool isGenerateMesh = false;
+	bool isNeedRegenerateMesh = false;
+	bool isNeedGenerateMesh = false;
 	Chunk* cnearUp = NULL;
 	Chunk* cnearDown = NULL;
 	Chunk* cnearNorth = NULL;

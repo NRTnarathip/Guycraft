@@ -8,7 +8,6 @@
 //my components
 #include <World.h>
 #include <Camera.h>
-#include <GenerateMeshChunk.h>
 #include <ChunkManager.h>
 #include "ResourceManager.h"
 #include "SceneManager.h"

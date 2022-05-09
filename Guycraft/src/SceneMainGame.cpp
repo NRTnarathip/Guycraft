@@ -16,7 +16,7 @@ void SceneMainGame::update() {
 	runtime += Time::deltaTime;
 	world->update();
 	chManager->update();
-	chManager->genMeshChunk->update();
+	chManager->chunkMeshBuilding.updateMainThread();
 }
 void SceneMainGame::render() {
 	world->render();

@@ -15,7 +15,7 @@
 #include <SmartQueue.h>
 #include <vector>
 #include <SmartChunkPooling.h>
-#include <GenerateMeshChunk.h>
+#include "ChunkMeshBuilding.h"
 
 class ChunkManager {
 private:
@@ -23,13 +23,12 @@ private:
 public:
 	ChunkManager() { m_instance = this; }
 	static ChunkManager* GetInstance() { return m_instance; }
-	GenMeshChunk* genMeshChunk = nullptr;
+	ChunkMeshBuilding chunkMeshBuilding;
 
 	typedef std::unordered_map<glm::ivec2, SmartChunkGroup* > ChunkGroupContainer;
 	ChunkGroupContainer chunkGroups;
 	SmartQueueChunkGroup queSpawnChunkGroup;
 	SmartQueueChunkGroup queNeedPopulate;
-	SmartQueueChunkGroup queNeedGenMeshChunkGroup;
 	SmartQueueChunkGroup queDeleteChunk;
 
 	SmartChunkPooling chunkPooling;//dont del smChunk object on heap

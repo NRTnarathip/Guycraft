@@ -34,11 +34,12 @@ void useThreadPopulate() {
 		smChunk->lock();
 		auto cg = smChunk->get();
 		terrainGen.populate(cg);
-		cg->needGenMeshChunk = true;
-
 		smChunk->unlock();
 
-		chManager->queNeedGenMeshChunkGroup.push(smChunk);
+		for (auto c : cg->chunks) {
+			c->isNeedGenerateMesh = true;
+			chManager->chunkMeshBuilding.addQueue(c);
+		}
 	}
 }
 bool inRange(int x, int min, int max)
@@ -47,8 +48,7 @@ bool inRange(int x, int min, int max)
 }
 void ChunkManager::init() {
 	lastViewPos = CameraManager::GetCurrentCamera()->Postition;
-	genMeshChunk = new GenMeshChunk();
-	genMeshChunk->init();
+	chunkMeshBuilding.startWithThread();
 
 	std::thread thPopulate;
 	thPopulate = std::thread(useThreadPopulate);
@@ -63,6 +63,11 @@ void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNe
 	SmartChunkGroup* cgNearSouth, SmartChunkGroup* cgNearEast, SmartChunkGroup* cgNearWest) {
 	auto cg = smChunk->get();
 
+	cg->nearEast = cgNearEast->get();
+	cg->nearWest = cgNearWest->get();
+	cg->nearSouth = cgNearSouth->get();
+	cg->nearNorth = cgNearNorth->get();
+
 	for (int y = 0; y < 8; y++) {
 		Chunk* c = cg->chunks[y];
 		if (y >= 1) {
@@ -76,6 +81,7 @@ void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNe
 		if (cgNearNorth != NULL) {
 			c->cnearNorth = cgNearNorth->get()->chunks[y];
 		}
+		
 		if (cgNearSouth != NULL) {
 			c->cnearSouth = cgNearSouth->get()->chunks[y];
 		}
@@ -84,33 +90,6 @@ void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNe
 		}
 		if (cgNearWest != NULL) {
 			c->cnearWest = cgNearWest->get()->chunks[y];
-		}
-	}
-
-	if (cgNearNorth != NULL) {
-		if (cgNearNorth->get()->needGenMeshChunk == false) {
-			cgNearNorth->get()->needGenMeshChunk = true;
-			queNeedGenMeshChunkGroup.push(cgNearNorth);
-		}
-	}
-	if (cgNearSouth != NULL) {
-		if (cgNearSouth->get()->needGenMeshChunk == false) {
-			cgNearSouth->get()->needGenMeshChunk = true;
-			queNeedGenMeshChunkGroup.push(cgNearSouth);
-		}
-
-	}
-	if (cgNearEast != NULL) {
-		if (cgNearEast->get()->needGenMeshChunk == false) {
-			cgNearEast->get()->needGenMeshChunk = true;
-			queNeedGenMeshChunkGroup.push(cgNearEast);
-		}
-
-	}
-	if (cgNearWest != NULL) {
-		if (cgNearWest->get()->needGenMeshChunk == false) {
-			cgNearWest->get()->needGenMeshChunk = true;
-			queNeedGenMeshChunkGroup.push(cgNearWest);
 		}
 	}
 }
@@ -165,7 +144,6 @@ bool ChunkManager::checkShouldNewChunk(glm::ivec3 posCamera) {
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();
 	auto posCamera = camera->Postition;
-	// Create initial chunks
 	auto posPlayerToChunk = ToChunkPosition(posCamera);
 	if (chunkGroups.size() > 0) {
 		if (not checkShouldNewChunk(posPlayerToChunk)) {
@@ -175,13 +153,7 @@ void ChunkManager::update() {
 	
 	unsigned char distRender = ClientEngine::GetInstance().graphicSetting.renderDistance;
 	lastViewPos = posPlayerToChunk;
-	//render between -distance render to distance render
-	//example dist = 3. we will spawn chunk at -3,-2,-1, 0, 1, 2, 3
-	//int renderZ = -distRender; renderZ <= distRender;
-
-	float counterTime = glfwGetTime();
 	int minmaxRenderPos = distRender * Chunk::CHUNK_SIZE;
-
 	for (int renderZ = -distRender; renderZ <= distRender; renderZ++) { 
 		for (int renderX = -distRender; renderX <= distRender; renderX++) {
 			newChunkGroup(posPlayerToChunk.x + (renderX*Chunk::CHUNK_SIZE), 
@@ -231,11 +203,9 @@ void ChunkManager::update() {
 		auto cgNearSouth = getChunkGroup(cgPosX, cgPosZ - Chunk::CHUNK_SIZE);
 		auto cgNearEast = getChunkGroup(cgPosX + Chunk::CHUNK_SIZE, cgPosZ);
 		auto cgNearWest = getChunkGroup(cgPosX - Chunk::CHUNK_SIZE, cgPosZ);
-		initChunkNear(smChunk, cgNearNorth, cgNearSouth, cgNearEast, cgNearWest);
-
+		//initChunkNear(smChunk, cgNearNorth, cgNearSouth, cgNearEast, cgNearWest);
 		queNeedPopulate.push(smChunk);
 	}
-
 }
 bool ChunkManager::ChunkInRange(glm::vec3 playerPos, glm::ivec2 chunkPos, int distRender) const
 {

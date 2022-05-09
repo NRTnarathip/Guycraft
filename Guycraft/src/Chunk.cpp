@@ -1,8 +1,15 @@
 #include <Chunk.h>
+#include "ChunkMeshBuilding.h"
+
 Chunk::Chunk(glm::ivec3 pos) {
     this->pos = pos;
 }
 void Chunk::generateMeshChunk() {
+    regenerateMesh:
+
+    isNeedGenerateMesh = false;
+    isGenerateMesh = true;
+
     //clear data
     vertCount = 0;
     Voxel voxTemp;
@@ -10,6 +17,12 @@ void Chunk::generateMeshChunk() {
 	for (unsigned char z = 0; z < CHUNK_SIZE; z++) {
 		for (unsigned char y = 0; y < CHUNK_SIZE; y++) {
 			for (unsigned char x = 0; x < CHUNK_SIZE; x++) {
+                //check if need regenerate mesh
+                if (isNeedRegenerateMesh) {
+                    isNeedRegenerateMesh = false;
+                    goto regenerateMesh;
+                }
+
                 voxTemp = voxels[x + (y << 5) + (z << 10)];
                 if (voxTemp.type == 0) continue; //dont gen block air
                     
@@ -24,7 +37,8 @@ void Chunk::generateMeshChunk() {
 			}
 		}
 	}
-    //warning!!! if u run other thread u should send data on main thread;
+    isNeedGenerateMesh = false;
+    isGenerateMesh = false;
 }
 unsigned char Chunk::GetVoxType(char x, char y, char z)
 {
@@ -220,6 +234,9 @@ void Chunk::MakeQuadFace(Voxel vox, unsigned char directFace, unsigned char (&vo
     //set vertex from vertCount - 4 to vertcount - 1;
 
     for (int i = 0; i < 4; i++) {
+        if (mesh.vertexs.size() != vertCount) {
+            printf("error \n");
+        }
         Vertex& vert = mesh.vertexs[ vertCount - (4 - i) ];// -4 --> -1
         vert.SetUVIndex(i);
         vert.SetAO(aos[i]);

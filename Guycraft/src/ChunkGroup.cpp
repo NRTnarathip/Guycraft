@@ -57,3 +57,33 @@ void ChunkGroup::render() {
         c->mesh.draw();
     }
 }
+
+void ChunkGroup::needGenMeshNear()
+{
+    auto cManager = ChunkManager::GetInstance();
+    if (nearNorth != NULL) {
+        if (nearNorth->needGenMeshChunk == false) {
+            nearNorth->needGenMeshChunk = true;
+            //cManager->genMeshChunk->enqueGenerate(nearNorth->sm);
+        }
+    }
+    if (nearSouth != NULL) {
+        if (nearSouth->needGenMeshChunk == false) {
+            nearSouth->needGenMeshChunk = true;
+            //cManager->genMeshChunk->enqueGenerate(nearSouth->sm);
+        }
+
+    }
+    if (nearWest != NULL) {
+        if (nearWest->needGenMeshChunk == false) {
+            nearWest->needGenMeshChunk = true;
+            //cManager->genMeshChunk->enqueGenerate(nearWest->sm);
+        }
+    }
+    if (nearEast != NULL) {
+        if (nearEast->needGenMeshChunk == false) {
+            nearEast->needGenMeshChunk = true;
+            //cManager->genMeshChunk->enqueGenerate(nearEast->sm);
+        }
+    }
+}

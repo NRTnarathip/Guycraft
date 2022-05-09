@@ -138,9 +138,6 @@
     <ClCompile Include="src\ChunkManager.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
-    <ClCompile Include="src\GenerateMeshChunk.cpp">
-      <Filter>src\Chunk System</Filter>
-    </ClCompile>
     <ClCompile Include="src\PlayerController.cpp">
       <Filter>Scripts Addon Component</Filter>
     </ClCompile>
@@ -149,6 +146,9 @@
     </ClCompile>
     <ClCompile Include="src\GenerateMap\GenerateMap.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ChunkMeshBuilding.cpp">
+      <Filter>src\Chunk System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -290,9 +290,6 @@
     <ClInclude Include="src\ChunkManager.h">
       <Filter>src\Chunk System</Filter>
     </ClInclude>
-    <ClInclude Include="src\GenerateMeshChunk.h">
-      <Filter>src\Chunk System</Filter>
-    </ClInclude>
     <ClInclude Include="src\PlayerController.h">
       <Filter>Scripts Addon Component</Filter>
     </ClInclude>
@@ -301,6 +298,9 @@
     </ClInclude>
     <ClInclude Include="src\GenerateMap\GenerateMap.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkMeshBuilding.h">
+      <Filter>src\Chunk System</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
