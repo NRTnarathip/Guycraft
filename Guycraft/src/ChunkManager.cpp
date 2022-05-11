@@ -7,18 +7,28 @@
 #include "ClientEngine.h"
 
 ChunkManager* ChunkManager::m_instance = nullptr;
-
 void useThreadDelete() {
 	auto chManager = ChunkManager::GetInstance();
-	auto queDel = &chManager->queDeleteChunk;
+	auto queueUnload = &chManager->m_queueUnload;
 	auto chunkPooling = &chManager->chunkPooling;
+	auto m_chunkContainer = &chManager->chunkGroups;
+
 	while (true) {
-		auto smChunk = queDel->getFront();
+		queueUnload->lock();
+		if (queueUnload->empty()) {
+			queueUnload->unlock();
+			continue;
+		}
+		auto smChunk = queueUnload->getFront();
+		queueUnload->unlock();
+		
 		if (smChunk == NULL) continue;
-
 		smChunk->lock();
-
 		chunkPooling->collectPooling(smChunk);
+
+		m_chunkContainer->lock();
+		m_chunkContainer->get().erase(smChunk->get()->pos);
+		m_chunkContainer->unlock();
 
 		smChunk->unlock();
 	}
@@ -42,9 +52,9 @@ void useThreadPopulate() {
 		}
 	}
 }
-bool inRange(int x, int min, int max)
+bool inRange(int value, int min, int max)
 {
-	return (x >= min) and (x <= max);
+	return (value >= min) and (value <= max);
 }
 void ChunkManager::init() {
 	lastViewPos = CameraManager::GetCurrentCamera()->Postition;
@@ -56,8 +66,14 @@ void ChunkManager::init() {
 	std::thread thDeleteChunk;
 	thDeleteChunk = std::thread(useThreadDelete);
 
+
 	listThread.push_back(std::move(thPopulate));
 	listThread.push_back(std::move(thDeleteChunk));
+
+
+	auto camera = CameraManager::GetCurrentCamera();
+	auto posPlayerToChunk = ToChunkPosition(camera->Postition);
+	chunkLoader.firstLoader(posPlayerToChunk);
 }
 void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNearNorth,
 	SmartChunkGroup* cgNearSouth, SmartChunkGroup* cgNearEast, SmartChunkGroup* cgNearWest) {
@@ -94,20 +110,15 @@ void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNe
 	}
 }
 SmartChunkGroup* ChunkManager::newChunkGroup(int x,int z) {
-	auto getCG = getChunkGroup(x, z);
-	if (getCG != NULL) {
-		//found chunk 
+	auto getCG = getChunkGroup({x, z});
+	if (getCG != nullptr) {
 		return getCG;
 	} 
-
-	//else not found chunk in container
-
 	auto pos = glm::ivec2(x, z);
-	//pooling
 	auto smartChunk = chunkPooling.makeSmartChunk(pos);
-	chunkGroups[pos] = smartChunk;
-	
+	chunkGroups.get()[pos] = smartChunk;
 	queSpawnChunkGroup.push(smartChunk);
+
 	return smartChunk;
 }
 glm::ivec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
@@ -128,67 +139,13 @@ glm::ivec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
 		(y / (int)Chunk::CHUNK_SIZE) * Chunk::CHUNK_SIZE,
 		(z / (int)Chunk::CHUNK_SIZE) * Chunk::CHUNK_SIZE);
 }
-bool ChunkManager::checkShouldNewChunk(glm::ivec3 posCamera) {
-	float distX = posCamera.x - lastViewPos.x;
-	float distZ = posCamera.z - lastViewPos.z;
-
-	int distMinitudeNewSpawnChunk = Chunk::CHUNK_SIZE * 2;
-
-	bool isShouldSpawnNewChunk = false;
-	if (not inRange(distX ,-distMinitudeNewSpawnChunk, distMinitudeNewSpawnChunk)
-		or not inRange(distZ ,-distMinitudeNewSpawnChunk, distMinitudeNewSpawnChunk)) {
-		isShouldSpawnNewChunk = true;
-	}
-	return isShouldSpawnNewChunk;
-}
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();
 	auto posCamera = camera->Postition;
 	auto posPlayerToChunk = ToChunkPosition(posCamera);
-	if (chunkGroups.size() > 0) {
-		if (not checkShouldNewChunk(posPlayerToChunk)) {
-			return;
-		}
-	}
-	
-	unsigned char distRender = ClientEngine::GetInstance().graphicSetting.renderDistance;
-	lastViewPos = posPlayerToChunk;
-	int minmaxRenderPos = distRender * Chunk::CHUNK_SIZE;
-	for (int renderZ = -distRender; renderZ <= distRender; renderZ++) { 
-		for (int renderX = -distRender; renderX <= distRender; renderX++) {
-			newChunkGroup(posPlayerToChunk.x + (renderX*Chunk::CHUNK_SIZE), 
-				posPlayerToChunk.z + (renderZ * Chunk::CHUNK_SIZE));
-		}
-	}
-	std::deque<SmartChunkGroup*> queDeleteCG;
-	for (auto it = chunkGroups.begin(); it != chunkGroups.end();)
-	{
-		auto smChunk = it->second;
-		if (inRange(smChunk->get()->pos.x, -minmaxRenderPos + posPlayerToChunk.x, minmaxRenderPos + posPlayerToChunk.x) and
-			inRange(smChunk->get()->pos.y, -minmaxRenderPos + posPlayerToChunk.z, minmaxRenderPos + posPlayerToChunk.z)) {
-			++it;
-			smChunk->get()->inRangeRender = true;
-		}
-		else {
-			smChunk->get()->inRangeRender = false;
-			chunkGroups.erase(it++);
-			queDeleteCG.push_back(smChunk);
-		}
-	}
 
-	//clear referance near chunk all
-	while (queDeleteCG.size() > 0) {
-		auto sm = queDeleteCG.front();
-		queDeleteCG.pop_front();
-
-		sm->lock();
-		sm->get()->clearChunk();
-		sm->unlock();
-
-		queDeleteChunk.push(sm);
-	}
-	//clear
-	std::deque<SmartChunkGroup*>().swap(queDeleteCG);
+	//check if chunk is not use or out of range render system
+	chunkLoader.update({ posPlayerToChunk.x, posPlayerToChunk.z });
 
 	//initial cnear chunk all
 	while (queSpawnChunkGroup.size() > 0) {
@@ -199,21 +156,30 @@ void ChunkManager::update() {
 		//should init chunk near all
 		float cgPosX = cg->pos.x;
 		float cgPosZ = cg->pos.y;
-		auto cgNearNorth = getChunkGroup(cgPosX, cgPosZ + Chunk::CHUNK_SIZE);
-		auto cgNearSouth = getChunkGroup(cgPosX, cgPosZ - Chunk::CHUNK_SIZE);
-		auto cgNearEast = getChunkGroup(cgPosX + Chunk::CHUNK_SIZE, cgPosZ);
-		auto cgNearWest = getChunkGroup(cgPosX - Chunk::CHUNK_SIZE, cgPosZ);
+		chunkGroups.lock();
+		auto cgNearNorth = getChunkGroup({ cgPosX, cgPosZ + Chunk::CHUNK_SIZE });
+		auto cgNearSouth = getChunkGroup({ cgPosX, cgPosZ - Chunk::CHUNK_SIZE });
+		auto cgNearEast = getChunkGroup({ cgPosX + Chunk::CHUNK_SIZE, cgPosZ });
+		auto cgNearWest = getChunkGroup({ cgPosX - Chunk::CHUNK_SIZE, cgPosZ });
+		chunkGroups.unlock();
 		//initChunkNear(smChunk, cgNearNorth, cgNearSouth, cgNearEast, cgNearWest);
 		queNeedPopulate.push(smChunk);
 	}
 }
-bool ChunkManager::ChunkInRange(glm::vec3 playerPos, glm::ivec2 chunkPos, int distRender) const
+
+bool ChunkManager::isExistChunkGroup(glm::ivec2 pos) {
+	ChunkGroupContainer::iterator it = chunkGroups.get().find(pos);
+	if (it != chunkGroups.get().end()) //found chunk 
+		return true;
+	return false;
+}
+bool ChunkManager::ChunkInRange(glm::ivec2 playerPos, glm::ivec2 chunkPos)
 {
-	int rangeRender = distRender * Chunk::CHUNK_SIZE;
-	float distXChunk = playerPos.x - chunkPos.x;
-	float distZChunk = playerPos.z - chunkPos.y;
-	if (not inRange(-rangeRender, rangeRender, distXChunk)
-		or inRange(-rangeRender,rangeRender, distZChunk)) {
+	int rangeRender = ClientEngine::GetInstance().graphicSetting.renderDistance * Chunk::CHUNK_SIZE;
+	int distXChunk = playerPos.x - chunkPos.x;
+	int distZChunk = playerPos.y - chunkPos.y;
+	if (not inRange(distXChunk, -rangeRender, rangeRender)
+		or not inRange(distZChunk, -rangeRender,rangeRender)) {
 		return false;
 	}
 	return true;
@@ -227,16 +193,18 @@ void ChunkManager::render() {
 	shaderChunkSolid->SetFloat("aoStrength", 0.45f);
 	CameraManager::GetInstance().uploadCameraMatrixToShader(shaderChunkSolid);
 
-	for (auto kvp : chunkGroups) {
+	chunkGroups.lock();
+	auto m_chunks = chunkGroups.get();
+	for (auto kvp : m_chunks) {
 		auto smartChunk = kvp.second;
 		smartChunk->get()->render();
 	}
+	chunkGroups.unlock();
 }
-SmartChunkGroup* ChunkManager::getChunkGroup(int x, int z) {
-	glm::ivec2 pos = glm::ivec2(x, z);
-	ChunkGroupContainer::iterator it = chunkGroups.find(pos);
-	if (it != chunkGroups.end()) { //found chunk 
-		return chunkGroups.at(pos);
+SmartChunkGroup* ChunkManager::getChunkGroup(glm::ivec2 pos) {
+	ChunkGroupContainer::iterator it = chunkGroups.get().find(pos);
+	if (it != chunkGroups.get().end()) { //found chunk 
+		return chunkGroups.get().at(pos);
 	}
-	return NULL;
+	return nullptr;
 };

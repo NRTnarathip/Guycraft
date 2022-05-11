@@ -1,8 +1,8 @@
-#include <Mesh.h>
+#include <MeshChunk.h>
 #include <algorithm>
-int Mesh::triangleGPU = 0;
+int MeshChunk::triangleGPU = 0;
 
-void Vertex::SetUVTile(unsigned int voxID, unsigned int voxType, unsigned int tileRow) {
+void MeshChunk::Vertex::SetUVTile(unsigned int voxID, unsigned int voxType, unsigned int tileRow) {
 	//use 12bit
 	//each axis use 6bit range 0->63;
 	//bit int 
@@ -13,26 +13,26 @@ void Vertex::SetUVTile(unsigned int voxID, unsigned int voxType, unsigned int ti
 	uvTileAndNormal = uvTileAndNormal | x;
 	uvTileAndNormal = uvTileAndNormal | (y << 6); //mask
 }
-unsigned int Vertex::GetUVTile() {
+unsigned int  MeshChunk::Vertex::GetUVTile() {
 	unsigned int x = uvTileAndNormal & 63;//mask 63;
 	unsigned int y = (uvTileAndNormal >> 6) & 63;
 	return x + y;
 }
-void Vertex::SetUVIndex(unsigned int index) {
+void  MeshChunk::Vertex::SetUVIndex(unsigned int index) {
 	//use 0->3 array index; 2bit
 	uvTileAndNormal = uvTileAndNormal | (index << 12);//range 13->14
 }
-unsigned int Vertex::GetUVIndex() {
+unsigned int  MeshChunk::Vertex::GetUVIndex() {
 	return (uvTileAndNormal >> 12) & 3;
 }
-void Vertex::SetNormal(unsigned int index) {
+void  MeshChunk::Vertex::SetNormal(unsigned int index) {
 	//use 3bit range 0-7;
 	uvTileAndNormal = uvTileAndNormal | (index << 14); //range 15->17
 }
-Mesh::Mesh() {
+MeshChunk::MeshChunk() {
 	setupMesh();
 }
-Mesh::~Mesh() {
+MeshChunk::~MeshChunk() {
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
 	glDeleteBuffers(1, &ebo);
@@ -40,9 +40,9 @@ Mesh::~Mesh() {
 	clearOnGPU();
 }
 
-void Mesh::clearOnGPU() {
+void MeshChunk::clearOnGPU() {
 	//remove buffer object
-	Mesh::triangleGPU -= triCount;
+	MeshChunk::triangleGPU -= triCount;
 	triCount = 0;
 	//should remove data vertex and triangle on gpu memory
 	//or you can dont draw this if chunk is non gen mesh success;
@@ -56,7 +56,7 @@ void Mesh::clearOnGPU() {
 	triangles.clear();
 	triangles.shrink_to_fit();
 }
-void Mesh::setupMesh() {
+void MeshChunk::setupMesh() {
 	// VBO
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -85,7 +85,7 @@ void Mesh::setupMesh() {
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
-void Mesh::transferToGPU() {
+void MeshChunk::transferToGPU() {
 	if (triangles.size() == 0) return;
 
 	// Send VBO
@@ -108,9 +108,9 @@ void Mesh::transferToGPU() {
 	triangles.clear();
 	triangles.shrink_to_fit();
 
-	Mesh::triangleGPU += triCount;
+	MeshChunk::triangleGPU += triCount;
 }
-void Mesh::draw() {
+void MeshChunk::draw() {
 	// Mesh must be on gpu to draw
 	if (triCount == 0) return;
 	glBindVertexArray(vao);

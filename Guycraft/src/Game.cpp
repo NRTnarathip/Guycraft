@@ -2,7 +2,7 @@
 #include <ChunkManager.h>
 #include <Texture.h>
 #include <PlayerController.h>
-#include <Mesh.h>
+#include <MeshChunk.h>
 #include <stb/stb_image.h>
 #include <ClientEngine.h>
 #include "Input.h"
@@ -48,7 +48,7 @@ void Game::render() {
 }
 void Game::printCounter() {
     printf("FPS %d\n", Time::fps);
-    printf("Render Triangle Count %d\n", Mesh::triangleGPU);
+    printf("Render Mesh Chunk Triangle Count %d\n", MeshChunk::triangleGPU);
 }
 void Game::counterTime() { 
     //update deltatime

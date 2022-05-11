@@ -10,18 +10,21 @@ public:
 	std::mutex mutex;
 	static const unsigned int CHUNK_COUNT = 8;
 	Chunk *chunks[CHUNK_COUNT];
-	ChunkGroup* nearNorth = 0;
-	ChunkGroup* nearSouth = 0;
-	ChunkGroup* nearEast = 0;
-	ChunkGroup* nearWest = 0;
+	ChunkGroup* nearNorth = nullptr;
+	ChunkGroup* nearSouth = nullptr;
+	ChunkGroup* nearEast = nullptr;
+	ChunkGroup* nearWest = nullptr;
 
 	ChunkGroup(glm::ivec2 initPos);
 	~ChunkGroup();
 	glm::ivec2 pos;
+	bool isFourceUnload = false;
+	void fourceUnload();
 	bool checkIsHaveVoxel(Chunk* c);
 	bool needGenMeshChunk = false;
-	bool inRangeRender = false;
 	void clearChunk();
 	void render();
 	void needGenMeshNear();
+	void linkNeighborChunk(ChunkGroup* cgNeighbor[4]);
+	void unlinkNeighborChunk();
 };

@@ -9,8 +9,55 @@ ChunkGroup::~ChunkGroup() {
         delete chunks[i];
     }
 }
+void ChunkGroup::linkNeighborChunk(ChunkGroup* cgNeighbor[4]) {
+    if (cgNeighbor[0]) {
+        nearNorth = cgNeighbor[0];
+        nearNorth->nearSouth = this;
+
+    }
+    if (cgNeighbor[1]) {
+        nearSouth = cgNeighbor[1];
+        nearSouth->nearNorth = this;
+    }
+    if (cgNeighbor[2]) {
+        nearEast = cgNeighbor[2];
+        nearEast->nearWest = this;
+    }
+    if (cgNeighbor[3]) {
+        nearWest = cgNeighbor[3];
+        nearWest->nearEast = this;
+    }
+}
+void ChunkGroup::unlinkNeighborChunk() {
+    if (nearNorth) {
+        nearNorth->nearSouth = nullptr;
+        nearNorth = nullptr;
+    }
+    if (nearSouth) {
+        nearSouth->nearNorth = nullptr;
+        nearSouth = nullptr;
+    }
+    if (nearEast) {
+        nearEast->nearWest = nullptr;
+        nearEast = nullptr;
+    }
+    if (nearWest) {
+        nearWest->nearEast = nullptr;
+        nearWest = nullptr;
+    }
+}
+void ChunkGroup::fourceUnload() {
+    isFourceUnload = true;
+    for (auto c : chunks) {
+        c->lock();
+        c->fourceUnload();
+        c->unlock();
+    }
+}
+
 void ChunkGroup::clearChunk() {
     for (auto c : chunks) {
+        c->lock();
         //clear cnear referance all
         if (c->cnearNorth != NULL ) {
             c->cnearNorth->cnearSouth = NULL;
@@ -28,7 +75,10 @@ void ChunkGroup::clearChunk() {
             c->cnearWest->cnearEast = NULL;
             c->cnearWest = NULL;
         }
+        c->clearAll();
+        c->unlock();
     }
+    isFourceUnload = false;
 }
 bool ChunkGroup::checkIsHaveVoxel(Chunk* c) {
     for (int acc = 0; acc < Chunk::CHUNK_SIZE_BLOCK; acc++) {

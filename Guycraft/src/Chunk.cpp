@@ -1,8 +1,22 @@
 #include <Chunk.h>
 #include "ChunkMeshBuilding.h"
 
+
 Chunk::Chunk(glm::ivec3 pos) {
     this->pos = pos;
+}
+void Chunk::clearAll() {
+    mesh.clearOnGPU();
+    isFourceUnload = false;
+}
+void Chunk::lock() {
+    mutex.lock();
+}
+void Chunk::unlock() {
+    mutex.unlock();
+}
+void Chunk::fourceUnload() {
+    isFourceUnload = true;
 }
 void Chunk::generateMeshChunk() {
     regenerateMesh:
@@ -237,7 +251,7 @@ void Chunk::MakeQuadFace(Voxel vox, unsigned char directFace, unsigned char (&vo
         if (mesh.vertexs.size() != vertCount) {
             printf("error \n");
         }
-        Vertex& vert = mesh.vertexs[ vertCount - (4 - i) ];// -4 --> -1
+        MeshChunk::Vertex& vert = mesh.vertexs[ vertCount - (4 - i) ];// -4 --> -1
         vert.SetUVIndex(i);
         vert.SetAO(aos[i]);
     }
@@ -255,7 +269,7 @@ void Chunk::genMeshCube(char x, char y, char z, Voxel vox,bool useFuncGetVoxOutC
     char zz = z + 1;
     unsigned char voxSurr[27];
     unsigned char lightSurr[27];//lighting surround
-    Vertex vert;
+    MeshChunk::Vertex vert;
     
     GetVoxSurround(voxSurr, x, y, z, useFuncGetVoxOutChunk);
     //GetLightingSurround(lightSurr,x,y,z);

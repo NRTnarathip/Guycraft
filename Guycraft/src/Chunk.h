@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Voxel.h>
-#include <Mesh.h>
+#include <MeshChunk.h>
 #include <Renderer/shaderClass.h>
 #include <glm/vec3.hpp>
 #include <mutex>
@@ -10,6 +10,7 @@
 #define BS_CH 5 //bitsift to Chunk Size
 #define BS_CH2 10 //bitshift to Chunk Size Squared
 
+//none safe thread
 class Chunk {
 public:
 	std::mutex mutex;
@@ -20,17 +21,26 @@ public:
 	static const int CHUNK_SIZE_MAX_INDEX = CHUNK_SIZE - 1;
 	static const int MAX_HEIGHT = 240; // index == 7, index 8 is out limit of array
 	Chunk(glm::ivec3 pos);
-	Voxel voxels[CHUNK_SIZE_BLOCK];
 	//bitwise light lamp and sun;
 	unsigned char lightMap[CHUNK_SIZE_BLOCK];
 	glm::ivec3 pos;
-	Mesh mesh;
+	Voxel voxels[CHUNK_SIZE_BLOCK];
+	MeshChunk mesh;
+	void clearAll();//reset all for poolling
 	void generateMeshChunk();
 	void genMeshCube(char x, char y, char z, Voxel vox,
 		bool useFuncitonGetVoxelOutChunk);
+	bool isNeedDelete = false;
 	bool isGenerateMesh = false;
 	bool isNeedRegenerateMesh = false;
 	bool isNeedGenerateMesh = false;
+	bool isFourceUnload = false;
+
+	//for threading
+	void lock();
+	void unlock();
+	void fourceUnload();
+
 	Chunk* cnearUp = NULL;
 	Chunk* cnearDown = NULL;
 	Chunk* cnearNorth = NULL;

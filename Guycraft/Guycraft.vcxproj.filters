@@ -87,9 +87,6 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\Raycast.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -148,6 +145,15 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\ChunkMeshBuilding.cpp">
+      <Filter>src\Chunk System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SmartChunkPooling.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ChunkLoader.cpp">
+      <Filter>src\Chunk System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshChunk.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
   </ItemGroup>
@@ -224,9 +230,6 @@
     <ClInclude Include="src\Input.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Raycast.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -301,6 +304,15 @@
     </ClInclude>
     <ClInclude Include="src\ChunkMeshBuilding.h">
       <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkLoader.h">
+      <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshChunk.h">
+      <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartMutex.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

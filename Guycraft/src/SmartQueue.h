@@ -86,6 +86,7 @@ private:
 	bool isLocking = false;
 	std::mutex mutex;
 	std::queue<T> m_queue;
+public:
 	void lock() {
 		mutex.lock();
 		isLocking = true;
@@ -94,7 +95,6 @@ private:
 		isLocking = false;
 		mutex.unlock();
 	}
-public:
 	//will push back
 	size_t size() {
 		auto m_size = m_queue.size();
@@ -104,32 +104,14 @@ public:
 		return size() == 0;
 	}
 	void push(T data) {
-		lock();
 		m_queue.push(data);
-		unlock();
 	}
 	T front() {
-		lock();
-		if (size() == 0) {
-			mutex.unlock();
-			return nullptr;
-		}
-		auto data = m_queue.front();
-		unlock();
-		return data;
+		return m_queue.front();
 	}
 	T getFront() {
-		lock();
-		if (size() == 0) {
-			unlock();
-
-			return nullptr;
-		}
-
 		auto data = m_queue.front();
 		m_queue.pop();
-
-		unlock();
 		return data;
 	}
 };
