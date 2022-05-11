@@ -69,6 +69,7 @@
     <ClInclude Include="src\CameraManager.h" />
     <ClInclude Include="src\Chunk.h" />
     <ClInclude Include="src\ChunkGroup.h" />
+    <ClInclude Include="src\ChunkGroupContainer.h" />
     <ClInclude Include="src\ChunkHelper.h" />
     <ClInclude Include="src\ChunkLoader.h" />
     <ClInclude Include="src\ChunkManager.h" />

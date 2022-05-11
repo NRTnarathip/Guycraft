@@ -18,6 +18,7 @@
 #include "ChunkLoader.h"
 
 #include "SmartMutex.h"
+#include "ChunkGroupContainer.h"
 
 class ChunkManager {
 private:
@@ -28,10 +29,8 @@ public:
 	ChunkMeshBuilding chunkMeshBuilding;
 	ChunkLoader chunkLoader;
 
-	typedef std::unordered_map<glm::ivec2, SmartChunkGroup* > ChunkGroupContainer;
-	SmartQueueChunkGroup queSpawnChunkGroup;
-	SmartQueue<SmartChunkGroup*> m_queueUnload;
-	SmartQueueChunkGroup queNeedPopulate;
+	std::queue<SmartChunkGroup*> m_queueNewChunkGroup;
+	SmartQueue<SmartChunkGroup*> m_queueNeedPopulate;
 
 	SmartChunkPooling chunkPooling;//dont del smChunk object on heap
 
@@ -49,7 +48,7 @@ public:
 	glm::ivec3 lastViewPos;
 
 public: //none safe thread
-	SmartMutex<ChunkGroupContainer> chunkGroups;
+	ChunkGroupContainer chunkGroups;
 	SmartChunkGroup* getChunkGroup(glm::ivec2 pos);
 	bool isExistChunkGroup(glm::ivec2 pos);
 	SmartChunkGroup* newChunkGroup(int x, int z);

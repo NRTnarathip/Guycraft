@@ -248,9 +248,6 @@ void Chunk::MakeQuadFace(Voxel vox, unsigned char directFace, unsigned char (&vo
     //set vertex from vertCount - 4 to vertcount - 1;
 
     for (int i = 0; i < 4; i++) {
-        if (mesh.vertexs.size() != vertCount) {
-            printf("error \n");
-        }
         MeshChunk::Vertex& vert = mesh.vertexs[ vertCount - (4 - i) ];// -4 --> -1
         vert.SetUVIndex(i);
         vert.SetAO(aos[i]);

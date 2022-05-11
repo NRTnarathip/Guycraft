@@ -8,17 +8,27 @@ void useThreadChunkMeshBuilding() {
 	auto queueJob = &chManager->chunkMeshBuilding.m_queueJob;
 	auto queueComplate = &chManager->chunkMeshBuilding.m_queueComplete;
 	while (true) {
-		if (chManager->m_queueUnload.size() > 0) continue;
-		//we should wait delete chunk all successfully 
-		//before run this.
-		if (queueJob->empty()) continue;
-
+		queueJob->lock();
+		if (queueJob->empty()) {
+			queueJob->unlock();
+			continue;
+		} 
 		auto chunk = queueJob->getFront();
-		chunk->mutex.lock();
-		if (chunk->isNeedGenerateMesh == false) continue;
+		queueJob->unlock();
+
+		chunk->lock();
+		if (chunk->isNeedGenerateMesh == false
+			or chunk->isFourceUnload) {
+			chunk->unlock();
+			continue;
+		}
+
 		chunk->generateMeshChunk();
-		chunk->mutex.unlock();
+		chunk->unlock();
+
+		queueComplate->lock();
 		queueComplate->push(chunk);
+		queueComplate->unlock();
 	}
 }
 void ChunkMeshBuilding::startWithThread()
@@ -31,18 +41,28 @@ void ChunkMeshBuilding::updateMainThread()
 {
 	int maxQuePerUpdate = 5;
 	for (int i = 0; i < maxQuePerUpdate; i++) {
-		if (m_queueComplete.empty()) continue;
-		//check 
-		auto chunk = m_queueComplete.front();
-		if (chunk->isNeedGenerateMesh or chunk->isGenerateMesh or chunk->isNeedRegenerateMesh) {
+		m_queueComplete.lock();
+		if (m_queueComplete.empty()) {
+			m_queueComplete.unlock();
 			continue;
 		}
-		m_queueComplete.getFront();//pop queue
+		auto chunk = m_queueComplete.getFront();
+		m_queueComplete.unlock();
+
+		chunk->lock();
+		if (chunk->isNeedGenerateMesh or chunk->isGenerateMesh or chunk->isNeedRegenerateMesh) {
+			chunk->unlock();
+			continue;
+		}
+
 		chunk->mesh.transferToGPU();
+		chunk->unlock();
 	}
 }
 
 void ChunkMeshBuilding::addQueue(Chunk* chunk)
 {
+	m_queueJob.lock();
 	m_queueJob.push(chunk);
+	m_queueJob.unlock();
 }

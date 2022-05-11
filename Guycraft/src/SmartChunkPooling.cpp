@@ -1,34 +1,25 @@
 #include "SmartChunkPooling.h"
 
 SmartChunkGroup* SmartChunkPooling::makeSmartChunk(glm::ivec2 pos) {
-	SmartChunkGroup* sm = NULL;
+	SmartChunkGroup* sm = nullptr;
 	if (listPooling.size() == 0) {
 		//create new SmartChunk*
-		//dont add to list pooling
 		sm = new SmartChunkGroup(pos);
 		auto posChunk = glm::ivec3(pos.x, 0, pos.y);
 		for (int y = 0; y < 8; y++) {
-			posChunk.y = y << 5;
+			posChunk.y = y << BS_CH;
 			sm->get()->chunks[y] = new Chunk(posChunk);
 		}
 	}
 	//have pooling object
 	else {
 		sm = listPooling.getFront();
-
 		//setup chunk group data
 		auto chunkGroup = sm->get();
 		chunkGroup->pos = pos;
-
-		//setup chunk sub data
-		auto posChunk = glm::ivec3(pos.x, 0, pos.y);
-		for (int y = 0; y < 8; y++) {
-			posChunk.y = y << 5;
-			chunkGroup->chunks[y]->pos = posChunk;
-
-			//dont gen vao,vbo,ebo again
-			//memory leak
-			//chunkGroup->chunks[y]->mesh.setupMesh();
+		for (auto c : chunkGroup->chunks) {
+			c->pos.x = pos.x;
+			c->pos.z = pos.y;
 		}
 	}
 	sm->onSetup();
@@ -40,9 +31,9 @@ void SmartChunkPooling::collectPooling(SmartChunkGroup* smChunk) {
 	//clear chunk all
 	smChunk->onDelete();
 	for (auto c : smChunk->get()->chunks) {
-		c->mutex.lock();
+		c->lock();
 		c->clearAll();
-		c->mutex.unlock();
+		c->unlock();
 	}
 	listPooling.push_back(smChunk);
 }

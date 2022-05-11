@@ -314,5 +314,8 @@
     <ClInclude Include="src\SmartMutex.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\ChunkGroupContainer.h">
+      <Filter>src\Chunk System</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

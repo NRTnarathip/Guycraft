@@ -44,12 +44,6 @@ void MeshChunk::clearOnGPU() {
 	//remove buffer object
 	MeshChunk::triangleGPU -= triCount;
 	triCount = 0;
-	//should remove data vertex and triangle on gpu memory
-	//or you can dont draw this if chunk is non gen mesh success;
-	/*glDeleteVertexArrays(1, &vao);
-	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &ebo);*/
-
 	// Remove cpu data
 	vertexs.clear();
 	vertexs.shrink_to_fit();

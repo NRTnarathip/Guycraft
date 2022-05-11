@@ -63,7 +63,7 @@ void Game::counterTime() {
         Time::fps = (int)Time::framesPerSecond;
         Time::framesPerSecond = 0;
 
-        printCounter();
+        //printCounter();
     }
 }
 void Game::beforeUpdate() {
