@@ -7,7 +7,6 @@ Chunk::Chunk(glm::ivec3 pos) {
 }
 void Chunk::clearAll() {
     mesh.clearOnGPU();
-    isFourceUnload = false;
 }
 void Chunk::lock() {
     mutex.lock();
@@ -15,15 +14,7 @@ void Chunk::lock() {
 void Chunk::unlock() {
     mutex.unlock();
 }
-void Chunk::fourceUnload() {
-    isFourceUnload = true;
-}
 void Chunk::generateMeshChunk() {
-    regenerateMesh:
-
-    isNeedGenerateMesh = false;
-    isGenerateMesh = true;
-
     //clear data
     vertCount = 0;
     Voxel voxTemp;
@@ -31,15 +22,12 @@ void Chunk::generateMeshChunk() {
 	for (unsigned char z = 0; z < CHUNK_SIZE; z++) {
 		for (unsigned char y = 0; y < CHUNK_SIZE; y++) {
 			for (unsigned char x = 0; x < CHUNK_SIZE; x++) {
-                //check if need regenerate mesh
-                if (isNeedRegenerateMesh) {
-                    isNeedRegenerateMesh = false;
-                    goto regenerateMesh;
+                if (isFourceStopGenerateMesh) {
+                    isFourceStopGenerateMesh = false;
+                    return;
                 }
-
                 voxTemp = voxels[x + (y << 5) + (z << 10)];
                 if (voxTemp.type == 0) continue; //dont gen block air
-                    
                 if (x == 0 or x == CHUNK_SIZE_31 or
                     y == 0 or y == CHUNK_SIZE_31 or
                     z == 0 or z == CHUNK_SIZE_31) {
@@ -52,7 +40,6 @@ void Chunk::generateMeshChunk() {
 		}
 	}
     isNeedGenerateMesh = false;
-    isGenerateMesh = false;
 }
 unsigned char Chunk::GetVoxType(char x, char y, char z)
 {

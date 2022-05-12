@@ -35,7 +35,7 @@ void PlayerController::UpdateInputs()
 	float speed = speedMove;
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 	{
-		speed = speedRun;
+		speed = speedRun * 3;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 	{

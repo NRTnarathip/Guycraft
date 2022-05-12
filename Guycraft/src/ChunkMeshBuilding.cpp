@@ -17,8 +17,7 @@ void useThreadChunkMeshBuilding() {
 		queueJob->unlock();
 
 		chunk->lock();
-		if (chunk->isNeedGenerateMesh == false
-			or chunk->isFourceUnload) {
+		if (chunk->isNeedGenerateMesh == false or chunk->isFourceStopGenerateMesh) {
 			chunk->unlock();
 			continue;
 		}
@@ -33,28 +32,21 @@ void useThreadChunkMeshBuilding() {
 }
 void ChunkMeshBuilding::startWithThread()
 {
-	std::thread thGenMesh(useThreadChunkMeshBuilding);
-	m_thread = std::move(thGenMesh);
+	m_thread = std::move(std::thread(useThreadChunkMeshBuilding));
 }
 
 void ChunkMeshBuilding::updateMainThread()
 {
-	int maxQuePerUpdate = 5;
-	for (int i = 0; i < maxQuePerUpdate; i++) {
+	while(true) {
 		m_queueComplete.lock();
 		if (m_queueComplete.empty()) {
 			m_queueComplete.unlock();
-			continue;
+			return;
 		}
 		auto chunk = m_queueComplete.getFront();
 		m_queueComplete.unlock();
 
 		chunk->lock();
-		if (chunk->isNeedGenerateMesh or chunk->isGenerateMesh or chunk->isNeedRegenerateMesh) {
-			chunk->unlock();
-			continue;
-		}
-
 		chunk->mesh.transferToGPU();
 		chunk->unlock();
 	}
@@ -63,6 +55,8 @@ void ChunkMeshBuilding::updateMainThread()
 void ChunkMeshBuilding::addQueue(Chunk* chunk)
 {
 	m_queueJob.lock();
+	chunk->isNeedGenerateMesh = true;
+	chunk->isFourceStopGenerateMesh = false;
 	m_queueJob.push(chunk);
 	m_queueJob.unlock();
 }

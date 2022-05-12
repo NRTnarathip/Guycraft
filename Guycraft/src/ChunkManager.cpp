@@ -7,35 +7,6 @@
 #include "ClientEngine.h"
 
 ChunkManager* ChunkManager::m_instance = nullptr;
-void useThreadPopulate() {
-	auto cManager = ChunkManager::GetInstance();
-	TerrainGen terrainGen;
-	auto queuePopulate = &cManager->m_queueNeedPopulate;
-	while (true) {
-		queuePopulate->lock();
-		if (queuePopulate->empty()) {
-			queuePopulate->unlock();
-			continue;
-		}
-		auto smChunk = queuePopulate->getFront();
-		queuePopulate->unlock();
-
-		smChunk->lock();
-		auto cg = smChunk->get();
-		if (cg->isFourceUnload) {
-			smChunk->unlock();
-			continue;
-		}
-		terrainGen.populate(cg);
-		for (auto c : cg->chunks) {
-			c->lock();
-			c->isNeedGenerateMesh = true;
-			c->unlock();
-			cManager->chunkMeshBuilding.addQueue(c);
-		}
-		smChunk->unlock();
-	}
-}
 bool inRange(int value, int min, int max)
 {
 	return (value >= min) and (value <= max);
@@ -43,9 +14,6 @@ bool inRange(int value, int min, int max)
 void ChunkManager::init() {
 	lastViewPos = CameraManager::GetCurrentCamera()->Postition;
 	chunkMeshBuilding.startWithThread();
-	std::thread thPopulate;
-	thPopulate = std::thread(useThreadPopulate);
-	listThread.push_back(std::move(thPopulate));
 	auto camera = CameraManager::GetCurrentCamera();
 	auto posPlayerToChunk = ToChunkPosition(camera->Postition);
 	chunkLoader.firstLoader(posPlayerToChunk);
@@ -84,17 +52,6 @@ void ChunkManager::initChunkNear(SmartChunkGroup *smChunk, SmartChunkGroup* cgNe
 		}
 	}
 }
-SmartChunkGroup* ChunkManager::newChunkGroup(int x,int z) {
-	auto pos = glm::ivec2(x, z);
-	if (isExistChunkGroup(pos)) {
-		return chunkGroups.m_container[pos];
-	} 
-	auto smartChunk = chunkPooling.makeSmartChunk(pos);
-	chunkGroups.m_container.emplace(pos, smartChunk);
-	m_queueNewChunkGroup.push(smartChunk);
-	smartChunk->get()->isFourceUnload = false;
-	return smartChunk;
-}
 glm::ivec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
 {
 	if (pos.x < 0.f) {
@@ -120,32 +77,6 @@ void ChunkManager::update() {
 
 	//check if chunk is not use or out of range render system
 	chunkLoader.update({ posPlayerToChunk.x, posPlayerToChunk.z });
-
-	//initial cnear chunk all
-	while (m_queueNewChunkGroup.size() > 0) {
-		auto smChunk = m_queueNewChunkGroup.front();
-		m_queueNewChunkGroup.pop();
-
-		auto cg = smChunk->get();
-
-		//should init chunk near all
-		float cgPosX = cg->pos.x;
-		float cgPosZ = cg->pos.y;
-		auto cgNearNorth = getChunkGroup({ cgPosX, cgPosZ + Chunk::CHUNK_SIZE });
-		auto cgNearSouth = getChunkGroup({ cgPosX, cgPosZ - Chunk::CHUNK_SIZE });
-		auto cgNearEast = getChunkGroup({ cgPosX + Chunk::CHUNK_SIZE, cgPosZ });
-		auto cgNearWest = getChunkGroup({ cgPosX - Chunk::CHUNK_SIZE, cgPosZ });
-		//initChunkNear(smChunk, cgNearNorth, cgNearSouth, cgNearEast, cgNearWest);
-		m_queueNeedPopulate.lock();
-		m_queueNeedPopulate.push(smChunk);
-		m_queueNeedPopulate.unlock();
-	}
-}
-
-bool ChunkManager::isExistChunkGroup(glm::ivec2 pos) {
-	if (chunkGroups.m_container.find(pos) != chunkGroups.m_container.end()) //found chunk 
-		return true;
-	return false;
 }
 bool ChunkManager::ChunkInRange(glm::ivec2 playerPos, glm::ivec2 chunkPos)
 {
@@ -173,7 +104,7 @@ void ChunkManager::render() {
 	}
 }
 SmartChunkGroup* ChunkManager::getChunkGroup(glm::ivec2 pos) {
-	if (chunkGroups.m_container.find(pos) != chunkGroups.m_container.end()) { //found chunk 
+	if (chunkGroups.exist(pos)) {
 		return chunkGroups.m_container.at(pos);
 	}
 	return nullptr;

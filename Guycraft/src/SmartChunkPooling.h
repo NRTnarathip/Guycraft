@@ -1,18 +1,15 @@
 #pragma once
-#include <vector>
 #include <iostream>
 #include <SmartChunk.h>
-#include <deque>
 #include <mutex>
-#include <SmartQueue.h>
+#include <queue>
 
 class SmartChunkPooling {
 public:
-	SmartDequeChunkGroup listPooling;
+	std::queue<SmartChunkGroup*> listPooling;
 	//use main thread
 	SmartChunkGroup* makeSmartChunk(glm::ivec2 pos);
 	//use on other thread
 	//dont forget use mutex
 	void collectPooling(SmartChunkGroup* smChunk);
-	void collectPoolingSub(Chunk* chunk);
 };

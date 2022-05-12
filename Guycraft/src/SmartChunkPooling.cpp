@@ -13,7 +13,8 @@ SmartChunkGroup* SmartChunkPooling::makeSmartChunk(glm::ivec2 pos) {
 	}
 	//have pooling object
 	else {
-		sm = listPooling.getFront();
+		sm = listPooling.front();
+		listPooling.pop();
 		//setup chunk group data
 		auto chunkGroup = sm->get();
 		chunkGroup->pos = pos;
@@ -22,10 +23,9 @@ SmartChunkGroup* SmartChunkPooling::makeSmartChunk(glm::ivec2 pos) {
 			c->pos.z = pos.y;
 		}
 	}
+	sm->get()->isFourceUnload = false;
 	sm->onSetup();
 	return sm;
-}
-void SmartChunkPooling::collectPoolingSub(Chunk* chunk) {
 }
 void SmartChunkPooling::collectPooling(SmartChunkGroup* smChunk) {
 	//clear chunk all
@@ -35,5 +35,5 @@ void SmartChunkPooling::collectPooling(SmartChunkGroup* smChunk) {
 		c->clearAll();
 		c->unlock();
 	}
-	listPooling.push_back(smChunk);
+	listPooling.push(smChunk);
 }

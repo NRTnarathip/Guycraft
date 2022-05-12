@@ -9,7 +9,6 @@
 #define Bitsift_ChunkSizeSquared << 10
 #define BS_CH 5 //bitsift to Chunk Size
 #define BS_CH2 10 //bitshift to Chunk Size Squared
-
 //none safe thread
 class Chunk {
 public:
@@ -30,16 +29,12 @@ public:
 	void generateMeshChunk();
 	void genMeshCube(char x, char y, char z, Voxel vox,
 		bool useFuncitonGetVoxelOutChunk);
-	bool isNeedDelete = false;
-	bool isGenerateMesh = false;
-	bool isNeedRegenerateMesh = false;
 	bool isNeedGenerateMesh = false;
-	bool isFourceUnload = false;
+	bool isFourceStopGenerateMesh = false;
 
 	//for threading
 	void lock();
 	void unlock();
-	void fourceUnload();
 
 	Chunk* cnearUp = NULL;
 	Chunk* cnearDown = NULL;

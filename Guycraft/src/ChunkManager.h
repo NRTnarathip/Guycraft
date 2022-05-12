@@ -30,8 +30,6 @@ public:
 	ChunkLoader chunkLoader;
 
 	std::queue<SmartChunkGroup*> m_queueNewChunkGroup;
-	SmartQueue<SmartChunkGroup*> m_queueNeedPopulate;
-
 	SmartChunkPooling chunkPooling;//dont del smChunk object on heap
 
 	std::vector<std::thread> listThread;
@@ -50,6 +48,4 @@ public:
 public: //none safe thread
 	ChunkGroupContainer chunkGroups;
 	SmartChunkGroup* getChunkGroup(glm::ivec2 pos);
-	bool isExistChunkGroup(glm::ivec2 pos);
-	SmartChunkGroup* newChunkGroup(int x, int z);
 };

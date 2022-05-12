@@ -48,16 +48,10 @@ void ChunkGroup::unlinkNeighborChunk() {
 }
 void ChunkGroup::fourceUnload() {
     isFourceUnload = true;
-    for (auto c : chunks) {
-        c->lock();
-        c->fourceUnload();
-        c->unlock();
-    }
 }
 
 void ChunkGroup::clearChunk() {
     for (auto c : chunks) {
-        c->lock();
         //clear cnear referance all
         if (c->cnearNorth != NULL ) {
             c->cnearNorth->cnearSouth = NULL;
@@ -76,9 +70,7 @@ void ChunkGroup::clearChunk() {
             c->cnearWest = NULL;
         }
         c->clearAll();
-        c->unlock();
     }
-    isFourceUnload = false;
 }
 bool ChunkGroup::checkIsHaveVoxel(Chunk* c) {
     for (int acc = 0; acc < Chunk::CHUNK_SIZE_BLOCK; acc++) {
