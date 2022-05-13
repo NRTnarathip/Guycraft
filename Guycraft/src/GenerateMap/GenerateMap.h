@@ -1,10 +1,10 @@
 #pragma once
-#include <ChunkGroup.h>
+#include <Chunk.h>
 //for data nosie map such as height, heat, moiseture
 struct GenMapData
 {
-	ChunkGroup* cg;
-	float data[Chunk::CHUNK_SIZE_SQUARED] = {};
+	Chunk* cg;
+	float data[CHUNK_SIZE_SQUARED] = {};
 };
 class GenerateMap {
 public:

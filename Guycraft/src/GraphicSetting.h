@@ -3,8 +3,8 @@
 class GraphicSetting {
 public:
 	GraphicSetting() {
-		fogMin = Chunk::CHUNK_SIZE * 12;
-		fogMax = Chunk::CHUNK_SIZE * 16;
+		fogMin = CHUNK_SIZE * 12;
+		fogMax = CHUNK_SIZE * 16;
 	}
 	bool parserConfig() {
 		return true;

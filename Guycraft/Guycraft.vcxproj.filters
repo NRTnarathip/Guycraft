@@ -28,6 +28,9 @@
     <Filter Include="src\Terrain Generate">
       <UniqueIdentifier>{e5a0ef9f-5109-45f0-bb62-196116b439ae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Biomes">
+      <UniqueIdentifier>{d286199e-8b7d-4294-8e68-73c99461c608}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Physics\BoxCollision.cpp">
@@ -129,9 +132,6 @@
     <ClCompile Include="src\Chunk.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
-    <ClCompile Include="src\ChunkGroup.cpp">
-      <Filter>src\Chunk System</Filter>
-    </ClCompile>
     <ClCompile Include="src\ChunkManager.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
@@ -147,13 +147,13 @@
     <ClCompile Include="src\ChunkMeshBuilding.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
-    <ClCompile Include="src\SmartChunkPooling.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\ChunkLoader.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\MeshChunk.cpp">
+      <Filter>src\Chunk System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ChunkPooling.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
   </ItemGroup>
@@ -239,12 +239,6 @@
     <ClInclude Include="src\ResourceManager.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\SmartChunk.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SmartChunkPooling.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\SmartQueue.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -284,12 +278,6 @@
     <ClInclude Include="src\Chunk.h">
       <Filter>src\Chunk System</Filter>
     </ClInclude>
-    <ClInclude Include="src\ChunkGroup.h">
-      <Filter>src\Chunk System</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ChunkHelper.h">
-      <Filter>src\Chunk System</Filter>
-    </ClInclude>
     <ClInclude Include="src\ChunkManager.h">
       <Filter>src\Chunk System</Filter>
     </ClInclude>
@@ -314,8 +302,23 @@
     <ClInclude Include="src\SmartMutex.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\ChunkGroupContainer.h">
+    <ClInclude Include="src\ChunkContainer.h">
       <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Biome.h">
+      <Filter>src\Terrain Generate</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Biomes\Plant.h">
+      <Filter>src\Biomes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Biomes\Biomes.h">
+      <Filter>src\Biomes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkPooling.h">
+      <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Types.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

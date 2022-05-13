@@ -3,6 +3,7 @@
 #include <vector>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <mutex>
 
 class DirectionHelper{
 public:
@@ -22,11 +23,13 @@ enum Direction
 	left, right,
 	count,
 };
-struct MeshChunk {
+class MeshChunk {
 public:
 	// Vertex layout
-	struct Vertex
+	class Vertex
 	{
+	public:
+#define TILE_ROW 16
 		//char position[3];//-125-> 124;
 		//each axis use 6bit all use 18bit
 		//unsigned int pos = 0;
@@ -41,7 +44,7 @@ public:
 		unsigned int uvTileAndNormal = 0;
 		unsigned int GetUVTile();
 		unsigned int GetUVIndex();
-		void SetUVTile(unsigned int voxID, unsigned int voxType, unsigned int tileRow);
+		void SetUVTile(unsigned int voxID, unsigned int voxType);
 		void SetUVIndex(unsigned int i);
 		void SetNormal(unsigned int index);
 		unsigned short lighting = 0;//
@@ -66,6 +69,7 @@ public:
 	};
 	MeshChunk();
 	~MeshChunk();
+	std::mutex mutex;
 	static int triangleGPU;
 	// 3D directions
 	GLuint vbo;
@@ -76,11 +80,10 @@ public:
 	void setupMesh();
 	void transferToGPU();
 	void draw();
+	bool isComplete = false;
+	void lock() { mutex.lock(); }
+	void unlock() { mutex.unlock(); }
 	void clearOnGPU();
-	bool isHaveData() {
-		if (triCount > 0) return true;
-		return false;
-	}
 	unsigned int reserveAmount = 0;
 private:
 	unsigned int triCount = 0;

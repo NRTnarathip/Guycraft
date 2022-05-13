@@ -2,14 +2,14 @@
 #include <algorithm>
 int MeshChunk::triangleGPU = 0;
 
-void MeshChunk::Vertex::SetUVTile(unsigned int voxID, unsigned int voxType, unsigned int tileRow) {
+void MeshChunk::Vertex::SetUVTile(unsigned int voxID, unsigned int voxType) {
 	//use 12bit
 	//each axis use 6bit range 0->63;
 	//bit int 
 	// 0000 0000 0000 0000 0000 0000 0000 0000
 	unsigned int index = voxID + voxType;
-	unsigned int x = (index % tileRow);
-	unsigned int y = (index / tileRow);
+	unsigned int x = (index % TILE_ROW);
+	unsigned int y = (index / TILE_ROW);
 	uvTileAndNormal = uvTileAndNormal | x;
 	uvTileAndNormal = uvTileAndNormal | (y << 6); //mask
 }
@@ -39,8 +39,8 @@ MeshChunk::~MeshChunk() {
 
 	clearOnGPU();
 }
-
 void MeshChunk::clearOnGPU() {
+	isComplete = false;
 	//remove buffer object
 	MeshChunk::triangleGPU -= triCount;
 	triCount = 0;

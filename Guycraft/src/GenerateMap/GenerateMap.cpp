@@ -11,15 +11,15 @@ void GenerateMap::genMoiseture(GenMapData* map)
 
 void GenerateMap::genHeight(GenMapData* map)
 {
-	float chunkSize = Chunk::CHUNK_SIZE;
+	float chunkSize = CHUNK_SIZE;
 	float scale = .09f;
 	auto cgPos = map->cg->pos;
 
-	for (int k = 0; k < Chunk::CHUNK_SIZE; k++) {
+	for (int k = 0; k < CHUNK_SIZE; k++) {
 		int z = k + cgPos.y;
 		float nz = (z / chunkSize) * scale;
 
-		for (int i = 0; i < Chunk::CHUNK_SIZE; i++) {
+		for (int i = 0; i < CHUNK_SIZE; i++) {
 			int x = i + cgPos.x;
 			float nx = (x / chunkSize) * scale;
 

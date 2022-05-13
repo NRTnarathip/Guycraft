@@ -90,25 +90,4 @@ void PlayerController::UpdateInputs()
 	// Rotates the Orientation left and right
 	camera->Orientation = glm::rotate(camera->Orientation, glm::radians(rotY), camera->Up);
 	camera->Postition = posEntity;
-
-	//addon
-	auto input = &Input::GetInstance();
-	if (input->isKeyDown(GLFW_KEY_R)) {
-		printf("reload \n");
-		//reload gen mesh all chunk
-		/*auto cManager = ChunkManager::GetInstance();
-		for (auto chunkKeyPair : cManager->chunkGroups) {
-			auto smChunk = chunkKeyPair.second;
-			smChunk->lock();
-			auto cg = smChunk->get();
-			if (cg->needGenMeshChunk) {
-				smChunk->unlock();
-				continue;
-			}
-
-			cg->needGenMeshChunk = true;
-			smChunk->unlock();
-			cManager->queNeedGenMeshChunkGroup.push(smChunk);
-		}*/
-	}
 }

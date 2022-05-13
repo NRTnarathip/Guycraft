@@ -4,13 +4,14 @@
 #include <queue>
 #include <SmartQueue.h>
 #include <vector>
+#include "MeshChunk.h"
 
 //engine for generate mesh chunk threading
 class ChunkMeshBuilding {
 public:
 	static ChunkMeshBuilding* m_instance;
 	std::thread m_thread;
-	SmartQueue<Chunk*> m_queueComplete;
+	SmartQueue<MeshChunk*> m_queueComplete;
 	SmartQueue<Chunk*> m_queueJob;
 	ChunkMeshBuilding() {
 		if (m_instance) return;
@@ -20,4 +21,6 @@ public:
 	void startWithThread();
 	void updateMainThread();//update for main thread
 	void addQueue(Chunk* chunk);
+	void genMeshChunk(Chunk* chunk);
+	void genMeshChunkNeighborEdge(Chunk* c);
 };

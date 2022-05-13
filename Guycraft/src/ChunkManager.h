@@ -8,17 +8,17 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 #include <TerrainGen.h>
-#include <ChunkGroup.h>
+#include <Chunk.h>
 
 #include <thread>
 #include <SmartQueue.h>
 #include <vector>
-#include <SmartChunkPooling.h>
+#include <ChunkPooling.h>
 #include "ChunkMeshBuilding.h"
 #include "ChunkLoader.h"
 
 #include "SmartMutex.h"
-#include "ChunkGroupContainer.h"
+#include "ChunkContainer.h"
 
 class ChunkManager {
 private:
@@ -28,24 +28,17 @@ public:
 	static ChunkManager* GetInstance() { return m_instance; }
 	ChunkMeshBuilding chunkMeshBuilding;
 	ChunkLoader chunkLoader;
-
-	std::queue<SmartChunkGroup*> m_queueNewChunkGroup;
-	SmartChunkPooling chunkPooling;//dont del smChunk object on heap
-
+	ChunkPooling chunkPooling;
 	std::vector<std::thread> listThread;
-	TerrainGen terrainGen;
 	void init();
 	void render();
 	void update();
 
 	static bool ChunkInRange(glm::ivec2 posPlayer, glm::ivec2 chunkPos);
-
-	void initChunkNear(SmartChunkGroup* cg, SmartChunkGroup* cgNearNorth,
-		SmartChunkGroup* cgNearSouth, SmartChunkGroup* cgNearEast, SmartChunkGroup* cgNearWest);
 	glm::ivec3 ToChunkPosition(glm::vec3 pos) const;
 	glm::ivec3 lastViewPos;
 
 public: //none safe thread
-	ChunkGroupContainer chunkGroups;
-	SmartChunkGroup* getChunkGroup(glm::ivec2 pos);
+	ChunkContainer chunks;
+	Chunk* getChunk(glm::ivec2 pos);
 };

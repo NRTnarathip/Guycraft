@@ -16,21 +16,13 @@ void useThreadPopulate() {
 			m_queueNewRequestChunk->unlock();
 			continue;
 		}
-		auto smChunk = m_queueNewRequestChunk->getFront();
+		auto chunk = m_queueNewRequestChunk->getFront();
 		m_queueNewRequestChunk->unlock();
-
-		smChunk->lock();
-		auto cg = smChunk->get();
-		if (cg->isFourceUnload) {
-			printf("dont populate on CG is fource unload\n");
-			cManager->chunkPooling.collectPooling(smChunk);
-			smChunk->unlock();
-			continue;
-		}
-		terrainGen.populate(cg);
-		smChunk->unlock();
+		chunk->lock();
+		terrainGen.populate(chunk);
+		chunk->unlock();
 		cLoader->m_queueRequestCompleteChunk.lock();
-		cLoader->m_queueRequestCompleteChunk.push(smChunk);
+		cLoader->m_queueRequestCompleteChunk.push(chunk);
 		cLoader->m_queueRequestCompleteChunk.unlock();
 	}
 }
@@ -42,7 +34,7 @@ void ChunkLoader::startThread()
 void ChunkLoader::firstLoader(glm::ivec2 pos) {
 	startThread();
 	lastPosChunk = pos;
-	progressLoadChunkGroup(pos);
+	progressLoadChunk(pos);
 }
 void ChunkLoader::update(glm::ivec2 posPlayer) {
 	if (lastPosChunk != posPlayer) {
@@ -51,67 +43,86 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 	}
 	//create chunk from request loadchunk
 	auto manager = ChunkManager::GetInstance();
+	manager->chunks.lock();
 	m_queueRequestCompleteChunk.lock();
 	while(m_queueRequestCompleteChunk.size() > 0) {
-		auto smChunk = m_queueRequestCompleteChunk.getFront();
-		auto pos = smChunk->get()->pos;
-		if (m_requestChunkGroup.exist(pos)) {
-			if (manager->chunkGroups.exist(pos)) {
-				manager->chunkPooling.collectPooling(manager->chunkGroups.m_container[pos]);
-				manager->chunkGroups.m_container.erase(pos);
+		auto chunk = m_queueRequestCompleteChunk.getFront();
+		chunk->lock();
+		auto pos = chunk->pos;
+		if (m_requestChunks.exist(pos)) {
+			if (manager->chunks.exist(pos)) {
+				manager->chunkPooling.collectPooling(manager->chunks.m_container[pos]);
+				manager->chunks.m_container.erase(pos);
 			}
-			manager->chunkGroups.m_container.emplace(pos, smChunk);
-			for (auto c : smChunk->get()->chunks) {
-				manager->chunkMeshBuilding.addQueue(c);
+			//init chunk in client
+			manager->chunks.m_container.emplace(pos, chunk);
+			//setup chunk neighbor
+			Chunk* chunksNeighbor[4] = {nullptr,nullptr,nullptr,nullptr};
+			glm::ivec2 posChunkNeighbor[4] = {
+				glm::ivec2(0, CHUNK_SIZE) + pos,
+				glm::ivec2(0, -CHUNK_SIZE) + pos,
+				glm::ivec2(CHUNK_SIZE, 0) + pos,
+				glm::ivec2(-CHUNK_SIZE, 0) + pos,
+			};
+			for (int i = 0; i < 4; i++) {
+				auto posNext = posChunkNeighbor[i];
+				auto c = manager->getChunk(posNext);
+				if (c != nullptr) {
+					chunksNeighbor[i] = c;
+				}
 			}
+			chunk->linkChunkNeighbor(chunksNeighbor);
+			chunk->onLoad();
+			manager->chunkMeshBuilding.addQueue(chunk);
 		}
 		else {
-			unloadChunkGroup(smChunk);
-			m_requestChunkGroup.m_container.erase(pos);
+			unloadChunk(chunk);
+			m_requestChunks.m_container.erase(pos);
 		}
+		chunk->unlock();
 	}
+	manager->chunks.unlock();
 	m_queueRequestCompleteChunk.unlock();
 }
 void ChunkLoader::onPlayerMoveToNewChunk()
 {
 	auto cManager = ChunkManager::GetInstance();
-	std::vector<SmartChunkGroup*> listUnloadChunkGroup;
-	for (auto &elem : cManager->chunkGroups.m_container) {
-		auto smChunkGroup = elem.second;
-		smChunkGroup->lock();
-		auto posChunk = smChunkGroup->get()->pos;
+	std::vector<Chunk*> listUnloadChunk;
+	for (auto &elem : cManager->chunks.m_container) {
+		auto chunk = elem.second;
+		chunk->lock();
+		auto posChunk = chunk->pos;
 		if (not ChunkManager::ChunkInRange(lastPosChunk, posChunk)) {
-			listUnloadChunkGroup.push_back(smChunkGroup);
-			if (m_requestChunkGroup.exist(posChunk)) {
-				m_requestChunkGroup.m_container.erase(posChunk);
+			listUnloadChunk.push_back(chunk);
+			if (m_requestChunks.exist(posChunk)) {
+				m_requestChunks.m_container.erase(posChunk);
 			}
 		}
-		smChunkGroup->unlock();
+		chunk->unlock();
 	}
-	for (auto smChunkGroup : listUnloadChunkGroup) {
-		smChunkGroup->get()->isFourceUnload = true;
-		unloadChunkGroup(smChunkGroup);
-		auto pos = smChunkGroup->get()->pos;
+	for (auto chunk : listUnloadChunk) {
+		unloadChunk(chunk);
 	}
-	listUnloadChunkGroup.clear();
-	progressLoadChunkGroup(lastPosChunk);
+	listUnloadChunk.clear();
+	progressLoadChunk(lastPosChunk);
 }
 
-void ChunkLoader::unloadChunkGroup(SmartChunkGroup* smChunkGroup)
+void ChunkLoader::unloadChunk(Chunk* chunk)
 {
-	auto cm = ChunkManager::GetInstance();
-	auto pos = smChunkGroup->get()->pos;
-	cm->chunkGroups.m_container.erase(pos);
-	smChunkGroup->get()->isFourceUnload = true;
-	cm->chunkPooling.collectPooling(smChunkGroup);
-	for (auto c : smChunkGroup->get()->chunks) {
-		c->isFourceStopGenerateMesh = true;
+	//clear chunk mesh on gpu
+	chunk->lock();
+	chunk->unload();
+	for (auto &mesh : chunk->meshs) {
+		mesh.clearOnGPU();
 	}
-	//check packet req queue and delete
-	
+	chunk->unlock();
+	auto cm = ChunkManager::GetInstance();
+	auto pos = chunk->pos;
+	cm->chunks.m_container.erase(pos);
+	cm->chunkPooling.collectPooling(chunk);
 }
 
-void ChunkLoader::progressLoadChunkGroup(glm::ivec2 posInit)
+void ChunkLoader::progressLoadChunk(glm::ivec2 posInit)
 {
 	std::queue<glm::ivec2> queueLoadChunk;
 	queueLoadChunk.push(posInit);
@@ -123,18 +134,18 @@ void ChunkLoader::progressLoadChunkGroup(glm::ivec2 posInit)
 		auto pos = queueLoadChunk.front();
 		queueLoadChunk.pop();
 		if (ChunkManager::ChunkInRange(lastPosChunk, pos)) {
-			if (not m_requestChunkGroup.exist(pos)) {
-				m_requestChunkGroup.m_container.emplace(pos, nullptr);
-				auto smChunk = cManager->chunkPooling.makeSmartChunk(pos);
+			if (not m_requestChunks.exist(pos)) {
+				m_requestChunks.m_container.emplace(pos, nullptr);
+				auto smChunk = cManager->chunkPooling.makeObject(pos);
 				m_queueNewRequestChunk.lock();
 				m_queueNewRequestChunk.push(smChunk);
 				m_queueNewRequestChunk.unlock();
 			}
 			glm::ivec2 posNextChunk[4] = {
-				glm::ivec2(0, Chunk::CHUNK_SIZE) + pos,
-				glm::ivec2(0, -Chunk::CHUNK_SIZE) + pos,
-				glm::ivec2(Chunk::CHUNK_SIZE, 0) + pos,
-				glm::ivec2(-Chunk::CHUNK_SIZE, 0) + pos,
+				glm::ivec2(0, CHUNK_SIZE) + pos,
+				glm::ivec2(0, -CHUNK_SIZE) + pos,
+				glm::ivec2(CHUNK_SIZE, 0) + pos,
+				glm::ivec2(-CHUNK_SIZE, 0) + pos,
 			};
 			for (auto posNext : posNextChunk) {
 				if (m_containerPosProgress.find(posNext) == m_containerPosProgress.end()) {
