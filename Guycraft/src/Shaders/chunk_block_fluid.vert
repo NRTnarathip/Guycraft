@@ -15,7 +15,7 @@ uniform mat4 view;
 uniform mat4 model;
 uniform float time;
 
-float waveHeight = 0.0625;
+float waveHeight = 0.3125;
 
 
 //Warning!!!! u invert axis X
@@ -53,7 +53,7 @@ void main()
 {
 	vec3 vertexPos = aPos / vec3(16.0, 16.0, 16.0);
 	float waveX = sin(vertexPos.x + time) * waveHeight;
-	float waveZ = cos(vertexPos.z + time) * waveHeight;
+	float waveZ = sin(vertexPos.z + time) * waveHeight;
 	vertexPos.y = vertexPos.y + ((waveX + waveZ) / 2.0);
 
 	gl_Position = projection * view * model * vec4(vertexPos, 1.0);

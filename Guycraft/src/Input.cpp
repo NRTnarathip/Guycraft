@@ -79,10 +79,11 @@ void Input::setMouseMode(int mode) {
 }
 glm::vec2 Input::mouseAxis() {
     auto* win = ClientEngine::GetInstance().window->window;
+    float deltaTime = (float)Time::deltaTime;
     int width, height;
     glfwGetWindowSize(win, &width,&height);
     auto offs = nowCursor - lastCursor;
-    auto axis = glm::vec2(offs.x, offs.y);
+    auto axis = glm::vec2(offs.x , offs.y);
     return axis;
 }
 

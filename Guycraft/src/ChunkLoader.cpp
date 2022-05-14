@@ -47,7 +47,6 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 	m_queueRequestCompleteChunk.lock();
 	while(m_queueRequestCompleteChunk.size() > 0) {
 		auto chunk = m_queueRequestCompleteChunk.getFront();
-		chunk->lock();
 		auto pos = chunk->pos;
 		if (m_requestChunks.exist(pos)) {
 			if (manager->chunks.exist(pos)) {
@@ -79,7 +78,6 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 			unloadChunk(chunk);
 			m_requestChunks.m_container.erase(pos);
 		}
-		chunk->unlock();
 	}
 	manager->chunks.unlock();
 	m_queueRequestCompleteChunk.unlock();

@@ -73,9 +73,9 @@ void PlayerController::UpdateInputs()
 	// and then "transforms" them into degrees 
 	//auto &mouse = Game::GetInstance()->inputManager.mouse;
 	glm::vec2 mouseAxis = Input::GetInstance().mouseAxis();
-	float sensinitive = 20.0f;
-	float rotX = (mouseAxis.y * sensinitive) * (float)Time::deltaTime;
-	float rotY = (mouseAxis.x * sensinitive) * (float)Time::deltaTime;
+	float sensinitive = 0.25f;
+	float rotX = (mouseAxis.y * sensinitive);
+	float rotY = (mouseAxis.x * sensinitive);
 	// Calculates upcoming vertical change in the Orientation
 	glm::vec3 newOrientation = glm::rotate(camera->Orientation, 
 		glm::radians(-rotX), 

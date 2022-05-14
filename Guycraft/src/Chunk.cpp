@@ -24,7 +24,6 @@ void Chunk::render() {
         sdSolid->Bind();
         sdSolid->SetMat4("model", model);
         mcatlas->Activate(GL_TEXTURE0);
-
         meshSolid->draw();
 
         sdFluid->Bind();
@@ -110,18 +109,20 @@ void Chunk::generateMeshChunk() {
     Voxel voxel;
     bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
     for (u8 group = 0; group < 8; group++) {
-        auto mesh = &meshs[group];
+        auto meshSolid = &meshs[group];
         auto meshFluid = &meshs[group + VOXEL_GROUP_COUNT];
+        meshSolid->lock();
         meshFluid->lock();
-        mesh->lock();
 
         meshFluid->isComplete = false;
-        mesh->isComplete = false;
+        meshFluid->isOnGenerate = true;
+        meshSolid->isComplete = false;
+        meshSolid->isOnGenerate = true;
 
         if (not isLoad) {
-            mesh->unlock();
+            meshSolid->unlock();
             meshFluid->unlock();
-            return;
+            continue;
         } 
         for (u8 z = 0; z < CHUNK_SIZE; z++) {
             isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
@@ -137,19 +138,20 @@ void Chunk::generateMeshChunk() {
                         genMeshWater(group, x, y, z, voxel, useFuncGetVoxelOutChunk);
                     }
                     else {
-                        genMeshCube(mesh, group, x, y, z, voxel, useFuncGetVoxelOutChunk);
+                        genMeshCube(meshSolid, group, x, y, z, voxel, useFuncGetVoxelOutChunk);
                     }
                     
                 }
             }
         }
-        mesh->unlock();
+        meshFluid->isOnGenerate = false;
+        meshSolid->isOnGenerate = false;
+        meshSolid->unlock();
         meshFluid->unlock();
-
         //end one task for gen mesh
         auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
         cMeshBuilding->m_queueComplete.lock();
-        cMeshBuilding->m_queueComplete.push(mesh);
+        cMeshBuilding->m_queueComplete.push(meshSolid);
         cMeshBuilding->m_queueComplete.push(meshFluid);
         cMeshBuilding->m_queueComplete.unlock();
     }
@@ -574,7 +576,7 @@ bool Chunk::voxelSouthIsSolid(u8 group, i8 x, i8 y, i8 z) {
 bool Chunk::voxelEastIsSolid(u8 group, i8 x, i8 y, i8 z) {
     if (x > 31) {
         if (east == nullptr) return true;
-        u8 type = east->voxels[x + (y << 5) + (group << 15)].type;
+        u8 type = east->voxels[(y << 5) + (z<<10) + (group << 15)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID
@@ -582,7 +584,7 @@ bool Chunk::voxelEastIsSolid(u8 group, i8 x, i8 y, i8 z) {
 bool Chunk::voxelWestIsSolid(u8 group, i8 x, i8 y, i8 z) {
     if (x < 0) {
         if (west == nullptr) return true;
-        u8 type = west->voxels[31 + (y << 5) +(z<<10)+ (group << 15)].type;
+        u8 type = west->voxels[31 + (y << 5) + (z << 10) + (group << 15)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID

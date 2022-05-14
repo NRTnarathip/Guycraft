@@ -48,17 +48,20 @@ void ChunkMeshBuilding::updateMainThread()
 		}
 		auto mesh = m_queueComplete.getFront();
 		m_queueComplete.unlock();
-		mesh->lock();
+
+		if (mesh->isOnGenerate) {
+			continue;
+		}
+
 		mesh->transferToGPU();
 		mesh->isComplete = true;
-		mesh->unlock();
 	}
 }
 
 void ChunkMeshBuilding::addQueue(Chunk* chunk)
 {
-	m_queueJob.lock();
 	chunk->isNeedGenerateMesh = true;
+	m_queueJob.lock();
 	m_queueJob.push(chunk);
 	m_queueJob.unlock();
 }
@@ -66,19 +69,28 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk)
 void ChunkMeshBuilding::genMeshChunkNeighborEdge(Chunk* c)
 {
 	if (c->north != nullptr) {
+		c->north->lock();
 		c->north->isNeedGenerateMesh = true;
 		c->north->generateMeshChunk();
+		c->north->unlock();
 	}
+
 	if (c->south != nullptr) {
+		c->south->lock();
 		c->south->isNeedGenerateMesh = true;
 		c->south->generateMeshChunk();
+		c->south->unlock();
 	}
 	if (c->east != nullptr) {
+		c->east->lock();
 		c->east->isNeedGenerateMesh = true;
 		c->east->generateMeshChunk();
+		c->east->unlock();
 	}
 	if (c->west != nullptr) {
+		c->west->lock();
 		c->west->isNeedGenerateMesh = true;
 		c->west->generateMeshChunk();
+		c->west->unlock();
 	}
 }
