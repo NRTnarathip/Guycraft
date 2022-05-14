@@ -58,11 +58,19 @@ bool ChunkManager::ChunkInRange(glm::ivec2 playerPos, glm::ivec2 chunkPos)
 void ChunkManager::render() {
 	auto camera = CameraManager::GetCurrentCamera();
 	auto res = ResourceManager::GetInstance();
-	auto shaderChunkSolid = res->m_shaders["chunk_block_solid"];
-	shaderChunkSolid->Bind();
-	shaderChunkSolid->SetVar("tex", 0);
-	shaderChunkSolid->SetFloat("aoStrength", 0.45f);
-	CameraManager::GetInstance().uploadCameraMatrixToShader(shaderChunkSolid);
+	auto sdSolid = res->m_shaders["chunk_block_solid"];
+	auto sdFulid = res->m_shaders["chunk_block_fluid"];
+	sdSolid->Bind();
+	sdSolid->SetVar("tex", 0);
+	sdSolid->SetFloat("aoStrength", 0.45f);
+
+	sdFulid->Bind();
+	sdFulid->SetVar("tex", 0);
+	sdFulid->SetFloat("aoStrength", 0.45f);
+	sdFulid->SetFloat("time", (float)Time::lastTime);
+
+	CameraManager::GetInstance().uploadCameraMatrixToShader(sdSolid);
+	CameraManager::GetInstance().uploadCameraMatrixToShader(sdFulid);
 
 	for (auto kvp : chunks.m_container) {
 		auto chunk = kvp.second;

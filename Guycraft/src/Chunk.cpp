@@ -8,20 +8,30 @@ Chunk::Chunk(glm::ivec2 pos) {
 }
 void Chunk::render() {
     auto resource = ResourceManager::GetInstance();
-    auto defaultShader = resource->m_shaders["chunk_block_solid"];
+    auto sdSolid = resource->m_shaders["chunk_block_solid"];
+    auto sdFluid = resource->m_shaders["chunk_block_fluid"];
     auto mcatlas = resource->m_textures["assets/textures/blocks/mcatlas.png"];
-    defaultShader->Bind();
+
     glm::vec3 position = { pos.x, 0.f, pos.y };
     for (int i = 0; i < 8; i++) {
-        auto mesh = &meshs[i];
+        auto meshSolid = &meshs[i];
         auto meshFluid = &meshs[i + VOXEL_GROUP_COUNT];
+
         // Mesh must be on gpu to draw
         glm::mat4 model = glm::mat4(1.f);
         model = glm::translate(model, position);
-        defaultShader->SetMat4("model", model);
+        //render mesh solid
+        sdSolid->Bind();
+        sdSolid->SetMat4("model", model);
         mcatlas->Activate(GL_TEXTURE0);
-        mesh->draw();
+
+        meshSolid->draw();
+
+        sdFluid->Bind();
+        sdFluid->SetMat4("model", model);
+        mcatlas->Activate(GL_TEXTURE0);
         meshFluid->draw();
+
         position.y += CHUNK_SIZE;
     }
 }
@@ -155,16 +165,18 @@ void Chunk::genMeshWater(u8 groupVoxel, char x, char y, char z, Voxel voxel, boo
     i8 xx = x + 1;
     i8 yy = y + 1;
     i8 zz = z + 1;
+    float waterLevel = 15;
+    float vertexY = y + (waterLevel / 16);
     //gen mesh water top away
     if (getvoxel(groupVoxel,x,yy,z).type == 0) {
         vert.SetNormal(0);
-        vert.SetPos(x, yy, z);
+        vert.SetPos(x, vertexY, z);
         mesh->vertexs.push_back(vert);//0
-        vert.SetPos(x, yy, zz);
+        vert.SetPos(x, vertexY, zz);
         mesh->vertexs.push_back(vert);//1
-        vert.SetPos(xx, yy, zz);
+        vert.SetPos(xx, vertexY, zz);
         mesh->vertexs.push_back(vert);//2
-        vert.SetPos(xx, yy, z);
+        vert.SetPos(xx, vertexY, z);
         mesh->vertexs.push_back(vert);//3
         MakeQuadFace(mesh, voxel, 0, voxSurr, lightSurr);
     }

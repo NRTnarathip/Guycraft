@@ -13,6 +13,11 @@ const float tileSize = 0.0625;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform float time;
+
+float waveHeight = 0.0625;
+
+
 //Warning!!!! u invert axis X
 const vec2 tbUV[4] = vec2[4](
 	vec2(0.0,0.0),//0
@@ -47,6 +52,10 @@ vec2 toTextureCood(float val) {
 void main()
 {
 	vec3 vertexPos = aPos / vec3(16.0, 16.0, 16.0);
+	float waveX = sin(vertexPos.x + time) * waveHeight;
+	float waveZ = cos(vertexPos.z + time) * waveHeight;
+	vertexPos.y = vertexPos.y + ((waveX + waveZ) / 2.0);
+
 	gl_Position = projection * view * model * vec4(vertexPos, 1.0);
 	ao = (int(aLighting) >> 8) & 3;
 	sunLampLight = 0; //temp

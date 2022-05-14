@@ -1,7 +1,11 @@
 #include <MeshChunk.h>
 #include <algorithm>
 int MeshChunk::triangleGPU = 0;
-
+void MeshChunk::Vertex::SetPos(float x, float y, float z) {
+	pos[0] = u16(x * 16);
+	pos[1] = u16(y * 16);
+	pos[2] = u16(z * 16);
+}
 void MeshChunk::Vertex::SetUVTile(unsigned int voxID, unsigned int voxType) {
 	//use 12bit
 	//each axis use 6bit range 0->63;
@@ -60,7 +64,7 @@ void MeshChunk::setupMesh() {
 
 	// position 3 axis with bitmask
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_BYTE, GL_FALSE, sizeof(Vertex),
+	glVertexAttribPointer(0, 3, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
 		(void*)offsetof(Vertex, pos));
 	// uv tile; uv index of table texcoord; normal index of table normal
 	glEnableVertexAttribArray(1);
