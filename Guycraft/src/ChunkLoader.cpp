@@ -46,12 +46,14 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 	manager->chunks.lock();
 	m_queueRequestCompleteChunk.lock();
 	while(m_queueRequestCompleteChunk.size() > 0) {
-		auto chunk = m_queueRequestCompleteChunk.getFront();
+		Chunk* chunk = m_queueRequestCompleteChunk.getFront();
 		auto pos = chunk->pos;
 		if (m_requestChunks.exist(pos)) {
 			if (manager->chunks.exist(pos)) {
-				manager->chunkPooling.collectPooling(manager->chunks.m_container[pos]);
-				manager->chunks.m_container.erase(pos);
+				auto chunkExist = manager->getChunk(pos);
+				chunkExist->lock();
+				unloadChunk(chunkExist);
+				chunkExist->unlock();
 			}
 			//init chunk in client
 			manager->chunks.m_container.emplace(pos, chunk);
@@ -70,12 +72,16 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 					chunksNeighbor[i] = c;
 				}
 			}
+			chunk->lock();
 			chunk->linkChunkNeighbor(chunksNeighbor);
+			chunk->unlock();
 			chunk->onLoad();
+
 			manager->chunkMeshBuilding.addQueue(chunk);
 		}
 		else {
-			unloadChunk(chunk);
+			chunk->lock();
+			unloadChunk(chunk); chunk->unlock();
 			m_requestChunks.m_container.erase(pos);
 		}
 	}
@@ -88,7 +94,6 @@ void ChunkLoader::onPlayerMoveToNewChunk()
 	std::vector<Chunk*> listUnloadChunk;
 	for (auto &elem : cManager->chunks.m_container) {
 		auto chunk = elem.second;
-		chunk->lock();
 		auto posChunk = chunk->pos;
 		if (not ChunkManager::ChunkInRange(lastPosChunk, posChunk)) {
 			listUnloadChunk.push_back(chunk);
@@ -96,7 +101,6 @@ void ChunkLoader::onPlayerMoveToNewChunk()
 				m_requestChunks.m_container.erase(posChunk);
 			}
 		}
-		chunk->unlock();
 	}
 	for (auto chunk : listUnloadChunk) {
 		unloadChunk(chunk);

@@ -66,7 +66,7 @@ void Chunk::linkChunkNeighbor(Chunk* chunks[4]) {
 void Chunk::unlinkChunkNeighbhor() {
     if (north != nullptr) {
         north->south = nullptr;
-        north= nullptr;
+        north = nullptr;
     }
     if (south != nullptr) {
         south->north = nullptr;
@@ -105,10 +105,20 @@ Voxel Chunk::getvoxel(u8 group, u8 x, u8 y, u8 z) {
 };
 void Chunk::generateMeshChunk() {
     isNeedGenerateMesh = false;
-
+   
     Voxel voxel;
     bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
     for (u8 group = 0; group < 8; group++) {
+        if (not isLoad) {
+            for (auto& mesh : meshs) {
+                mesh.lock();
+                mesh.isComplete = false;
+                mesh.isOnGenerate = false;
+                mesh.unlock();
+            }
+            return;
+        }
+
         auto meshSolid = &meshs[group];
         auto meshFluid = &meshs[group + VOXEL_GROUP_COUNT];
         meshSolid->lock();
@@ -118,12 +128,6 @@ void Chunk::generateMeshChunk() {
         meshFluid->isOnGenerate = true;
         meshSolid->isComplete = false;
         meshSolid->isOnGenerate = true;
-
-        if (not isLoad) {
-            meshSolid->unlock();
-            meshFluid->unlock();
-            continue;
-        } 
         for (u8 z = 0; z < CHUNK_SIZE; z++) {
             isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
             for (u8 y = 0; y < CHUNK_SIZE; y++) {

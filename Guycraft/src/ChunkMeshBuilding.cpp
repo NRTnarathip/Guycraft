@@ -68,29 +68,14 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk)
 
 void ChunkMeshBuilding::genMeshChunkNeighborEdge(Chunk* c)
 {
-	if (c->north != nullptr) {
-		c->north->lock();
-		c->north->isNeedGenerateMesh = true;
-		c->north->generateMeshChunk();
-		c->north->unlock();
-	}
-
-	if (c->south != nullptr) {
-		c->south->lock();
-		c->south->isNeedGenerateMesh = true;
-		c->south->generateMeshChunk();
-		c->south->unlock();
-	}
-	if (c->east != nullptr) {
-		c->east->lock();
-		c->east->isNeedGenerateMesh = true;
-		c->east->generateMeshChunk();
-		c->east->unlock();
-	}
-	if (c->west != nullptr) {
-		c->west->lock();
-		c->west->isNeedGenerateMesh = true;
-		c->west->generateMeshChunk();
-		c->west->unlock();
+	std::vector<Chunk*> chunksNiehgbor = {
+		c->north, c->south,c->east, c->west
+	};
+	for (auto chunk : chunksNiehgbor) {
+		if (chunk == nullptr) continue;
+		chunk->lock();
+		chunk->isNeedGenerateMesh = true;
+		chunk->generateMeshChunk();
+		chunk->unlock();
 	}
 }
