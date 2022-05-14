@@ -30,17 +30,16 @@ void TerrainGen::populate(Chunk* chunk) {
     //gen all noise map
     for (int k = 0; k < CHUNK_SIZE; k++) {
         int z = k + pos.y;
-        float nz = ((z / chunkSize) - 0.5f) * scale;
-
+        float nz = (z / chunkSize) * scale;
         for (int i = 0; i < CHUNK_SIZE; i++) {
             int accMap = i + (k << BS_CH);
             int x = i + pos.x;
-            float nx = ((x / chunkSize) - 0.5f) * scale;
+            float nx = (x / chunkSize) * scale;
 
             //gen height map
-            float n = noise->GenSingle2D(nx, nz, seed);
-            n = (n + 1) / 2.f;
+            float n = genOctave(nx, nz, 3);
             heightMap[accMap] = n;
+
             //gen moiseture map
             float nMoiseture = noise->GenSingle2D(nx, nz, seed);
             nMoiseture = (nMoiseture + 1) / 2.f;
@@ -55,6 +54,7 @@ void TerrainGen::populate(Chunk* chunk) {
                 float noiseData[3] = { heightMap[accDataMap],0,0 };
                 for (unsigned char y = 0; y < CHUNK_SIZE; y++) {
                     int height = y + (group * 32);
+
                     chunk->voxels[x + (y << BS_CH) + (z << BS_CH2) + (group * CHUNK_SIZE_BLOCK)] = GetVoxelTerrain(chunk, noiseData, height);
                 }
             }
@@ -62,18 +62,37 @@ void TerrainGen::populate(Chunk* chunk) {
     }
 }
 Voxel TerrainGen::GetVoxelTerrain(Chunk*c, float noiseData[3], int y) {
-    Voxel voxTemp = { 0, 0};
+    Voxel voxel = { 0, 0};
     int height = (int)(noiseData[0] * 255);
-    //range -20 -> 50;
-    int temperature =  (int)( noiseData[1] * 70) - 20;
-    //int precipitation = (int)(noiseData[1] * 50);
     if (y == height) {
         //dirt
-        voxTemp.type = 1;
+        voxel.type = 1;
     }
     else if (y < height) {
-        voxTemp.type = 2;//stone
+        voxel.type = 2;//stone
+    }
+    //water
+    if (y > height and y <= 64) {
+        voxel.type = 4;
     }
 
-    return voxTemp;
+    return voxel;
+}
+
+float TerrainGen::genOctave(float nx, float nz, int octave)
+{
+    auto noise = FastNoise::New<FastNoise::Perlin>();
+
+    float n = 0.f;
+    int scale = 1;
+    float sumScale = 0.f;
+    for (u8 i = 0; i < octave; i++) {
+        float e = noise->GenSingle2D(nx * scale, nz * scale, seed);
+        float subScale = 1 / scale;
+        n += ((e + 1.f) / 2.f) * subScale;
+
+        sumScale += subScale;
+        scale *= 2;
+    }
+    return n / sumScale;
 }

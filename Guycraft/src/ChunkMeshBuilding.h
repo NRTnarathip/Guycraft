@@ -21,6 +21,5 @@ public:
 	void startWithThread();
 	void updateMainThread();//update for main thread
 	void addQueue(Chunk* chunk);
-	void genMeshChunk(Chunk* chunk);
 	void genMeshChunkNeighborEdge(Chunk* c);
 };

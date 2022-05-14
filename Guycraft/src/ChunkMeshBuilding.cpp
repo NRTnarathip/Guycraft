@@ -29,7 +29,7 @@ void useThreadChunkMeshBuilding() {
 			printf("gen mesh block %i time:%d ms\n", chunk->getBlockCount(),
 				std::chrono::nanoseconds(elapsed).count() / 100000);
 		}*/
-		//cMeshBuilder->genMeshChunkNeighborEdge(chunk);
+		cMeshBuilder->genMeshChunkNeighborEdge(chunk);
 		chunk->unlock();
 	}
 }
@@ -40,7 +40,7 @@ void ChunkMeshBuilding::startWithThread()
 
 void ChunkMeshBuilding::updateMainThread()
 {
-	while(true) {
+	for(int i =0;i < VOXEL_GROUP_COUNT;i++){
 		m_queueComplete.lock();
 		if (m_queueComplete.empty()) {
 			m_queueComplete.unlock();
@@ -63,30 +63,22 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk)
 	m_queueJob.unlock();
 }
 
-void ChunkMeshBuilding::genMeshChunk(Chunk* chunk)
-{
-	if (not chunk->isNeedGenerateMesh) {
-		return;
-	}
-	chunk->generateMeshChunk();
-}
-
 void ChunkMeshBuilding::genMeshChunkNeighborEdge(Chunk* c)
 {
 	if (c->north != nullptr) {
 		c->north->isNeedGenerateMesh = true;
-		genMeshChunk(c->north);
+		c->north->generateMeshChunk();
 	}
 	if (c->south != nullptr) {
 		c->south->isNeedGenerateMesh = true;
-		genMeshChunk(c->south);
+		c->south->generateMeshChunk();
 	}
 	if (c->east != nullptr) {
 		c->east->isNeedGenerateMesh = true;
-		genMeshChunk(c->east);
+		c->east->generateMeshChunk();
 	}
 	if (c->west != nullptr) {
 		c->west->isNeedGenerateMesh = true;
-		genMeshChunk(c->west);
+		c->west->generateMeshChunk();
 	}
 }

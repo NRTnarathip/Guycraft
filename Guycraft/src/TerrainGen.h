@@ -12,5 +12,6 @@ public:
 	Voxel GetVoxelTerrain(Chunk*c, float genMapData[3], int y);
 	std::vector<Biome> m_biomes;
 	int seed = 0;
+	float genOctave(float nx, float nz, int octave);
 };
 

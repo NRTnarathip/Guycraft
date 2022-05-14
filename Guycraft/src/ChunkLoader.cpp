@@ -110,12 +110,12 @@ void ChunkLoader::onPlayerMoveToNewChunk()
 void ChunkLoader::unloadChunk(Chunk* chunk)
 {
 	//clear chunk mesh on gpu
-	chunk->lock();
 	chunk->unload();
 	for (auto &mesh : chunk->meshs) {
+		mesh.lock();
 		mesh.clearOnGPU();
+		mesh.unlock();
 	}
-	chunk->unlock();
 	auto cm = ChunkManager::GetInstance();
 	auto pos = chunk->pos;
 	cm->chunks.m_container.erase(pos);

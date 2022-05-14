@@ -1,7 +1,8 @@
 #include <Chunk.h>
 #include "ChunkMeshBuilding.h"
 #include "ResourceManager.h"
-
+#define ACCESSVOXEL voxels[x + (y << BS_CH) + (z << BS_CH2) + (group << BS_CH4)]
+#define IMP_RETURN_VOXELISSOLID u8 type = ACCESSVOXEL.type; return type !=0 and type != 4;
 Chunk::Chunk(glm::ivec2 pos) {
     this->pos = pos;
 }
@@ -13,16 +14,14 @@ void Chunk::render() {
     glm::vec3 position = { pos.x, 0.f, pos.y };
     for (int i = 0; i < 8; i++) {
         auto mesh = &meshs[i];
-        if (not mesh->isComplete) {
-            continue;
-        }
-
+        auto meshFluid = &meshs[i + VOXEL_GROUP_COUNT];
         // Mesh must be on gpu to draw
         glm::mat4 model = glm::mat4(1.f);
         model = glm::translate(model, position);
         defaultShader->SetMat4("model", model);
         mcatlas->Activate(GL_TEXTURE0);
         mesh->draw();
+        meshFluid->draw();
         position.y += CHUNK_SIZE;
     }
 }
@@ -34,10 +33,44 @@ void Chunk::unload() {
     unlinkChunkNeighbhor();
 }
 void Chunk::linkChunkNeighbor(Chunk* chunks[4]) {
-
+    auto cNorth = chunks[0];
+    auto cSouth = chunks[1];
+    auto cEast = chunks[2];
+    auto cWest = chunks[3];
+    if (cNorth != nullptr) {
+        north = cNorth;
+        cNorth->south = this;
+    }
+    if (cSouth != nullptr) {
+        south = cSouth;
+        cSouth->north = this;
+    }
+    if (cEast != nullptr) {
+        east = cEast;
+        cEast->west = this;
+    }
+    if (cWest != nullptr) {
+        west = cWest;
+        cWest->east = this;
+    }
 }
 void Chunk::unlinkChunkNeighbhor() {
-
+    if (north != nullptr) {
+        north->south = nullptr;
+        north= nullptr;
+    }
+    if (south != nullptr) {
+        south->north = nullptr;
+        south = nullptr;
+    }
+    if (east != nullptr) {
+        east->west = nullptr;
+        east = nullptr;
+    }
+    if (west != nullptr) {
+        west->east = nullptr;
+        west = nullptr;
+    }
 }
 u16 Chunk::getBlockCount() {
     u16 i = 0;
@@ -48,34 +81,92 @@ bool Chunk::isEmpty() {
     for (auto voxel : voxels) if (voxel.type != 0) return false;
     return true;
 }
-
+Voxel Chunk::getvoxel(u8 group, u8 x, u8 y, u8 z) {
+    if (y > 31) {
+        if (group == VOXEL_GROUP_INDEX) return { 0,0 };
+        y = 0;
+        group++;
+    }
+    else if (y < 0) {
+        if (group == 0) return { 0, 0 };
+        y = CHUNK_SIZE;
+        group--;
+    }
+    return ACCESSVOXEL;
+};
 void Chunk::generateMeshChunk() {
     isNeedGenerateMesh = false;
 
-    Voxel voxTemp;
+    Voxel voxel;
     bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
-    for (int group = 0; group < 8; group++) {
+    for (u8 group = 0; group < 8; group++) {
         auto mesh = &meshs[group];
+        auto meshFluid = &meshs[group + VOXEL_GROUP_COUNT];
+        meshFluid->lock();
+        mesh->lock();
+
+        meshFluid->isComplete = false;
         mesh->isComplete = false;
+
+        if (not isLoad) {
+            mesh->unlock();
+            meshFluid->unlock();
+            return;
+        } 
         for (u8 z = 0; z < CHUNK_SIZE; z++) {
             isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
             for (u8 y = 0; y < CHUNK_SIZE; y++) {
                 isVoxelOnEdgeY = (y == 0 or y == CHUNK_SIZE_INDEX);
                 for (u8 x = 0; x < CHUNK_SIZE; x++) {
-                    if (not isLoad) return; 
+                    voxel = voxels[x + (y << 5) + (z << 10) + (group << 15)];
+                    if (voxel.type == 0) continue; //dont gen block air
 
-                    voxTemp = voxels[x + (y << 5) + (z << 10) + (group * CHUNK_SIZE_BLOCK)];
-                    if (voxTemp.type == 0) continue; //dont gen block air
-                    genMeshCube(mesh,group, x, y, z, voxTemp, x == 0 or x == CHUNK_SIZE_INDEX
-                        or isVoxelOnEdgeY or isVoxelOnEdgeZ);
+                    bool useFuncGetVoxelOutChunk = x == 0 or x == CHUNK_SIZE_INDEX
+                        or isVoxelOnEdgeY or isVoxelOnEdgeZ;
+                    if (voxel.type == 4) {
+                        genMeshWater(group, x, y, z, voxel, useFuncGetVoxelOutChunk);
+                    }
+                    else {
+                        genMeshCube(mesh, group, x, y, z, voxel, useFuncGetVoxelOutChunk);
+                    }
+                    
                 }
             }
         }
+        mesh->unlock();
+        meshFluid->unlock();
+
         //end one task for gen mesh
         auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
         cMeshBuilding->m_queueComplete.lock();
         cMeshBuilding->m_queueComplete.push(mesh);
+        cMeshBuilding->m_queueComplete.push(meshFluid);
         cMeshBuilding->m_queueComplete.unlock();
+    }
+}
+void Chunk::genMeshWater(u8 groupVoxel, char x, char y, char z, Voxel voxel, bool useFuncGetVoxelOutChunk)
+{
+    MeshChunk* mesh = &meshs[VOXEL_GROUP_COUNT + groupVoxel];
+    MeshChunk::Vertex vert;
+    vert.SetUVTile(voxel.id, voxel.type);
+    u8 voxSurr[27];
+    u8 lightSurr[27];
+    GetVoxSurround(voxSurr, groupVoxel, x, y, z, useFuncGetVoxelOutChunk);
+    i8 xx = x + 1;
+    i8 yy = y + 1;
+    i8 zz = z + 1;
+    //gen mesh water top away
+    if (getvoxel(groupVoxel,x,yy,z).type == 0) {
+        vert.SetNormal(0);
+        vert.SetPos(x, yy, z);
+        mesh->vertexs.push_back(vert);//0
+        vert.SetPos(x, yy, zz);
+        mesh->vertexs.push_back(vert);//1
+        vert.SetPos(xx, yy, zz);
+        mesh->vertexs.push_back(vert);//2
+        vert.SetPos(xx, yy, z);
+        mesh->vertexs.push_back(vert);//3
+        MakeQuadFace(mesh, voxel, 0, voxSurr, lightSurr);
     }
 }
 unsigned char Chunk::GetVoxType(u8 groupVoxel,char x, char y, char z)
@@ -93,7 +184,16 @@ unsigned char Chunk::GetVoxType(u8 groupVoxel,char x, char y, char z)
         cNow = east;
         x = 0;
     }
-
+    if (y < 0) {
+        if (groupVoxel == 0) return 0;
+        groupVoxel--;
+        y = CHUNK_SIZE_INDEX;
+    }
+    else if (y > CHUNK_SIZE_INDEX) {
+        if (groupVoxel == VOXEL_GROUP_COUNT - 1) return 0;
+        groupVoxel++;
+        y = 0;
+    }
     if (z < 0)
     {
         if (cNow->south == nullptr) return 0;
@@ -259,10 +359,9 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
     unsigned char voxSurr[27];
     unsigned char lightSurr[27];//lighting surround
     MeshChunk::Vertex vert;
-    
     GetVoxSurround(voxSurr, groupVoxel, x, y, z, useFuncGetVoxOutChunk);
     vert.SetUVTile(vox.id, vox.type);
-    if (FaceIsVisableUp(groupVoxel, x, yy, z))
+    if (not voxelUpIsSolid(groupVoxel, x, yy, z))
     {
         vert.SetNormal(0);
         vert.SetPos(x, yy, z);
@@ -275,9 +374,8 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         mesh->vertexs.push_back(vert);//3
         MakeQuadFace(mesh, vox, 0, voxSurr, lightSurr);
     }
-    if (FaceIsVisableDown(groupVoxel, x,y - 1, z))
+    if (not voxelDownIsSolid(groupVoxel, x,y - 1, z))
     {
-        printf("voxel group %d and y %d\n", groupVoxel, y - 1);
         vert.SetNormal(1);
         vert.SetPos(x, y, zz);
         mesh->vertexs.push_back(vert);
@@ -292,7 +390,7 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh, vox, 1, voxSurr, lightSurr);
     }
-    if (FaceIsVisableNorth(groupVoxel, x, y, zz))
+    if (not voxelNorthIsSolid(groupVoxel, x, y, zz))
     {
         vert.SetNormal(2);
         vert.SetPos(xx, y, zz);
@@ -308,7 +406,7 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh, vox, 2, voxSurr, lightSurr);
     }
-    if (FaceIsVisableSouth(groupVoxel, x, y, z - 1))
+    if (not voxelSouthIsSolid(groupVoxel, x, y, z - 1))
     {
         vert.SetNormal(3);
         vert.SetPos(x, y, z);
@@ -324,7 +422,7 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh, vox, 3, voxSurr, lightSurr);
     }
-    if (FaceIsVisableEast(groupVoxel, xx, y, z))
+    if (not voxelEastIsSolid(groupVoxel, xx, y, z))
     {
         vert.SetNormal(4);
         vert.SetPos(xx, y, z);
@@ -340,7 +438,7 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh, vox, 4, voxSurr, lightSurr);
     }
-    if (FaceIsVisableWest(groupVoxel, x - 1, y, z))
+    if (not voxelWestIsSolid(groupVoxel, x - 1, y, z))
     {
         vert.SetNormal(5);
         vert.SetPos(x, y, zz);
@@ -356,68 +454,6 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh, vox, 5, voxSurr, lightSurr);
     }
-}
-//for check next block if type is air or transparency we should gen now mesh
-bool Chunk::FaceIsVisableUp(u8 groupVoxel, char i, char j, char k)
-{
-    if (j > CHUNK_SIZE_INDEX)
-    {
-        //render if block is limit height of chunk
-        if (groupVoxel == 7) {
-            return true;
-        }
-        return voxels[i + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-    }
-    return voxels[i + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-}
-bool Chunk::FaceIsVisableDown(u8 groupVoxel, char i, char j, char k)
-{
-    if (j < 0)
-    {
-        //render face if chunk is hiehgt is zero
-        if (groupVoxel == 0) {
-            printf("block out world \n");
-            return true;
-        }
-        return voxels[i + (CHUNK_SIZE_INDEX << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-    }
-    return voxels[i + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-}
-bool Chunk::FaceIsVisableNorth(u8 groupVoxel, char i, char j, char k)
-{
-    if (k > CHUNK_SIZE_INDEX)
-    {
-        if (north == nullptr) return false;
-        return north->voxels[i + (j << 5) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-    }
-    return voxels[i + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-}
-bool Chunk::FaceIsVisableSouth(u8 groupVoxel, char i, char j, char k)
-{
-    if (k < 0)
-    {
-        if (south == nullptr) return false;
-        return south->voxels[i + (j << 5) + (CHUNK_SIZE_INDEX << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-    }
-    return voxels[i + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-}
-bool Chunk::FaceIsVisableEast(u8 groupVoxel, char i, char j, char k)
-{
-    if (i > CHUNK_SIZE_INDEX)
-    {
-        if (east == nullptr) return false;
-        return east->voxels[(j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-    }
-    return voxels[i + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-}
-bool Chunk::FaceIsVisableWest(u8 groupVoxel, char i, char j, char k)
-{
-    if (i < 0)
-    {
-        if (west == nullptr) return false;
-        return west->voxels[CHUNK_SIZE_INDEX + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
-    }
-    return voxels[i + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0;
 }
 unsigned char Chunk::GetLightExtra(int x, int y, int z)
 {/*
@@ -489,4 +525,53 @@ void Chunk::SetLampLight(unsigned short acc, unsigned char val) {
 void Chunk::SetSunLight(unsigned short acc, unsigned char val) {
     //mask 15; bit 0000 1111
     lightMap[acc] = (lightMap[acc]& 0x0F) | (val << 4);
+}
+
+bool Chunk::voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z) {
+    if (y > 31) {
+        if (group == VOXEL_GROUP_INDEX) return false;
+        u8 type = voxels[x + (z << 10) + ((group+1) << 15)].type;
+        return type != 0 and type != 4;
+    }
+    IMP_RETURN_VOXELISSOLID
+};
+bool Chunk::voxelDownIsSolid(u8 group, i8 x, i8 y, i8 z) {
+    if (y < 0) {
+        if (group == 0) return false;
+        u8 type = voxels[x + (31 << 5) + (z << 10) + ((group - 1) << 15)].type;
+        return type != 0 and type != 4;
+    }
+    IMP_RETURN_VOXELISSOLID
+}
+bool Chunk::voxelNorthIsSolid(u8 group, i8 x, i8 y, i8 z) {
+    if (z > 31) {
+        if (north == nullptr) return true;
+        u8 type = north->voxels[x + (y << 5) + (group << 15)].type;
+        return type != 0 and type != 4;
+    }
+    IMP_RETURN_VOXELISSOLID
+}
+bool Chunk::voxelSouthIsSolid(u8 group, i8 x, i8 y, i8 z) {
+    if (z < 0) {
+        if (south == nullptr) return true;
+        u8 type = south->voxels[x + (y << 5) + (31 << 10) + (group << 15)].type;
+        return type != 0 and type != 4;
+    }
+    IMP_RETURN_VOXELISSOLID
+}
+bool Chunk::voxelEastIsSolid(u8 group, i8 x, i8 y, i8 z) {
+    if (x > 31) {
+        if (east == nullptr) return true;
+        u8 type = east->voxels[x + (y << 5) + (group << 15)].type;
+        return type != 0 and type != 4;
+    }
+    IMP_RETURN_VOXELISSOLID
+}
+bool Chunk::voxelWestIsSolid(u8 group, i8 x, i8 y, i8 z) {
+    if (x < 0) {
+        if (west == nullptr) return true;
+        u8 type = west->voxels[31 + (y << 5) +(z<<10)+ (group << 15)].type;
+        return type != 0 and type != 4;
+    }
+    IMP_RETURN_VOXELISSOLID
 }
