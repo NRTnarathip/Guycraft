@@ -1,5 +1,4 @@
 #pragma once
-#include <queue>
 #include <mutex>
 #include <deque>
 
@@ -26,6 +25,11 @@ public:
 	}
 	void pushFront(T data) {
 		m_queue.push_front(data);
+	}
+	void pushLock(T d) {
+		lock();
+		push(d);
+		unlock();
 	}
 	void push(T data) {
 		m_queue.push_back(data);

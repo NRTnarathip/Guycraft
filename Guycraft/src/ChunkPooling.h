@@ -7,9 +7,9 @@
 class ChunkPooling {
 public:
 	SmartQueue<Chunk*> m_chunkPooling;
-	ChunkContainer m_chunkUsing;
+	std::vector<Chunk*> m_chunks;
 	//use main thread
-	Chunk* makeObject(glm::ivec2 pos);
+	Chunk* get();
 	//use on other thread
 	//dont forget use mutex
 	void collectPooling(Chunk* chunk);

@@ -17,7 +17,10 @@ public:
 	bool exist(glm::ivec2 pos) {
 		return m_container.find(pos) != m_container.end();
 	}
-	void erase(glm::ivec2 pos) {
+	void add(Chunk* chunk) {
+		m_container[chunk->pos] = chunk;
+	}
+	void del(glm::ivec2 pos) {
 		m_container.erase(pos);
 	}
 };

@@ -3,9 +3,6 @@
 #include "ResourceManager.h"
 #define ACCESSVOXEL voxels[x + (y << BS_CH) + (z << BS_CH2) + (group << BS_CH4)]
 #define IMP_RETURN_VOXELISSOLID u8 type = ACCESSVOXEL.type; return type !=0 and type != 4;
-Chunk::Chunk(glm::ivec2 pos) {
-    this->pos = pos;
-}
 void Chunk::render() {
     auto resource = ResourceManager::GetInstance();
     auto sdSolid = resource->m_shaders["chunk_block_solid"];
@@ -39,7 +36,9 @@ void Chunk::onLoad() {
 }
 void Chunk::unload() {
     isLoad = false;
+    m_mutexGenMesh.lock();
     unlinkChunkNeighbhor();
+    m_mutexGenMesh.unlock();
 }
 void Chunk::linkChunkNeighbor(Chunk* chunks[4]) {
     auto cNorth = chunks[0];
@@ -109,16 +108,6 @@ void Chunk::generateMeshChunk() {
     Voxel voxel;
     bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
     for (u8 group = 0; group < 8; group++) {
-        if (not isLoad) {
-            for (auto& mesh : meshs) {
-                mesh.lock();
-                mesh.isComplete = false;
-                mesh.isOnGenerate = false;
-                mesh.unlock();
-            }
-            return;
-        }
-
         auto meshSolid = &meshs[group];
         auto meshFluid = &meshs[group + VOXEL_GROUP_COUNT];
         meshSolid->lock();
@@ -128,23 +117,36 @@ void Chunk::generateMeshChunk() {
         meshFluid->isOnGenerate = true;
         meshSolid->isComplete = false;
         meshSolid->isOnGenerate = true;
+
         for (u8 z = 0; z < CHUNK_SIZE; z++) {
             isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
             for (u8 y = 0; y < CHUNK_SIZE; y++) {
                 isVoxelOnEdgeY = (y == 0 or y == CHUNK_SIZE_INDEX);
                 for (u8 x = 0; x < CHUNK_SIZE; x++) {
+                    if (not isLoad) {
+                        meshFluid->unlock();
+                        meshSolid->unlock();
+                        for (auto& mesh : meshs) {
+                            mesh.lock();
+                            mesh.isComplete = false;
+                            mesh.isOnGenerate = false;
+                            mesh.unlock();
+                        }
+                        return;
+                    }
+
                     voxel = voxels[x + (y << 5) + (z << 10) + (group << 15)];
                     if (voxel.type == 0) continue; //dont gen block air
-
                     bool useFuncGetVoxelOutChunk = x == 0 or x == CHUNK_SIZE_INDEX
                         or isVoxelOnEdgeY or isVoxelOnEdgeZ;
+                    m_mutexGenMesh.lock();
                     if (voxel.type == 4) {
                         genMeshWater(group, x, y, z, voxel, useFuncGetVoxelOutChunk);
                     }
                     else {
                         genMeshCube(meshSolid, group, x, y, z, voxel, useFuncGetVoxelOutChunk);
                     }
-                    
+                    m_mutexGenMesh.unlock();
                 }
             }
         }

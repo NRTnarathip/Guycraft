@@ -24,17 +24,34 @@
 #define CHUNK_TOP_HEIGHT 224
 #define VOXEL_GROUP_COUNT 8
 #define VOXEL_GROUP_INDEX 7
+
+struct JobPopulate {
+	glm::ivec2 pos;
+	//2 byte * 262144;
+	Voxel voxels[CHUNK_BLOCK_ALL];
+};
+struct JobPopulateSub {
+	glm::ivec2 pos;
+	u8 groupVoxel;
+	Voxel voxels[CHUNK_SIZE_BLOCK];
+};
+
 //none safe thread
 class Chunk {
 private:
+	std::mutex m_mutexGenMesh;
 	bool isLoad = false;
 public:
 	std::mutex mutex;
-	Chunk(glm::ivec2 pos);
 	//bitwise light lamp and sun;
 	unsigned char lightMap[CHUNK_SIZE_BLOCK];
 	glm::ivec2 pos;
 	Voxel voxels[CHUNK_BLOCK_ALL];
+	void changeVoxels(Voxel voxelsOther[CHUNK_BLOCK_ALL]) {
+		for (int i = 0; i < CHUNK_BLOCK_ALL; i++) {
+			voxels[i] = voxelsOther[i];
+		}
+	};
 	//mesh block solid 8 mesh, block fluid 8 mesh
 	MeshChunk meshs[VOXEL_GROUP_COUNT * 2];
 	bool isEmpty();

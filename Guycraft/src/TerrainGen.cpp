@@ -16,7 +16,7 @@ TerrainGen::TerrainGen()
     m_biomes.push_back(boPlant);
 }
 
-void TerrainGen::populate(Chunk* chunk) {
+void TerrainGen::populate(JobPopulate* job) {
     float heightMap[CHUNK_SIZE_SQUARED] = {};
     float moisetureMap[CHUNK_SIZE_SQUARED] = {};
     float heatMap[CHUNK_SIZE_SQUARED] = {};
@@ -26,7 +26,7 @@ void TerrainGen::populate(Chunk* chunk) {
     float scale = .18f;
     auto noise = FastNoise::New<FastNoise::Perlin>();
 
-    auto pos = chunk->pos;
+    auto pos = job->pos;
     //gen all noise map
     for (int k = 0; k < CHUNK_SIZE; k++) {
         int z = k + pos.y;
@@ -55,13 +55,13 @@ void TerrainGen::populate(Chunk* chunk) {
                 for (unsigned char y = 0; y < CHUNK_SIZE; y++) {
                     int height = y + (group * 32);
 
-                    chunk->voxels[x + (y << BS_CH) + (z << BS_CH2) + (group * CHUNK_SIZE_BLOCK)] = GetVoxelTerrain(chunk, noiseData, height);
+                    job->voxels[x+(y<<5)+(z<<10)+(group<<15)]=GetVoxelTerrain(noiseData, height);
                 }
             }
         }
     }
 }
-Voxel TerrainGen::GetVoxelTerrain(Chunk*c, float noiseData[3], int y) {
+Voxel TerrainGen::GetVoxelTerrain(float noiseData[3], int y) {
     Voxel voxel = { 0, 0};
     int height = (int)(noiseData[0] * 255);
     if (y == height) {

@@ -323,5 +323,8 @@
     <ClInclude Include="src\Types.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\SmartUnorderMap.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
