@@ -15,7 +15,33 @@ uniform mat4 view;
 uniform mat4 model;
 uniform float time;
 
-float waveHeight = 0.3125;
+int waveHeightPixel = 2;
+float waveSpeed = 0.5;
+#define PI 3.14159265
+float random(vec2 c){
+	return fract(sin(dot(c.xy ,vec2(12.9898, 78.233))) * 43758.5453);
+}
+float noise (vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+    // Four corners in 2D of a tile
+    float a = random(i);
+    float b = random(i + vec2(1.0, 0.0));
+    float c = random(i + vec2(0.0, 1.0));
+    float d = random(i + vec2(1.0, 1.0));
+
+    // Smooth Interpolation
+
+    // Cubic Hermine Curve.  Same as SmoothStep()
+    vec2 u = f*f*(3.0-2.0*f);
+    // u = smoothstep(0.,1.,f);
+
+    // Mix 4 coorners percentages
+    return mix(a, b, u.x) +
+            (c - a)* u.y * (1.0 - u.x) +
+            (d - b) * u.x * u.y;
+}
+
 
 
 //Warning!!!! u invert axis X
@@ -48,15 +74,24 @@ vec2 toTextureCood(float val) {
 	uv += tbUV[uvIndex] * tileSize;
 	return uv;
 };
+float noiseWave(float x, float z) {
+	float offs = time * waveSpeed;
+	vec2 pos = vec2(x + offs, z + offs);
+	return noise(pos);
+}
 
 void main()
 {
-	vec3 vertexPos = aPos / vec3(16.0, 16.0, 16.0);
-	float waveX = sin(vertexPos.x + time) * waveHeight;
-	float waveZ = sin(vertexPos.z + time) * waveHeight;
-	vertexPos.y = vertexPos.y + ((waveX + waveZ) / 2.0);
+	vec3 vertexLocal = aPos / vec3(16.0, 16.0, 16.0);
+	vec3 vertexWorldPos = vertexLocal;
+	vec4 chunkPos = model[3];
+	vertexWorldPos += chunkPos.xyz;
+	float waveHeight = waveHeightPixel / 16.0;
+	float nw = noiseWave(vertexWorldPos.x, vertexWorldPos.z);
+	float waveY = (nw * waveHeight);
+	vertexLocal.y += waveY;
 
-	gl_Position = projection * view * model * vec4(vertexPos, 1.0);
+	gl_Position = projection * view * model * vec4(vertexLocal, 1.0);
 	ao = (int(aLighting) >> 8) & 3;
 	sunLampLight = 0; //temp
 
