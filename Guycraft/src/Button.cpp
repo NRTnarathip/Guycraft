@@ -18,7 +18,7 @@ void Button::updateEventInput()
 
 	if (isMouseHover) {
 		if (input.onMouseDown(0)) {
-			if (m_fnOnClick) 
+			if (m_fnOnClick != nullptr) 
 				m_fnOnClick();
 		}
 

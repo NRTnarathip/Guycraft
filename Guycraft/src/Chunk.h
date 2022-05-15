@@ -72,9 +72,9 @@ public:
 	Voxel getvoxel(u8 group, u8 x, u8 y, u8 z);
 	//for generate mesh
 	void generateMeshChunk();
-	void genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel vox,
+	void genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel* voxel,
 		bool useFuncitonGetVoxelOutChunk);
-	void genMeshWater(u8 voxelGroup, char x, char y, char z, Voxel voxel, 
+	void genMeshWater(MeshChunk* mesh, u8 voxelGroup, char x, char y, char z, Voxel* voxel,
 		bool useFuncGetVoxelOutChunk);
 	bool voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z);
 	bool voxelDownIsSolid(u8 group, i8 x, i8 y, i8 z);
@@ -86,7 +86,7 @@ public:
 	void GetVoxSurround(unsigned char(&args)[27],u8 groupVoxel,unsigned char x, unsigned char y, unsigned char z,
 		bool useFuncitonGetVoxelOutChunk);
 	unsigned char GetVoxType(u8 groupVoxel,char x, char y, char z);
-	void MakeQuadFace(MeshChunk* mesh,Voxel voxel, unsigned char directFace, unsigned char (&voxSurr)[27], unsigned char (&lightSurr)[27]);
+	void MakeQuadFace(MeshChunk* mesh,unsigned char directFace, unsigned char (&voxSurr)[27], unsigned char (&lightSurr)[27]);
 	void GetAO(unsigned char(&refAO)[4], unsigned char directFace, unsigned char(&voxSurr)[27]);
 	void GetVertLightMaping(unsigned char(&ref)[4], unsigned char dir, unsigned char(&voxSurr)[27]);
 	static unsigned char CalculateAO(unsigned char side1, unsigned char side2, unsigned char corner);
@@ -95,7 +95,6 @@ public:
 	unsigned char GetLampLight(unsigned short acc);
 	void SetSunLight(unsigned short acc, unsigned char val);
 	void SetLampLight(unsigned short acc, unsigned char val);
-	void GetLightingSurround(unsigned char(&refLightMap)[27], int _x, int _y, int _z);
 	static const unsigned char tileCountRow = 16;
 	static const float tileSize;
 };

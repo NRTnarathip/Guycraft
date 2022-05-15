@@ -47,24 +47,16 @@ void ResourceManager::loadAllResouces() {
         isFileExist++;
     }
     std::vector<std::string> listPathTextures = {
-    "assets/textures/gui",
-    "assets/textures/blocks", };
+        "assets/textures/gui",
+        "assets/textures/blocks",
+    };
     for (auto pathTextures : listPathTextures) {
         for (const auto& entry : fs::directory_iterator(pathTextures)) {
-            std::string spriteName = entry.path().string();
-
-            spriteName.replace(0, pathTextures.length() + 1, "");
-            spriteName = spriteName.substr(0, spriteName.length() - 4);
-
             std::string pathFile = entry.path().string();
             std::replace(pathFile.begin(), pathFile.end(), '\\', '/');
-            auto texture = addTexture(pathFile.c_str(), false);
-
-            auto spriteKeyName = pathTextures + "/" + spriteName;
-
-            auto newSprite = new Sprite(texture);
-            newSprite->setupRenderData();
-            m_sprites.emplace(spriteKeyName, newSprite);
+            addTexture(pathFile.c_str(), false);
         }
+        m_sprites.emplace("assets/textures/gui/button_0", 
+            new Sprite(m_textures["assets/textures/gui/button_0.png"]));
     }
 }

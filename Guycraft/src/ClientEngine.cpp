@@ -68,7 +68,7 @@ void ClientEngine::launch() {
     m_textRenderer->setupGL();
 
     //init game
-    graphicSetting.renderDistance = 3;
+    graphicSetting.renderDistance = 4;
 
 	game = new Game(window);
     game->init();

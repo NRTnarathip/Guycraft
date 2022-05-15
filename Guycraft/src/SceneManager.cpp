@@ -10,44 +10,43 @@ void SceneManager::init() {
 }
 void SceneManager::addExistScene(Scene* scene) {
 	scene->index = m_scenes.size();
-	if (m_scenes.empty()) {
-		scene->setActive(true);
-	}
 	m_scenes.push_back(scene);
+
+	if (scene->index == 0) {
+		changeScene(scene->index);
+	}
 }
 void SceneManager::beforeUpdate() {
-	auto sc = getCurrent();
-	sc->beforeUpdate();
+	//on new change scene
+	if (m_queueChangeScene != nullptr) {
+		if (m_queueChangeScene != m_currentScene) {
+			m_currentScene = m_queueChangeScene;
+			m_currentScene->setActive(true);
+			m_currentScene->init();
+		}
+		else {
+			printf("you change scene again \n");
+		}
+
+		m_queueChangeScene = nullptr;
+	}
+	m_currentScene->beforeUpdate();
 }
 void SceneManager::lastUpdate() {
-	auto sc = getCurrent();
-	sc->lastUpdate();
+	m_currentScene->lastUpdate();
 }
 void SceneManager::update() {
-	auto sc = getCurrent();
-	sc->m_UIMenu.updateEventInput();
-	sc->update();
+	m_currentScene->m_UIMenu.updateEventInput();
+	m_currentScene->update();
 }
 Scene* SceneManager::getCurrent() {
-	for (auto sc : m_scenes) {
-		if (sc->isActive()) {
-			return sc;
-		}
-	}
-	return nullptr;
+	return m_currentScene;
 }
 void SceneManager::render() {
-	auto sc = getCurrent();
+	auto sc = m_currentScene;
 	sc->render();
 	sc->m_UIMenu.render();
 }
 void SceneManager::changeScene(int index) {
-	//delete object in all scene
-	for (auto sc : m_scenes) {
-		if (sc->index != index) {
-			sc->setActive(false);
-		}
-	}
-	auto scNow = m_scenes[index];
-	scNow->setActive(true);
+	m_queueChangeScene = m_scenes[index];
 }

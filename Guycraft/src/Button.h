@@ -15,7 +15,7 @@ private:
 	bool isOnHover = false;
 public:
 	typedef void(*fnPtr)();
-	fnPtr m_fnOnClick;
+	fnPtr m_fnOnClick = nullptr;
 
 	class ColorTransition {
 	public:

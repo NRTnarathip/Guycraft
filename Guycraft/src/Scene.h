@@ -7,6 +7,7 @@
 
 class Scene {
 private:
+	bool isHasInitial = false;
 	bool m_active = false;
 public:
 	Scene();
@@ -17,7 +18,11 @@ public:
 		m_active = state;
 	};
 	bool isActive() const { return m_active; }
-	virtual void init() {};
+	virtual void init() {
+		if (isHasInitial) return;
+
+		isHasInitial = true;
+	};
 	virtual void beforeUpdate() {};
 	virtual void update() {};
 	virtual void lastUpdate() {};

@@ -8,7 +8,6 @@ class GUI;
 
 class Image : public UIComponent, public SpriteRenderer {
 public:
-	Image();
 	void render();
 	void init();
 };

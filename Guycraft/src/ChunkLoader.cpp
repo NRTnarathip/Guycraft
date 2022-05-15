@@ -3,12 +3,16 @@
 #include "ClientEngine.h"
 #include "CameraManager.h"
 
+#include "Scenes/SceneMainGame.h"
+
 void useThreadPopulate() {
+	auto scMainGame = SceneManager::GetInstance()->getScene<SceneMainGame>(1);
+
 	auto cManager = ChunkManager::GetInstance();
 	TerrainGen terrainGen;
 	auto cLoader = &cManager->chunkLoader;
 	auto queueJob = &cManager->chunkLoader.m_queueJobPopulate;
-	while (true) {
+	while (not scMainGame->isNeedExitToLobby) {
 		queueJob->lock();
 		if (queueJob->empty()) {
 			queueJob->unlock();
@@ -66,6 +70,9 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 				chunk = manager->chunkPooling.get();
 				//setup chunk
 				chunk->pos = pos;
+				chunk->changeVoxels(job->voxels);
+
+				//add chunk
 				manager->chunks.add(chunk);
 				Chunk* chunksNeighbor[4] = {nullptr,nullptr,nullptr,nullptr};
 				glm::ivec2 posChunkNeighbor[4] = {
@@ -81,17 +88,13 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 						chunksNeighbor[i] = c;
 					}
 				}
-				chunk->lock();
 				chunk->linkChunkNeighbor(chunksNeighbor);
-				chunk->unlock();
 				chunk->onLoad();
 			}
 			else {
 				chunk = manager->chunks.m_container[pos];
+				chunk->changeVoxels(job->voxels);
 			}
-			//fill voxels from packet;
-			chunk->changeVoxels(job->voxels);
-
 			manager->chunks.unlock();
 			manager->chunkMeshBuilding.addQueue(chunk);
 		}

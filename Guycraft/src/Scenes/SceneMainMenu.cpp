@@ -6,7 +6,7 @@
 #include "GUI.h"
 
 void SceneMainMenu::init() {
-	//setupMainMenu();
+	setupMainMenu();
 }
 void SceneMainMenu::setupMainMenu() {
 	auto res = ResourceManager::GetInstance();
@@ -20,7 +20,7 @@ void SceneMainMenu::setupMainMenu() {
 		button->rect.size = { 220, 60 };
 		button->rect.position = { 0, 80 };
 		auto img = button->getComponent<Image>();
-		img->sprite = res->getSprite("gui/button_0");
+		img->m_sprite = res->getSprite("gui/button_0");
 		auto text = button->getComponent<UIText>();
 		text->text = "Play";
 		auto cButtonPlay = button->getComponent<Button>();
@@ -31,7 +31,7 @@ void SceneMainMenu::setupMainMenu() {
 		button = contentMainMenu->createButton("setting");
 		button->rect.size = { 220, 60 };
 		img = button->getComponent<Image>();
-		img->sprite = res->getSprite("gui/button_0");
+		img->m_sprite = res->getSprite("gui/button_0");
 		text = button->getComponent<UIText>();
 		text->text = "Setting";
 
@@ -40,7 +40,7 @@ void SceneMainMenu::setupMainMenu() {
 		buttonExit->rect.size = { 220, 60 };
 		buttonExit->rect.position = { 0, -80 };
 		img = buttonExit->getComponent<Image>();
-		img->sprite = res->getSprite("gui/button_0");
+		img->m_sprite = res->getSprite("gui/button_0");
 		text = buttonExit->getComponent<UIText>();
 		text->text = "Exit";
 		auto cButton = buttonExit->getComponent<Button>();

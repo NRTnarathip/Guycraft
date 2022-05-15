@@ -1,6 +1,8 @@
 #include "ChunkMeshBuilding.h"
 #include "ChunkManager.h"
 #include <chrono>
+#include "SceneManager.h"
+#include "Scenes/SceneMainGame.h"
 
 ChunkMeshBuilding* ChunkMeshBuilding::m_instance = nullptr;
 
@@ -9,7 +11,8 @@ void useThreadChunkMeshBuilding() {
 	auto cMeshBuilder = &chManager->chunkMeshBuilding;
 	auto queueJob = &chManager->chunkMeshBuilding.m_queueJob;
 	auto queueComplate = &chManager->chunkMeshBuilding.m_queueComplete;
-	while (true) {
+	auto scMainGame = SceneManager::GetInstance()->getScene<SceneMainGame>(1);
+	while (not scMainGame->isNeedExitToLobby) {
 		queueJob->lock();
 		if (queueJob->empty()) {
 			queueJob->unlock();
@@ -25,10 +28,9 @@ void useThreadChunkMeshBuilding() {
 		auto start = std::chrono::high_resolution_clock::now();
 		chunk->generateMeshChunk();
 		auto elapsed = std::chrono::high_resolution_clock::now() - start;
-		/*if (not chunk->isEmpty()) {
-			printf("gen mesh block %i time:%d ms\n", chunk->getBlockCount(),
-				std::chrono::nanoseconds(elapsed).count() / 100000);
-		}*/
+		printf("gen mesh block time:%d ms\n",
+			std::chrono::nanoseconds(elapsed).count() / 100000);
+
 		cMeshBuilder->genMeshChunkNeighborEdge(chunk);
 		chunk->unlock();
 	}
@@ -66,12 +68,15 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk)
 	m_queueJob.unlock();
 }
 
+void ChunkMeshBuilding::addQueueFront(Chunk* chunk)
+{
+	chunk->isNeedGenerateMesh = true;
+	m_queueJob.pushLock(chunk);
+}
+
 void ChunkMeshBuilding::genMeshChunkNeighborEdge(Chunk* c)
 {
-	std::vector<Chunk*> chunksNiehgbor = {
-		c->north, c->south,c->east, c->west
-	};
-	for (auto chunk : chunksNiehgbor) {
+	for (auto chunk : { c->north, c->south,c->east, c->west }) {
 		if (chunk == nullptr) continue;
 		chunk->lock();
 		chunk->isNeedGenerateMesh = true;

@@ -1,9 +1,8 @@
 #include "Image.h"
 #include "ResourceManager.h"
 #include "GUI.h"
-Image::Image() {
-}
 void Image::init() {
+	initRenderer();
 }
 void Image::render() {
 	auto res = ResourceManager::GetInstance();

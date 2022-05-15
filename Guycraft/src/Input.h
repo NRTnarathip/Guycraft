@@ -21,6 +21,8 @@ public:
 
     static Input& GetInstance() { return *instance; }
     void initKeyMapping();
+    void registerKey(int glfwKeycode);
+    void unRegisterKey(int glfwKeycode);
     void update();
     bool isKey(int keycode);
     bool isKeyUp(int keycode);
@@ -35,7 +37,6 @@ public:
     glm::vec2 mouseAxis();
 private:
     void registerKeyState(int glfwKeycode, int device);
-
     std::unordered_map<int, int> m_keyboardKeyState;
     std::unordered_map<int, int> m_mouseKeyState;
 

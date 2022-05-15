@@ -36,12 +36,10 @@ void Game::init() {
     //setup core base all
     sceneManager = new SceneManager();
     sceneManager->init();
+
     //setup core addond
 
-    //setup scene main menu, game
-    auto mainMenu = new SceneMainMenu("Main Menu");
-    sceneManager->addExistScene(mainMenu);
-    mainMenu->setupMainMenu();
+    sceneManager->addExistScene(new SceneMainMenu("Main Menu"));
 }
 void Game::render() {
     sceneManager->render();
@@ -69,7 +67,6 @@ void Game::counterTime() {
 void Game::beforeUpdate() {
     inputDebug();
     sceneManager->beforeUpdate();
-
 }
 void Game::inputDebug() {
     int scancode = glfwGetKeyScancode(GLFW_KEY_X);
@@ -83,11 +80,6 @@ void Game::lastUpdate() {
     sceneManager->lastUpdate();
 }
 void Game::update() { //update every frame
-    auto glWindow = window->window;
-    if (glfwGetKey(glWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        exit();
-        return;
-    }
     sceneManager->update();
 }
 void Game::exit() {
@@ -98,5 +90,4 @@ void Game::play() {
     auto scMainGame = new SceneMainGame("Main Game");
     sceneManager->addExistScene(scMainGame);
     sceneManager->changeScene(1);
-    scMainGame->playGame();
 }

@@ -9,8 +9,6 @@
 #include <glm/gtx/hash.hpp>
 #include <TerrainGen.h>
 #include <Chunk.h>
-
-#include <thread>
 #include <SmartQueue.h>
 #include <vector>
 #include <ChunkPooling.h>
@@ -29,7 +27,6 @@ public:
 	ChunkMeshBuilding chunkMeshBuilding;
 	ChunkLoader chunkLoader;
 	ChunkPooling chunkPooling;
-	std::vector<std::thread> listThread;
 	void init();
 	void render();
 	void update();

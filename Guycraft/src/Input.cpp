@@ -10,10 +10,14 @@
 
 Input *Input::instance = nullptr;
 void Input::initKeyMapping() {
+    //basic needed
     registerKeyState(GLFW_MOUSE_BUTTON_LEFT, MOUSE);
     registerKeyState(GLFW_MOUSE_BUTTON_RIGHT, MOUSE);
     registerKeyState(GLFW_MOUSE_BUTTON_MIDDLE, MOUSE);
-    registerKeyState(GLFW_KEY_R, KEYBOARD);
+}
+void Input::registerKey(int glfwKeycode)
+{
+    registerKeyState(glfwKeycode, KEYBOARD);
 }
 void Input::registerKeyState(int glfwKeycode, int device) {
     std::unordered_map<int, int> *m_refMapping = nullptr;
@@ -25,7 +29,7 @@ void Input::registerKeyState(int glfwKeycode, int device) {
         m_refMapping = &m_mouseKeyState;
     }
     if (m_refMapping->find(glfwKeycode) != m_refMapping->end()) {
-        printf("can't register key mapping\n");
+        printf("can't register key again\n");
         return;
     }
     m_refMapping->insert(pairKeyValueKeyMapping);

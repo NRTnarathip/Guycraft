@@ -72,6 +72,7 @@ public:
 	GLuint vbo;
 	GLuint vao;
 	GLuint ebo;
+	bool isFourceStop = false;
 	bool isOnGenerate = false;
 	std::vector<Vertex> vertexs;
 	std::vector<GLuint> triangles;

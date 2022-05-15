@@ -5,6 +5,8 @@
 
 class SceneManager {
 private:
+	Scene* m_currentScene = nullptr;
+	Scene* m_queueChangeScene = nullptr;
 	static SceneManager* instance;
 	std::vector<Scene*> m_scenes;
 public:// Singleton
