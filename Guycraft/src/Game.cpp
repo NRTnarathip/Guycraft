@@ -33,12 +33,8 @@ Game::Game(Window * win) {
     window = win;
 }
 void Game::init() {
-    //setup core base all
-    sceneManager = new SceneManager();
-    sceneManager->init();
-
     //setup core addond
-
+    sceneManager = SceneManager::GetInstance();
     sceneManager->addExistScene(new SceneMainMenu("Main Menu"));
 }
 void Game::render() {

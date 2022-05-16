@@ -6,8 +6,7 @@ ClientEngine* ClientEngine::instance = nullptr;
 
 void framebuffer_size_callback(GLFWwindow* glWindow, int width, int height)
 {
-    glViewport(0, 0, width, height);
-    Window::GetInstance()->onWindowResize(width, height);
+    Window::GetInstance()->resize(width, height);
 }
 int ClientEngine::setupWindow() {
     //Init opengl
@@ -17,17 +16,26 @@ int ClientEngine::setupWindow() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    GLFWwindow* glWindow = nullptr;
 
-    window = new Window("Guycraft");
-    auto glWindow = glfwCreateWindow(window->width, window->height, window->title, NULL, NULL);
-    window->window = glWindow;
-
+    if (window->isFullscreenMode()) {
+        auto monitor = glfwGetPrimaryMonitor();
+        auto videoMode = glfwGetVideoMode(monitor);
+        glWindow = glfwCreateWindow(videoMode->width, videoMode->height, window->title,
+            monitor, NULL);
+    }
+    else {
+        glWindow = glfwCreateWindow(window->width, window->height, window->title,
+            NULL, NULL);
+    }
     if (glWindow == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
+        std::cerr << "Error Fialed to create GLFW window";
         glfwTerminate();
         return -1;
     }
+    window->window = glWindow;
     glfwMakeContextCurrent(glWindow);
     window->setActiveVsync(true);
     glfwSetFramebufferSizeCallback(glWindow, framebuffer_size_callback);
@@ -50,35 +58,50 @@ int ClientEngine::setupWindow() {
     window->setIcon(imageIcon);
     return 0;
 }
-void ClientEngine::launch() {
+int ClientEngine::launch() {
+    window = new Window("Guycraft");
     //---init window
     setupWindow();
+    printf("end setup window\n");
+
+    //resize window
+    window->resize(1920, 1080);
     auto glfwWindow = window->window;
 
-    m_gui = new GUI(glfwWindow);
-
-    //init core engine
+    //part core engine
     m_input = new Input(glfwWindow);
     m_input->initKeyMapping();
+    printf("end setup m_input\n");
+
 
     m_resouceManager = new ResourceManager();
     m_resouceManager->loadAllResouces();
+    printf("end setup resouce manager\n");
 
+    m_sceneManager = new SceneManager();
+    m_sceneManager->init();
+    printf("end setup scene manager\n");
+    m_gui = new GUI(glfwWindow);
     m_textRenderer = new TextRenderer(glfwWindow);
     m_textRenderer->setupGL();
+    printf("end setup text renderer\n");
 
-    //init game
-    graphicSetting.renderDistance = 4;
-
+    //part game logic
 	game = new Game(window);
     game->init();
 
+    //graphic setting
+    graphicSetting.renderDistance = 4;
+    printf("start main loop game\n");
     while (!glfwWindowShouldClose(glfwWindow))
     { 
+        // Take care of all GLFW events
+        glfwPollEvents();
         //part render clear
         window->clearBuffer();
         //part Input
         m_input->update();
+        //part GUI
         m_gui->update();
         //part Client Logic Update
         game->counterTime();
@@ -90,10 +113,11 @@ void ClientEngine::launch() {
         // Swap the back buffer with the front buffer
         glfwSwapBuffers(glfwWindow);
     }
-    exit();
+    return exit();
 }
-void ClientEngine::exit() {
+int ClientEngine::exit() {
     glfwDestroyWindow(window->window);
     glfwTerminate();
+    return 0;
 }
 

@@ -42,6 +42,6 @@ int main(int argc, char** argv)
     }
     //else run client standalone
     ClientEngine clientEngine;
-    clientEngine.launch(); //while loop main game
-    return 0;
+    int err = clientEngine.launch(); //while loop main game
+    return err;
 }

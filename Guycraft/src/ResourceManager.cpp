@@ -16,7 +16,7 @@ Shader* ResourceManager::addShader(std::string pathVertexAndFragment, std::strin
 }
 
 Texture* ResourceManager::addTexture(const char* pathFile, bool isMipmapping) {
-    auto texture = new Texture(pathFile, isMipmapping, GL_CLAMP_TO_BORDER, GL_NEAREST);
+    auto texture = new Texture(pathFile, isMipmapping, GL_REPEAT, GL_NEAREST);
     m_textures.emplace(pathFile, texture);
     return texture;
 }
@@ -27,7 +27,7 @@ Sprite* ResourceManager::getSprite(std::string spriteID)
 void ResourceManager::loadAllResouces() {
     namespace fs = std::filesystem;
     //load resouce all shader
-    std::string pathShaders = "src/Shaders";
+    std::string pathShaders = "assets/shaders";
     int isFileExist = 0;
     for (const auto& entry : fs::directory_iterator(pathShaders)) {
         if (isFileExist > 0) {
@@ -54,9 +54,10 @@ void ResourceManager::loadAllResouces() {
         for (const auto& entry : fs::directory_iterator(pathTextures)) {
             std::string pathFile = entry.path().string();
             std::replace(pathFile.begin(), pathFile.end(), '\\', '/');
-            addTexture(pathFile.c_str(), false);
+            addTexture(pathFile.c_str(), 1);
         }
-        m_sprites.emplace("assets/textures/gui/button_0", 
-            new Sprite(m_textures["assets/textures/gui/button_0.png"]));
     }
+    //manual create sprite
+    m_sprites.emplace("assets/textures/gui/button_0",
+        new Sprite(m_textures["assets/textures/gui/button_0.png"]));
 }

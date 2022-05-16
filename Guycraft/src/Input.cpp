@@ -35,9 +35,6 @@ void Input::registerKeyState(int glfwKeycode, int device) {
     m_refMapping->insert(pairKeyValueKeyMapping);
 }
 void Input::update() {
-    // Take care of all GLFW events
-    glfwPollEvents();
-
     auto* window = ClientEngine::GetInstance().window->window;
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);

@@ -7,6 +7,7 @@ Window::Window(const char* title) {
 	m_instance = this;
 	this->title = title;
 	this->window = window;
+	m_isFullscreenMode = false;
 }
 Window* Window::GetInstance() {
 	return m_instance;
@@ -14,7 +15,19 @@ Window* Window::GetInstance() {
 void Window::onWindowResize(int width,int height) {
 	this->width = width;
 	this->height = height;
-	//printf("window resize width:%d height:%d\n", width, height);
+}
+bool Window::isFullscreenMode() {
+	return m_isFullscreenMode;
+}
+void Window::setFullscreen(bool v)
+{
+
+}
+void Window::resize(int width, int height)
+{
+	glViewport(0, 0, width, height);
+	glfwSetWindowSize(window, width, height);
+	onWindowResize(width, height);
 }
 void Window::setActiveVsync(bool state) {
 	if (state) {

@@ -6,6 +6,7 @@
 class Window {
 private:
     GLFWimage icon;
+    bool m_isFullscreenMode = true;
 public:
     static Window* m_instance;
     static Window* GetInstance();
@@ -18,7 +19,9 @@ public:
     unsigned int width = 1280;
     unsigned int height = 720;
     const char* title = "Voxel Engine";
-    //set vsync
+    bool isFullscreenMode();
+    void setFullscreen(bool v);
+    void resize(int width, int height);
     void setActiveVsync(bool state);
     void setIcon(GLFWimage image);
 };

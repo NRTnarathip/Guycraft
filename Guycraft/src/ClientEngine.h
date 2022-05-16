@@ -23,9 +23,10 @@ public:
 	Input* m_input = nullptr;
 	TextRenderer* m_textRenderer = nullptr;
 	ResourceManager* m_resouceManager = nullptr;
+	SceneManager *m_sceneManager = nullptr;
 	GUI* m_gui = nullptr;
 
 	int setupWindow();
-	void launch();
-	void exit();
+	int launch();
+	int exit();
 };

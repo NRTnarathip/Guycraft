@@ -1,7 +1,4 @@
 #pragma once
-#ifndef GAME_H
-#define GAME_H
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -21,26 +18,16 @@ private:
 public:
     Game(Window* win);
     static Game* GetInstance() { return instance; }
-    SceneManager* sceneManager = nullptr;
     Window* window = nullptr;
-    ResourceManager* resourceManager = nullptr;
-
-   /* ChunkManager* chManager = nullptr;
-    GenMeshChunk* genMeshChunk = nullptr;*/
+    SceneManager* sceneManager = nullptr;
     void counterTime();
-    //order of event functions visualised
     void init();
-    void beforeUpdate();//like fixed update
+    void beforeUpdate();
     void update();
     void lastUpdate();
-    //end
     void render();
     void printCounter();
-    //exit at lobby scene
     void exit();
-
-
-    //addon
     void play();
 };
 
@@ -52,5 +39,4 @@ public:
     static float framesPerSecond;
     static int fps;
 };
-#endif // GAME_H
 
