@@ -21,8 +21,13 @@ void useThreadChunkMeshBuilding() {
 		auto chunk = queueJob->getFront();
 		queueJob->unlock();
 		chunk->lock();
-		if (not chunk->isNeedGenerateMesh) {
+		if (not chunk->isNeedGenerateMesh or not chunk->isLoad) {
 			chunk->unlock();
+			continue;
+		}
+		if (chunk->getChunkNieghborCount() <= 2) {
+			chunk->unlock();
+			queueJob->pushLock(chunk);
 			continue;
 		}
 		auto start = std::chrono::high_resolution_clock::now();
@@ -30,8 +35,10 @@ void useThreadChunkMeshBuilding() {
 		auto elapsed = std::chrono::high_resolution_clock::now() - start;
 		printf("gen mesh block time:%d ms\n",
 			std::chrono::nanoseconds(elapsed).count() / 100000);
-
-		cMeshBuilder->genMeshChunkNeighborEdge(chunk);
+		//regenerate mesh when chunk neighbor not complete
+		if (chunk->getChunkNieghborCount() != chunk->m_allocateChunkNeighborCount) {
+			cMeshBuilder->addQueue(chunk);
+		}
 		chunk->unlock();
 	}
 }
@@ -63,9 +70,7 @@ void ChunkMeshBuilding::updateMainThread()
 void ChunkMeshBuilding::addQueue(Chunk* chunk)
 {
 	chunk->isNeedGenerateMesh = true;
-	m_queueJob.lock();
-	m_queueJob.push(chunk);
-	m_queueJob.unlock();
+	m_queueJob.pushLock(chunk);
 }
 
 void ChunkMeshBuilding::addQueueFront(Chunk* chunk)

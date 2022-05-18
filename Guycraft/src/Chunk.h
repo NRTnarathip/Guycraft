@@ -35,14 +35,12 @@ struct JobPopulateSub {
 	u8 groupVoxel;
 	Voxel voxels[CHUNK_SIZE_BLOCK];
 };
-
 //none safe thread
 class Chunk {
-private:
-	std::mutex m_mutexGenMesh;
-	bool isLoad = false;
 public:
+	bool isLoad = false;
 	std::mutex mutex;
+	std::mutex mutexNeighbor;
 	//bitwise light lamp and sun;
 	unsigned char lightMap[CHUNK_SIZE_BLOCK];
 	glm::ivec2 pos;
@@ -60,14 +58,25 @@ public:
 	//for threading
 	void lock() { mutex.lock(); }
 	void unlock() { mutex.unlock(); }
+	//chunk neighbor 8 direction
 	Chunk* north = nullptr;
+	Chunk* northEast = nullptr;
+	Chunk* northWest = nullptr;
 	Chunk* south = nullptr;
+	Chunk* southEast = nullptr;
+	Chunk* southWest = nullptr;
 	Chunk* east = nullptr;
 	Chunk* west = nullptr;
+	std::vector<Chunk*> getAllChunkNeighbor();
+	int m_allocateChunkNeighborCount = 0;
+	//8 direction
+	bool m_allocateChunkNeighbor[8] = {false};
 	void render();
 	void unload();
 	void onLoad();
-	void linkChunkNeighbor(Chunk* [4]);
+	void unAllocateChunkNeighbor();
+	int getChunkNieghborCount();
+	void linkChunkNeighbor(Chunk* chunkNiehgbor[8]);
 	void unlinkChunkNeighbhor();
 	Voxel getvoxel(u8 group, u8 x, u8 y, u8 z);
 	//for generate mesh

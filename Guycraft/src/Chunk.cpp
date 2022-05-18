@@ -3,6 +3,10 @@
 #include "ResourceManager.h"
 #define ACCESSVOXEL voxels[x + (y << BS_CH) + (z << BS_CH2) + (group << BS_CH4)]
 #define IMP_RETURN_VOXELISSOLID u8 type = ACCESSVOXEL.type; return type !=0 and type != 4;
+std::vector<Chunk*> Chunk::getAllChunkNeighbor()
+{
+    return  { north,south, east,west,northEast, northWest, southEast,southWest };
+}
 void Chunk::render() {
     auto resource = ResourceManager::GetInstance();
     auto sdSolid = resource->m_shaders["chunk_block_solid"];
@@ -36,62 +40,110 @@ void Chunk::onLoad() {
 }
 void Chunk::unload() {
     isLoad = false;
-    m_mutexGenMesh.lock();
+    mutexNeighbor.lock();
     unlinkChunkNeighbhor();
-    m_mutexGenMesh.unlock();
+    unAllocateChunkNeighbor();
+    mutexNeighbor.unlock();
+
+    for (auto& mesh : meshs) {
+        mesh.lock();
+        mesh.clearOnGPU();
+        mesh.unlock();
+    }
 }
-void Chunk::linkChunkNeighbor(Chunk* chunks[4]) {
+void Chunk::unAllocateChunkNeighbor() {
+    m_allocateChunkNeighborCount = 0;
+    for (int i = 0; i < 8; i++) {
+        m_allocateChunkNeighbor[i] = false;
+    }
+}
+int Chunk::getChunkNieghborCount() {
+    int count = 0;
+    auto cnb = getAllChunkNeighbor();
+    for (auto c : cnb) {
+        if (c != nullptr) count++;
+    }
+    return count;
+}
+void Chunk::linkChunkNeighbor(Chunk* chunks[8]) {
     auto cNorth = chunks[0];
     auto cSouth = chunks[1];
     auto cEast = chunks[2];
     auto cWest = chunks[3];
-    auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
+    auto cNorthEast = chunks[4];
+    auto cSouthEast = chunks[5];
+    auto cSouthWest = chunks[6];
+    auto cNorthWest = chunks[7];
+
+    if (cNorthEast != nullptr) {
+        cNorthEast->southWest = this;
+        northEast = cNorthEast;
+    }
+    if (cSouthEast != nullptr) {
+        cSouthEast->northWest = this;
+        southEast = cSouthEast;
+    }
+    if (cSouthWest != nullptr) {
+        cSouthWest->northEast = this;
+        southWest = cSouthWest;
+    }
+    if (cNorthWest != nullptr) {
+        cNorthWest->southEast = this;
+        northWest = cNorthWest;
+    }
+
     if (cNorth != nullptr) {
         north = cNorth;
-        cMeshBuilding->addQueueFront(north);
         cNorth->south = this;
     }
     if (cSouth != nullptr) {
         south = cSouth;
-        cMeshBuilding->addQueueFront(south);
-        south->isNeedGenerateMesh = true;
         cSouth->north = this;
     }
     if (cEast != nullptr) {
         east = cEast;
-        cMeshBuilding->addQueueFront(east);
-        east->isNeedGenerateMesh = true;
         cEast->west = this;
     }
     if (cWest != nullptr) {
         west = cWest;
-        cMeshBuilding->addQueueFront(west);
-        west->isNeedGenerateMesh = true;
         cWest->east = this;
     }
 }
 void Chunk::unlinkChunkNeighbhor() {
     auto meshBuilding = ChunkMeshBuilding::GetInstance();
+    
+    if (northEast != nullptr) {
+        northEast->southWest = nullptr;
+    }
+    if (northWest != nullptr) {
+        northWest->southEast= nullptr;
+    }
+    if (southEast != nullptr) {
+        southEast->northWest = nullptr;
+    }
+    if (southWest != nullptr) {
+        southWest->northEast = nullptr;
+    }
     if (north != nullptr) {
         north->south = nullptr;
-        meshBuilding->addQueueFront(north);
-        north = nullptr;
     }
     if (south != nullptr) {
         south->north = nullptr;
-        meshBuilding->addQueueFront(south);
-        south = nullptr;
     }
     if (east != nullptr) {
         east->west = nullptr;
-        meshBuilding->addQueueFront(east);
-        east = nullptr;
     }
     if (west != nullptr) {
         west->east = nullptr;
-        meshBuilding->addQueueFront(west);
-        west = nullptr;
     }
+    north = nullptr;
+    northWest = nullptr;
+    northEast = nullptr;
+    south = nullptr;
+    southEast = nullptr;
+    southWest = nullptr;
+    east = nullptr;
+    west = nullptr;
 }
 u16 Chunk::getBlockCount() {
     u16 i = 0;
@@ -117,7 +169,6 @@ Voxel Chunk::getvoxel(u8 group, u8 x, u8 y, u8 z) {
 };
 void Chunk::generateMeshChunk() {
     isNeedGenerateMesh = false;
-
     Voxel* voxel;
     bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
     auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
@@ -154,14 +205,14 @@ void Chunk::generateMeshChunk() {
                     if (voxel->type == 0) continue; //dont gen block air
                     bool useFuncGetVoxelOutChunk = x == 0 or x == CHUNK_SIZE_INDEX
                         or isVoxelOnEdgeY or isVoxelOnEdgeZ;
-                    m_mutexGenMesh.lock();
+                    mutexNeighbor.lock();
                     if (voxel->type == 4) {
                         genMeshWater(meshFluid,group, x, y, z, voxel, useFuncGetVoxelOutChunk);
                     }
                     else {
                         genMeshCube(meshSolid, group, x, y, z, voxel, useFuncGetVoxelOutChunk);
                     }
-                    m_mutexGenMesh.unlock();
+                    mutexNeighbor.unlock();
                 }
             }
         }
