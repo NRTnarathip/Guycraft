@@ -12,10 +12,10 @@ bool inRange(int value, int min, int max)
 	return (value >= min) and (value <= max);
 }
 void ChunkManager::init() {
-	lastViewPos = CameraManager::GetCurrentCamera()->Postition;
+	lastViewPos = CameraManager::GetCurrentCamera()->transform.position;
 	chunkMeshBuilding.startWithThread();
 	auto camera = CameraManager::GetCurrentCamera();
-	auto posPlayerToChunk = ToChunkPosition(camera->Postition);
+	auto posPlayerToChunk = ToChunkPosition(camera->transform.position);
 	chunkLoader.firstLoader(posPlayerToChunk);
 }
 glm::ivec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
@@ -38,7 +38,7 @@ glm::ivec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
 }
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();
-	auto posCamera = camera->Postition;
+	auto posCamera = camera->transform.position;
 	auto posPlayerToChunk = ToChunkPosition(posCamera);
 
 	//check if chunk is not use or out of range render system

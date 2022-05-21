@@ -22,72 +22,84 @@ void PlayerController::start() {
 
 }
 void PlayerController::update() { //update every frame on ECS
+	//move left,right,forward,backward, camera
 	UpdateInputs();
-}
 
+
+	//for interaction world
+	//block
+	updateInteractionBlock();
+}
+void PlayerController::updateInteractionBlock() {
+	auto input = &Input::GetInstance();
+	int maxLenghtHitBlock = 5;//from my self 0 to max next 4 block
+	auto came = CameraManager::GetCurrentCamera();
+	//on hit block
+	if (input->onMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
+
+		auto currentRay = glm::vec3(0.f,0.f,0.2f);
+		auto rayDirection = glm::vec3(0.f,0.2f,1.);
+
+		for (int i = 0; i < maxLenghtHitBlock; i++) {
+			currentRay = rayDirection + currentRay;
+			printf("step %d pos to voxel x:%f y%f z:%f\n",i, currentRay.x,
+				currentRay.y, currentRay.z);
+		}
+	}
+}
 void PlayerController::UpdateInputs()
 {
+	auto input = &Input::GetInstance();
 	auto window = Game::GetInstance()->window->window;
 	//auto &transform = getComponent<Transform>();
 	auto me = getGameObject();
 	glm::vec3 &posEntity = me->transform.position;
 	auto* camera = CameraManager::GetCurrentCamera();
 	float speed = speedMove;
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	if (input->isKey(GLFW_KEY_LEFT_SHIFT))
 	{
 		speed = speedRun * 3;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-	{
-		speed = speedMove;
-	}
-
 	// Handles key inputs
+	float cameRotateY = camera->transform.rotation.y;
+	auto forward = camera->transform.forward();
+	auto right = camera->transform.right();
+
 	speed *= (float)Time::deltaTime;
+	if (input->isKey(GLFW_KEY_W)) {
+		posEntity += speed * forward;
+	}
+	else if (input->isKey(GLFW_KEY_S)) {
+		posEntity -= speed * forward;
+	}
+	if (input->isKey(GLFW_KEY_D)) {
+		posEntity += speed * right;
+	}
+	else if (input->isKey(GLFW_KEY_A)) {
+		posEntity -= speed * right;
+	}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (input->isKey(GLFW_KEY_SPACE))
 	{
-		posEntity += speed * camera->Orientation;
+		posEntity.y += speed;
 	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	else if (input->isKey(GLFW_KEY_LEFT_CONTROL))
 	{
-		posEntity += speed * glm::normalize(glm::cross(camera->Orientation, camera->Up));
+		posEntity.y -= speed;
 	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		posEntity += speed * -camera->Orientation;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		posEntity += speed * -glm::normalize(glm::cross(camera->Orientation, camera->Up));
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		posEntity += speed * camera->Up;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-	{
-		posEntity += speed * -camera->Up;
-	}
-	// Normalizes and shifts the coordinates of the cursor such that they begin in the middle of the screen
-	// and then "transforms" them into degrees 
-	//auto &mouse = Game::GetInstance()->inputManager.mouse;
+
 	glm::vec2 mouseAxis = Input::GetInstance().mouseAxis();
-	float sensinitive = 0.25f;
-	float rotX = (mouseAxis.y * sensinitive);
-	float rotY = (mouseAxis.x * sensinitive);
-	// Calculates upcoming vertical change in the Orientation
-	glm::vec3 newOrientation = glm::rotate(camera->Orientation, 
-		glm::radians(-rotX), 
-		glm::normalize(glm::cross(camera->Orientation, camera->Up)));
-
-	// Decides whether or not the next vertical Orientation is legal or not
-	if (abs(glm::angle(newOrientation, camera->Up) - glm::radians(90.0f)) <= glm::radians(85.0f))
-	{
-		camera->Orientation = newOrientation;
+	float cameRotateX = camera->transform.rotation.x;
+	float rotRight = (mouseAxis.x * camera->sensitivity);
+	rotRight += cameRotateY;
+	if (rotRight >= 360.f or rotRight <= -360.f) {
+		rotRight = 0.f;
 	}
+	float rotUp = (mouseAxis.y * camera->sensitivity);
+	rotUp += cameRotateX;
+	rotUp = glm::clamp(rotUp, -89.9f, 89.9f);
 
-	// Rotates the Orientation left and right
-	camera->Orientation = glm::rotate(camera->Orientation, glm::radians(rotY), camera->Up);
-	camera->Postition = posEntity;
+	camera->transform.position = posEntity;
+	camera->transform.rotation.x = rotUp;
+	camera->transform.rotation.y = rotRight;
 }

@@ -58,70 +58,99 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 		auto job = m_queueJobPopulateComplete.getFront();
 		m_queueJobPopulateComplete.unlock();
 		auto pos = job->pos;
-		if (m_allocateChunk.has(pos)) {
-			Chunk* chunk = nullptr;
-			manager->chunks.lock();
-			//create new chunk;
-			if (not manager->chunks.exist(pos)) {
-				chunk = manager->chunkPooling.get();
-				//setup chunk
-				chunk->pos = pos;
-				chunk->changeVoxels(job->voxels);
-				//add chunk container
-				manager->chunks.add(chunk);
-				//setup chunk neighbor
-				Chunk* chunksNeighbor[8];
-				glm::ivec2 posChunkNeighbor[8] = {
-					glm::ivec2(0, CHUNK_SIZE) + pos,
-					glm::ivec2(0, -CHUNK_SIZE) + pos,
-					glm::ivec2(CHUNK_SIZE, 0) + pos,
-					glm::ivec2(-CHUNK_SIZE, 0) + pos,
-					pos + glm::ivec2(CHUNK_SIZE, CHUNK_SIZE),//north east
-					pos + glm::ivec2(CHUNK_SIZE, -CHUNK_SIZE),//south east
-					pos + glm::ivec2(-CHUNK_SIZE, -CHUNK_SIZE),//south west
-					pos + glm::ivec2(-CHUNK_SIZE, CHUNK_SIZE),//north west
-				};
-				for (int i = 0; i < 8; i++) {
-					auto posNext = posChunkNeighbor[i];
-					auto nextChunk = manager->getChunk(posNext);
-					if (nextChunk == nullptr) {
-						nextChunk = nullptr;
-					}
-					chunksNeighbor[i] = nextChunk;
-					//set chunk allocate
-					bool isExist = m_allocateChunk.has(posNext);
-					chunk->m_allocateChunkNeighbor[i] = isExist;
-					if (isExist) {
-						chunk->m_allocateChunkNeighborCount++;
-					}
-				}
-				//link chunk neightbor, genmesh
-				chunk->linkChunkNeighbor(chunksNeighbor);
-				chunk->onLoad();
-			}
-			//update chunk voxel data
-			else {
-				chunk = manager->chunks.m_container[pos];
-				chunk->changeVoxels(job->voxels);
-			}
-			manager->chunks.unlock();
-			ChunkMeshBuilding::GetInstance()->addQueue(chunk);
+		if (not m_allocateChunk.has(pos)) {
+			delete job;
+			continue;
 		}
 
-		delete job;
+		Chunk* chunk = nullptr;
+		manager->chunks.lock();
+		//create new chunk;
+		if (not manager->chunks.exist(pos)) {
+			chunk = manager->chunkPooling.get();
+			//setup chunk
+			chunk->pos = pos;
+			chunk->changeVoxels(job->voxels);
+			delete job;
+
+			//add chunk container
+			manager->chunks.add(chunk);
+			//setup chunk neighbor
+			chunk->m_allocateChunkNeighborCount = 0;
+			Chunk* chunksNeighbor[8];
+			glm::ivec2 posChunkNeighbor[8] = {
+				glm::ivec2(0, CHUNK_SIZE) + pos,//north
+				glm::ivec2(0, -CHUNK_SIZE) + pos,//south
+				glm::ivec2(CHUNK_SIZE, 0) + pos,//east
+				glm::ivec2(-CHUNK_SIZE, 0) + pos,//west
+				pos + glm::ivec2(CHUNK_SIZE, CHUNK_SIZE),//north east
+				pos + glm::ivec2(CHUNK_SIZE, -CHUNK_SIZE),//south east
+				pos + glm::ivec2(-CHUNK_SIZE, -CHUNK_SIZE),//south west
+				pos + glm::ivec2(-CHUNK_SIZE, CHUNK_SIZE),//north west
+			};
+			for (int i = 0; i < 8; i++) {
+				auto posNext = posChunkNeighbor[i];
+				auto nextChunk = manager->getChunk(posNext);
+				if (nextChunk == nullptr) {
+					nextChunk = nullptr;
+				}
+				chunksNeighbor[i] = nextChunk;
+				//set chunk allocate
+				bool isExist = m_allocateChunk.has(posNext);
+				if (isExist) {
+					chunk->m_allocateChunkNeighborCount++;
+				}
+			}
+			//link chunk neightbor, genmesh
+			chunk->linkChunkNeighbor(chunksNeighbor);
+			//on chunk loaded
+			chunk->isLoad = true;
+			chunk->isShouldUnload = false;
+		}
+		//update chunk voxel data
+		else {
+			chunk = manager->chunks.m_container[pos];
+			chunk->changeVoxels(job->voxels);
+			delete job;
+		}
+		manager->chunks.unlock();
+		ChunkMeshBuilding::GetInstance()->addQueue(chunk);
 	}
+}
+int ChunkLoader::getAllocateChunkNeighborCount(Chunk* chunk)
+{
+	auto pos = chunk->pos;
+	int count = 0;
+	for (int i = 0; i < 8; i++) {
+		auto next = chunkNeighborPositions[i] + pos;
+		//set chunk allocate
+		m_allocateChunk.lock();
+		bool isExist = m_allocateChunk.has(next);
+		m_allocateChunk.unlock();
+		if (isExist) {
+			count++;
+		}
+	}
+	return count;
 }
 void ChunkLoader::onPlayerMoveToNewChunk()
 {
 	auto cManager = ChunkManager::GetInstance();
 	std::vector<Chunk*> listUnloadChunk;
+	//marker chunk is should unload;
 	for (auto &elem : cManager->chunks.m_container) {
 		auto chunk = elem.second;
 		auto posChunk = chunk->pos;
 		if (not ChunkManager::ChunkInRange(lastPosChunk, posChunk)) {
+			chunk->isShouldUnload = true;
+			m_allocateChunk.lock();
+			m_allocateChunk.m_map.erase(posChunk);
+			m_allocateChunk.unlock();
 			listUnloadChunk.push_back(chunk);
 		}
 	}
+	//marker chunk loader edge
+	//to do refresh allocate chunk neighbor
 	for (auto chunk : listUnloadChunk) {
 		unloadChunk(chunk);
 	}
@@ -133,7 +162,9 @@ void ChunkLoader::onPlayerMoveToNewChunk()
 		}
 	}
 	for (auto pos : listAllocatePosChunk) {
+		m_allocateChunk.lock();
 		m_allocateChunk.m_map.erase(pos);
+		m_allocateChunk.unlock();
 	}
 	listUnloadChunk.clear();
 }

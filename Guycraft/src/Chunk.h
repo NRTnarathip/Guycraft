@@ -38,6 +38,7 @@ struct JobPopulateSub {
 //none safe thread
 class Chunk {
 public:
+	bool isShouldUnload = false;
 	bool isLoad = false;
 	std::mutex mutex;
 	std::mutex mutexNeighbor;
@@ -69,15 +70,10 @@ public:
 	Chunk* west = nullptr;
 	std::vector<Chunk*> getAllChunkNeighbor();
 	int m_allocateChunkNeighborCount = 0;
-	//8 direction
-	bool m_allocateChunkNeighbor[8] = {false};
 	void render();
 	void unload();
-	void onLoad();
-	void unAllocateChunkNeighbor();
 	int getChunkNieghborCount();
 	void linkChunkNeighbor(Chunk* chunkNiehgbor[8]);
-	void unlinkChunkNeighbhor();
 	Voxel getvoxel(u8 group, u8 x, u8 y, u8 z);
 	//for generate mesh
 	void generateMeshChunk();

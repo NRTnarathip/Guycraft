@@ -5,6 +5,9 @@
 class PlayerController : public Component {
 private:
 	static PlayerController* instance;
+	
+	void updateInteractionBlock();
+
 public:
 	PlayerController();
 	static PlayerController* GetInstance();

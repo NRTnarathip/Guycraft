@@ -1,6 +1,8 @@
 #include <Chunk.h>
 #include "ChunkMeshBuilding.h"
 #include "ResourceManager.h"
+#include "ChunkManager.h"
+
 #define ACCESSVOXEL voxels[x + (y << BS_CH) + (z << BS_CH2) + (group << BS_CH4)]
 #define IMP_RETURN_VOXELISSOLID u8 type = ACCESSVOXEL.type; return type !=0 and type != 4;
 std::vector<Chunk*> Chunk::getAllChunkNeighbor()
@@ -35,34 +37,65 @@ void Chunk::render() {
         position.y += CHUNK_SIZE;
     }
 }
-void Chunk::onLoad() {
-    isLoad = true;
-}
 void Chunk::unload() {
     isLoad = false;
     mutexNeighbor.lock();
-    unlinkChunkNeighbhor();
-    unAllocateChunkNeighbor();
+    //north east = 4;
+    //south east = 5;
+    //south west = 6;
+    //north west= 7;
+    if (northEast != nullptr) {
+        northEast->m_allocateChunkNeighborCount--;
+        northEast->southWest = nullptr;
+        northEast = nullptr;
+    }
+    if (northWest != nullptr) {
+        northWest->m_allocateChunkNeighborCount--;
+        northWest->southEast = nullptr;
+        northWest = nullptr;
+    }
+    if (southEast != nullptr) {
+        southEast->m_allocateChunkNeighborCount--;
+        southEast->northWest = nullptr;
+        southEast = nullptr;
+    }
+    if (southWest != nullptr) {
+        southWest->m_allocateChunkNeighborCount--;
+        southWest->northEast = nullptr;
+        southWest = nullptr;
+    }
+    if (north != nullptr) {
+        north->m_allocateChunkNeighborCount--;
+        north->south = nullptr;
+        north = nullptr;
+    }
+    if (south != nullptr) {
+        south->m_allocateChunkNeighborCount--;
+        south->north = nullptr;
+        south = nullptr;
+    }
+    if (east != nullptr) {
+        east->m_allocateChunkNeighborCount--;
+        east->west = nullptr;
+        east = nullptr;
+    }
+    if (west != nullptr) {
+        west->m_allocateChunkNeighborCount--;
+        west->east = nullptr;
+        west = nullptr;
+    }
     mutexNeighbor.unlock();
-
     for (auto& mesh : meshs) {
         mesh.lock();
         mesh.clearOnGPU();
         mesh.unlock();
     }
 }
-void Chunk::unAllocateChunkNeighbor() {
-    m_allocateChunkNeighborCount = 0;
-    for (int i = 0; i < 8; i++) {
-        m_allocateChunkNeighbor[i] = false;
-    }
-}
 int Chunk::getChunkNieghborCount() {
     int count = 0;
     auto cnb = getAllChunkNeighbor();
-    for (auto c : cnb) {
+    for (auto c : cnb)
         if (c != nullptr) count++;
-    }
     return count;
 }
 void Chunk::linkChunkNeighbor(Chunk* chunks[8]) {
@@ -108,42 +141,6 @@ void Chunk::linkChunkNeighbor(Chunk* chunks[8]) {
         west = cWest;
         cWest->east = this;
     }
-}
-void Chunk::unlinkChunkNeighbhor() {
-    auto meshBuilding = ChunkMeshBuilding::GetInstance();
-    
-    if (northEast != nullptr) {
-        northEast->southWest = nullptr;
-    }
-    if (northWest != nullptr) {
-        northWest->southEast= nullptr;
-    }
-    if (southEast != nullptr) {
-        southEast->northWest = nullptr;
-    }
-    if (southWest != nullptr) {
-        southWest->northEast = nullptr;
-    }
-    if (north != nullptr) {
-        north->south = nullptr;
-    }
-    if (south != nullptr) {
-        south->north = nullptr;
-    }
-    if (east != nullptr) {
-        east->west = nullptr;
-    }
-    if (west != nullptr) {
-        west->east = nullptr;
-    }
-    north = nullptr;
-    northWest = nullptr;
-    northEast = nullptr;
-    south = nullptr;
-    southEast = nullptr;
-    southWest = nullptr;
-    east = nullptr;
-    west = nullptr;
 }
 u16 Chunk::getBlockCount() {
     u16 i = 0;
