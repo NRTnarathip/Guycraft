@@ -20,11 +20,8 @@ public:
 	Shader(const char* vertexFile, const char* fragmentFile);
 	// Reference ID of the Shader Program
 	GLuint ID = 0;
-	// Constructor that build the Shader Program from 2 different shaders
-
-	// Activates the Shader Program
+	std::string vertexPath, fragmentPath;
 	void Bind()const;
-	// Deletes the Shader Program
 	void Delete();
 	void UnBind()const;
 	void SetVar(const char* name, int value) const;
@@ -35,6 +32,7 @@ public:
 		Bind();
 		glUniform1f(glGetUniformLocation(ID, name), value);
 	};
+	void reload();
 private:
 	// Checks if the different Shaders have compiled properly
 	void compileErrors(unsigned int shader, const char* type);

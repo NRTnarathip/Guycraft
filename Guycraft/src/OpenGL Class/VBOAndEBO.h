@@ -1,5 +1,6 @@
 #pragma once
 #include <glad/glad.h>
+#include <algorithm>
 
 class HelperBufferObject {
 public:

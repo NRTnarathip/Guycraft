@@ -52,6 +52,11 @@ void World::render() {
 	CameraManager::GetInstance().uploadCameraMatrixToShader(shader);
 	shader->Bind();
 	for (GameObject* obj : m_gameObjects) {
+		auto comps = obj->getAllComponents();
+		for (auto c : comps) {
+			c->render();
+		}
+
 		if (obj->mesh == nullptr) { continue; }
 
 		auto mesh = obj->mesh;

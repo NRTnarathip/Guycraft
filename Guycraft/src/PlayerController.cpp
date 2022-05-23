@@ -41,6 +41,13 @@ void PlayerController::update() { //update every frame on ECS
 	//for interaction world
 	//block
 	updateInteractionBlock();
+
+	auto input = &Input::GetInstance();
+	//reload some shader such block_highlight
+	if (input->isKeyDown(GLFW_KEY_R)) {
+		auto shader = ResourceManager::GetInstance()->m_shaders["block_highlight"];
+		shader->reload();
+	}
 }
 void PlayerController::updateInteractionBlock() {
 	auto came = CameraManager::GetCurrentCamera();
@@ -55,9 +62,7 @@ void PlayerController::updateInteractionBlock() {
 
 	auto hit = voxelRaycast.raycast(origin, rayDirection, 10.f);
 	//on dig
-	meshBlockHighlight.vertices.clear();
-	meshBlockHighlight.triangles.clear();
-
+	meshBlockHighlight.isActive = false;
 	if (hit.isHit) {
 		if (input->onMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
 			auto chunk = hit.chunk;
@@ -66,13 +71,17 @@ void PlayerController::updateInteractionBlock() {
 		}
 
 		//block highlight
+		meshBlockHighlight.isActive = true;
 		meshBlockHighlight.genMeshCube(hit.worldPos);
 	}
 }
 void PlayerController::render() {
-	if (meshBlockHighlight.triangles.size() == 0) return;
+	if (meshBlockHighlight.isActive == 0) return;
 
+	auto came = CameraManager::GetCurrentCamera();
 	auto shader = ResourceManager::GetInstance()->m_shaders["block_highlight"];
+	CameraManager::GetInstance().uploadCameraMatrixToShader(shader);
+
 	shader->Bind();
 	meshBlockHighlight.draw();
 	shader->UnBind();

@@ -6,6 +6,7 @@
 
 class MeshBlockHighlight {
 public:
+	bool isActive = true;
 	struct Vertex {
 		Vertex(glm::vec3 pos) {
 			position = pos;
@@ -21,8 +22,8 @@ public:
 	void genMeshCube(glm::vec3 pos);
 	void setupMesh();
 	void draw();
-
 private:
 	void genQuadFaceCube();
 	void transferMeshToGPU();
+	unsigned int triCount = 0;
 };

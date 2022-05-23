@@ -55,12 +55,16 @@ void MeshChunk::clearOnGPU() {
 	triangles.shrink_to_fit();
 }
 void MeshChunk::setupMesh() {
+	//gen buffer 3 type
 	// VBO
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	// VAO
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
+	// EBO
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
 	// position 3 axis with bitmask
 	glEnableVertexAttribArray(0);
@@ -75,13 +79,11 @@ void MeshChunk::setupMesh() {
 	glVertexAttribPointer(2, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex), 
 		(void*)offsetof(Vertex, lighting));
 
-	// EBO
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
+	
 	//UnBine
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 void MeshChunk::transferToGPU() {
 	if (triangles.size() == 0) return;
