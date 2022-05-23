@@ -37,8 +37,11 @@
     <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\MeshBlockHighlight.cpp" />
     <ClCompile Include="src\MeshChunk.cpp" />
     <ClCompile Include="src\Physics\BoxCollision.cpp" />
+    <ClCompile Include="src\Physics\Transform.cpp" />
+    <ClCompile Include="src\Physics\VoxelRaycast.cpp" />
     <ClCompile Include="src\PlayerController.cpp" />
     <ClCompile Include="src\Raycast.cpp" />
     <ClCompile Include="src\RectTransform.cpp" />
@@ -85,10 +88,15 @@
     <ClInclude Include="src\Biome.h" />
     <ClInclude Include="src\Image.h" />
     <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\MeshBlockHighlight.h" />
     <ClInclude Include="src\MeshChunk.h" />
+    <ClInclude Include="src\OpenGL Class\VAO.h" />
+    <ClInclude Include="src\OpenGL Class\VBOAndEBO.h" />
     <ClInclude Include="src\Physics\BoxCollision.h" />
     <ClInclude Include="src\Physics\GameObject.h" />
     <ClInclude Include="src\Physics\Transform.h" />
+    <ClInclude Include="src\Physics\Vector.h" />
+    <ClInclude Include="src\Physics\VoxelRaycast.h" />
     <ClInclude Include="src\PlayerController.h" />
     <ClInclude Include="src\Raycast.h" />
     <ClInclude Include="src\RectTransform.h" />

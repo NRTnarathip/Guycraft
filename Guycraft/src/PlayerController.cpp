@@ -6,6 +6,8 @@
 #include "Input.h"
 #include <CameraManager.h>
 #include <GameObject.h>
+#include "Physics/Vector.h"
+#include "glm/ext.hpp"
 
 PlayerController* PlayerController::instance = nullptr;
 
@@ -16,7 +18,17 @@ PlayerController::PlayerController() {
 	instance = this;
 }
 void PlayerController::init() {
+	meshBlockHighlight.setupMesh();
 	Input::GetInstance().setMouseMode(0);
+	getGameObject()->transform.rotation = glm::vec3(0,-90.f,0);
+	//setup corsur
+	auto spriteCursor = ResourceManager::GetInstance()->getSprite("assets/textures/gui/cursor");
+	auto sc = SceneManager::GetInstance()->getCurrent();
+	auto canvas = sc->m_UIMenu.createContainer("UI Player", {0, 0}, {1920,1080});
+	auto imageCursor = canvas->createImage();
+	imageCursor->rect.size = { 20, 20 };
+	auto compImage = imageCursor->getComponent<Image>();
+	compImage->setSprite(spriteCursor);
 }
 void PlayerController::start() {
 
@@ -31,21 +43,39 @@ void PlayerController::update() { //update every frame on ECS
 	updateInteractionBlock();
 }
 void PlayerController::updateInteractionBlock() {
-	auto input = &Input::GetInstance();
-	int maxLenghtHitBlock = 5;//from my self 0 to max next 4 block
 	auto came = CameraManager::GetCurrentCamera();
-	//on hit block
-	if (input->onMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
+	auto input = &Input::GetInstance();
+	auto cManager = ChunkManager::GetInstance();
+	auto origin = came->transform.position;
+	float pitch = glm::radians(-came->transform.rotation.x);
+	float yaw = glm::radians(-came->transform.rotation.y);
 
-		auto currentRay = glm::vec3(0.f,0.f,0.2f);
-		auto rayDirection = glm::vec3(0.f,0.2f,1.);
+	auto rayDirection = glm::vec3(cos(pitch) * cos(yaw),
+		sin(pitch),  cos(pitch) * sin(yaw));
 
-		for (int i = 0; i < maxLenghtHitBlock; i++) {
-			currentRay = rayDirection + currentRay;
-			printf("step %d pos to voxel x:%f y%f z:%f\n",i, currentRay.x,
-				currentRay.y, currentRay.z);
+	auto hit = voxelRaycast.raycast(origin, rayDirection, 10.f);
+	//on dig
+	meshBlockHighlight.vertices.clear();
+	meshBlockHighlight.triangles.clear();
+
+	if (hit.isHit) {
+		if (input->onMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
+			auto chunk = hit.chunk;
+			chunk->voxels[hit.access].type = 0;//change to block air
+			cManager->chunkMeshBuilding.addQueueFront(chunk);
 		}
+
+		//block highlight
+		meshBlockHighlight.genMeshCube(hit.worldPos);
 	}
+}
+void PlayerController::render() {
+	if (meshBlockHighlight.triangles.size() == 0) return;
+
+	auto shader = ResourceManager::GetInstance()->m_shaders["block_highlight"];
+	shader->Bind();
+	meshBlockHighlight.draw();
+	shader->UnBind();
 }
 void PlayerController::UpdateInputs()
 {
@@ -58,13 +88,12 @@ void PlayerController::UpdateInputs()
 	float speed = speedMove;
 	if (input->isKey(GLFW_KEY_LEFT_SHIFT))
 	{
-		speed = speedRun * 3;
+		speed = speedRun;
 	}
 	// Handles key inputs
-	float cameRotateY = camera->transform.rotation.y;
-	auto forward = camera->transform.forward();
-	auto right = camera->transform.right();
-
+	float cameRotateY = me->transform.rotation.y;
+	auto forward = me->transform.forward();
+	auto right = me->transform.right();
 	speed *= (float)Time::deltaTime;
 	if (input->isKey(GLFW_KEY_W)) {
 		posEntity += speed * forward;
@@ -89,7 +118,7 @@ void PlayerController::UpdateInputs()
 	}
 
 	glm::vec2 mouseAxis = Input::GetInstance().mouseAxis();
-	float cameRotateX = camera->transform.rotation.x;
+	float cameRotateX = me->transform.rotation.x;
 	float rotRight = (mouseAxis.x * camera->sensitivity);
 	rotRight += cameRotateY;
 	if (rotRight >= 360.f or rotRight <= -360.f) {
@@ -99,7 +128,8 @@ void PlayerController::UpdateInputs()
 	rotUp += cameRotateX;
 	rotUp = glm::clamp(rotUp, -89.9f, 89.9f);
 
+	me->transform.rotation = glm::vec3(rotUp, rotRight, 0.f);
+
 	camera->transform.position = posEntity;
-	camera->transform.rotation.x = rotUp;
-	camera->transform.rotation.y = rotRight;
+	camera->transform.rotation = me->transform.rotation;
 }

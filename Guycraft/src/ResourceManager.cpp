@@ -22,7 +22,7 @@ Texture* ResourceManager::addTexture(const char* pathFile, bool isMipmapping) {
 }
 Sprite* ResourceManager::getSprite(std::string spriteID)
 {
-    return m_sprites[ "assets/textures/" + spriteID];
+    return m_sprites[spriteID];
 }
 void ResourceManager::loadAllResouces() {
     namespace fs = std::filesystem;
@@ -60,4 +60,7 @@ void ResourceManager::loadAllResouces() {
     //manual create sprite
     m_sprites.emplace("assets/textures/gui/button_0",
         new Sprite(m_textures["assets/textures/gui/button_0.png"]));
+
+    m_sprites.emplace("assets/textures/gui/cursor",
+        new Sprite(m_textures["assets/textures/gui/cursor.png"]));
 }

@@ -1,8 +1,8 @@
 #include "SpriteRenderer.h"
 void SpriteRenderer::initRenderer()
 {
-    vao.setupGL();
-    vbo.setupGL();
+    vao.genBuffer();
+    vbo.genBuffer();
     float vertices[] = {
         // pos      // tex
         0.0f, 1.0f, 0.0f, 1.0f,

@@ -19,7 +19,6 @@ void World::init() {
 	CameraManager::SwitchCamera(mainCame);
 
 	auto* player = spawnGameObject();
-	player->transform.position = glm::vec3(0,90,0);
 	player->addComponent<PlayerController>();
 	auto* boxCollision = player->addComponent<BoxCollision>();
 }

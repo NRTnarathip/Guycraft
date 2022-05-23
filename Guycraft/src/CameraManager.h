@@ -22,7 +22,7 @@ public:
 	Camera* getCurrentCamera();
 	void switchCamera(Camera* other);
 	Camera* newCamera();
-
+	void render();
 public:
 	//function global
 	static Camera* GetCurrentCamera() { return instance->m_currentCamera; }

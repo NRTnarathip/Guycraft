@@ -6,14 +6,14 @@
 class ChunkLoader {
 public:
 	const glm::ivec2 chunkNeighborPositions[8] = {
-				glm::ivec2(0, CHUNK_SIZE),//north
-				glm::ivec2(0, -CHUNK_SIZE),//south
-				glm::ivec2(CHUNK_SIZE, 0),//east
-				glm::ivec2(-CHUNK_SIZE, 0),//west
-				glm::ivec2(CHUNK_SIZE, CHUNK_SIZE),//north east
-				glm::ivec2(CHUNK_SIZE, -CHUNK_SIZE),//south east
-				glm::ivec2(-CHUNK_SIZE, -CHUNK_SIZE),//south west
-				glm::ivec2(-CHUNK_SIZE, CHUNK_SIZE),//north west
+		glm::ivec2(0, CHUNK_SIZE),//north
+		glm::ivec2(0, -CHUNK_SIZE),//south
+		glm::ivec2(CHUNK_SIZE, 0),//east
+		glm::ivec2(-CHUNK_SIZE, 0),//west
+		glm::ivec2(CHUNK_SIZE, CHUNK_SIZE),//north east
+		glm::ivec2(CHUNK_SIZE, -CHUNK_SIZE),//south east
+		glm::ivec2(-CHUNK_SIZE, -CHUNK_SIZE),//south west
+		glm::ivec2(-CHUNK_SIZE, CHUNK_SIZE),//north west
 	};
 
 	SmartUnorderMap<glm::ivec2, bool> m_allocateChunk;

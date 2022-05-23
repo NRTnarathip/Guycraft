@@ -12,6 +12,7 @@
 #include<glm/gtx/vector_angle.hpp>
 #include <vector>
 #include "Physics/Transform.h"
+#include "Renderer/MeshGameObject.h"
 
 class Camera {
 public:
@@ -27,4 +28,9 @@ public:
 	// Updates and exports the camera matrix to the Vertex Shader
 	//test feature not avaliable now!!!
 	void switchMode(bool isPerspective);
+	void setRenderMode(int mode);
+
+	void drawLine(glm::vec3 start, glm::vec3 end, glm::vec3 color);
+	void drawLineViaSize(glm::vec3 start, glm::vec3 end, glm::vec3 color, float size);
+	MeshGameObject mesh;
 };

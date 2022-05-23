@@ -12,15 +12,14 @@ void SceneMainMenu::setupMainMenu() {
 	auto res = ResourceManager::GetInstance();
 	//setup button main menu
 	m_UIMenu.setupEntt(&registry);
-	auto contentBG = m_UIMenu.createContainer("lobby_background", {960 ,540}, {1920, 1080});
 	auto contentMainMenu = m_UIMenu.createContainer("mainmenu", { 0 ,0 }, { 800, 600});
-	contentMainMenu->rect.position.y = -140.f;
 	{
+		auto spriteButton = res->getSprite("assets/textures/gui/button_0");
 		auto button = contentMainMenu->createButton("play");
 		button->rect.size = { 220, 60 };
 		button->rect.position = { 0, 80 };
 		auto img = button->getComponent<Image>();
-		img->m_sprite = res->getSprite("gui/button_0");
+		img->m_sprite = spriteButton;
 		auto text = button->getComponent<UIText>();
 		text->text = "Play";
 		auto cButtonPlay = button->getComponent<Button>();
@@ -31,7 +30,7 @@ void SceneMainMenu::setupMainMenu() {
 		button = contentMainMenu->createButton("setting");
 		button->rect.size = { 220, 60 };
 		img = button->getComponent<Image>();
-		img->m_sprite = res->getSprite("gui/button_0");
+		img->m_sprite = spriteButton;
 		text = button->getComponent<UIText>();
 		text->text = "Setting";
 
@@ -40,7 +39,7 @@ void SceneMainMenu::setupMainMenu() {
 		buttonExit->rect.size = { 220, 60 };
 		buttonExit->rect.position = { 0, -80 };
 		img = buttonExit->getComponent<Image>();
-		img->m_sprite = res->getSprite("gui/button_0");
+		img->m_sprite = spriteButton;
 		text = buttonExit->getComponent<UIText>();
 		text->text = "Exit";
 		auto cButton = buttonExit->getComponent<Button>();

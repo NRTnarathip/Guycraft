@@ -6,12 +6,10 @@
 #include <OpenGL Class/VBOAndEBO.h>
 
 class MeshGameObject {
-private:
-	//  render data
+public:
 	VAO m_vao;
 	VBO m_vbo;
 	EBO m_ebo;
-public:
 	void setupGL();
 	void uploadDataMeshToGPU();
 	struct Vertex {

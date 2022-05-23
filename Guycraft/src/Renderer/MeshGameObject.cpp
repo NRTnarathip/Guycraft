@@ -29,20 +29,15 @@ void MeshGameObject::uploadDataMeshToGPU() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
     m_vao.unbind();
-    //glBindVertexArray(0);
 }
 void MeshGameObject::setupGL() {
-    m_vao.setupGL();
-    //glGenVertexArrays(1, &VAO);//Vertex Array Object
-
-    m_vbo.setupGL();
-    m_ebo.setupGL();
+    m_vao.genBuffer();
+    m_vbo.genBuffer();
+    m_ebo.genBuffer();
 }
 void MeshGameObject::render() {
     // draw mesh
     m_vao.bind();
-    //glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     m_vao.unbind();
-    //glBindVertexArray(0);
 }

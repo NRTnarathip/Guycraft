@@ -18,23 +18,24 @@ void ChunkManager::init() {
 	auto posPlayerToChunk = ToChunkPosition(camera->transform.position);
 	chunkLoader.firstLoader(posPlayerToChunk);
 }
-glm::ivec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
+glm::vec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
 {
 	if (pos.x < 0.f) {
-		pos.x -= CHUNK_SIZE;
+		pos.x -= 32;
 	}
+	pos.y = glm::clamp(pos.y, 0.f, 255.f);
 
 	if (pos.z < 0.f)
-		pos.z -= CHUNK_SIZE;
+		pos.z -= 32;
 
-	int x = (int)pos.x;
-	int y = (int)pos.y;
-	int z = (int)pos.z;
+	int x = floor(pos.x);
+	int y = floor(pos.y);
+	int z = floor(pos.z);
 
-	return glm::ivec3(
-		(x / (int)CHUNK_SIZE) * CHUNK_SIZE,
-		(y / (int)CHUNK_SIZE) * CHUNK_SIZE,
-		(z / (int)CHUNK_SIZE) * CHUNK_SIZE);
+	return glm::vec3(
+		(x / (int)CHUNK_SIZE) << 5,
+		(y / (int)CHUNK_SIZE) << 5,
+		(z / (int)CHUNK_SIZE) << 5);
 }
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();

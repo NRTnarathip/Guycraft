@@ -39,8 +39,8 @@ void useThreadChunkMeshBuilding() {
 		auto start = std::chrono::high_resolution_clock::now();
 		chunk->generateMeshChunk();
 		auto elapsed = std::chrono::high_resolution_clock::now() - start;
-		printf("gen mesh block time:%d ms\n",
-			std::chrono::nanoseconds(elapsed).count() / 100000);
+		/*printf("gen mesh block time:%d ms\n",
+			std::chrono::nanoseconds(elapsed).count() / 100000);*/
 		chunk->unlock();
 	}
 }
@@ -77,8 +77,8 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk)
 
 void ChunkMeshBuilding::addQueueFront(Chunk* chunk)
 {
-	if (chunk->isNeedGenerateMesh)return;
-
 	chunk->isNeedGenerateMesh = true;
-	m_queueJob.pushLock(chunk);
+	m_queueJob.lock();
+	m_queueJob.pushFront(chunk);
+	m_queueJob.unlock();
 }

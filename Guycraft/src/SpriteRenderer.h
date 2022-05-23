@@ -6,6 +6,7 @@
 #include "RectTransform.h"
 #include "OpenGL Class/VAO.h"
 #include "OpenGL Class/VBOAndEBO.h"
+
 class SpriteRenderer {
 public:
 	VAO vao;

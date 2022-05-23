@@ -156,6 +156,15 @@
     <ClCompile Include="src\ChunkPooling.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
+    <ClCompile Include="src\Physics\Transform.cpp">
+      <Filter>src\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Physics\VoxelRaycast.cpp">
+      <Filter>src\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshBlockHighlight.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Physics\BoxCollision.h">
@@ -322,6 +331,21 @@
     </ClInclude>
     <ClInclude Include="src\SmartUnorderMap.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Physics\Vector.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Physics\VoxelRaycast.h">
+      <Filter>src\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshBlockHighlight.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGL Class\VAO.h">
+      <Filter>src\OpenGL Class</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGL Class\VBOAndEBO.h">
+      <Filter>src\OpenGL Class</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

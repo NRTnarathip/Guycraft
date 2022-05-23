@@ -32,7 +32,7 @@ public:
 	void update();
 
 	static bool ChunkInRange(glm::ivec2 posPlayer, glm::ivec2 chunkPos);
-	glm::ivec3 ToChunkPosition(glm::vec3 pos) const;
+	glm::vec3 ToChunkPosition(glm::vec3 pos) const;
 	glm::ivec3 lastViewPos;
 
 public: //none safe thread

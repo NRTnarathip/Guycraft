@@ -11,6 +11,25 @@ Camera* CameraManager::getCurrentCamera() {
 void CameraManager::switchCamera(Camera* other) {
 	m_currentCamera = other;
 }
+void CameraManager::render() {
+	//render
+	auto c = m_currentCamera;
+	if (c->mesh.indices.size() == 0) return;
+
+
+	auto sdDebug = ResourceManager::GetInstance()->m_shaders["debug"];
+	uploadCameraMatrixToShader(sdDebug);
+
+	sdDebug->Bind();
+	c->mesh.m_vao.bind();
+	c->setRenderMode(1);
+	glDrawElements(GL_LINE, c->mesh.indices.size(), GL_UNSIGNED_INT, 0);
+	c->mesh.m_vao.unbind();
+	sdDebug->UnBind();
+
+	c->mesh.indices.clear();
+	c->mesh.vertices.clear();
+}
 Camera* CameraManager::newCamera() {
 	auto* newCamera = new Camera();
 	if (m_cameras.empty()) {

@@ -78,8 +78,8 @@ int TextRenderer::setupGL() {
     // destroy FreeType once we're finished
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
-    vao.setupGL();
-    vbo.setupGL();
+    vao.genBuffer();
+    vbo.genBuffer();
     vao.bind();
     vbo.bind();
     vbo.bufferData(sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);

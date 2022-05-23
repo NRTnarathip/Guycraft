@@ -5,6 +5,8 @@
 #include "Input.h"
 
 void SceneMainGame::init() {
+	m_UIMenu.setupEntt(&registry);
+
 	//init key
 	auto &input = Input::GetInstance();
 	input.registerKey(GLFW_KEY_ESCAPE);
@@ -45,4 +47,7 @@ void SceneMainGame::update() {
 void SceneMainGame::render() {
 	world->render();
 	chManager->render();
+	//debug
+	auto cameManager = &CameraManager::GetInstance();
+	cameManager->render();
 }

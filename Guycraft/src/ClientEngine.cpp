@@ -71,20 +71,13 @@ int ClientEngine::launch() {
     //part core engine
     m_input = new Input(glfwWindow);
     m_input->initKeyMapping();
-    printf("end setup m_input\n");
-
-
     m_resouceManager = new ResourceManager();
     m_resouceManager->loadAllResouces();
-    printf("end setup resouce manager\n");
-
     m_sceneManager = new SceneManager();
     m_sceneManager->init();
-    printf("end setup scene manager\n");
     m_gui = new GUI(glfwWindow);
     m_textRenderer = new TextRenderer(glfwWindow);
     m_textRenderer->setupGL();
-    printf("end setup text renderer\n");
 
     //part game logic
 	game = new Game(window);
@@ -92,8 +85,7 @@ int ClientEngine::launch() {
 
     //graphic setting
     graphicSetting.renderDistance = 4;
-    printf("start main loop game\n");
-    while (!glfwWindowShouldClose(glfwWindow))
+    while (not glfwWindowShouldClose(glfwWindow))
     { 
         // Take care of all GLFW events
         glfwPollEvents();

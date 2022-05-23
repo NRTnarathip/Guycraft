@@ -11,6 +11,6 @@ public:
 	virtual void beforeUpdate() {};
 	virtual void update() {};
 	virtual void lastUpdate() {};
-	virtual void draw() {};
+	virtual void render() {};
 	virtual void tick() {};
 };

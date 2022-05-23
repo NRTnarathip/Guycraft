@@ -6,48 +6,37 @@ public:
 	~HelperBufferObject() {
 		deleteBuffer();
 	}
-	unsigned int m_ID;
-	unsigned int getID() {
-		return m_ID;
-	}
+	unsigned int id;
 	void deleteBuffer() {
-		glDeleteBuffers(1, &m_ID);
+		glDeleteBuffers(1, &id);
 	}
 	void genBuffer() {
-		glGenBuffers(1, &m_ID);//element Buffer Object
+		glGenBuffers(1, &id);//element Buffer Object
 	}
 };
-class VBO {
+class VBO : public HelperBufferObject{
 public:
 	~VBO() {
-		m_VBO.deleteBuffer();
-	}
-	HelperBufferObject m_VBO;
-	void setupGL() {
-		m_VBO.genBuffer();
+		deleteBuffer();
 	}
 	void unbind() {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	void bind() {
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO.m_ID);
+		glBindBuffer(GL_ARRAY_BUFFER, id);
 	}
 	void bufferData(GLsizeiptr size, const void* data, GLenum usage) {
 		glBufferData(GL_ARRAY_BUFFER, size, data, usage);
 	}
 };
 
-class EBO {
+class EBO : public HelperBufferObject {
 public:
 	~EBO() {
-		m_EBO.deleteBuffer();
-	}
-	HelperBufferObject m_EBO;
-	void setupGL() {
-		m_EBO.genBuffer();
+		deleteBuffer();
 	}
 	void bind() {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO.m_ID);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
 	}
 	void unbind() {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
