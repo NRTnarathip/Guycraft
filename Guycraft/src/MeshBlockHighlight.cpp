@@ -1,4 +1,7 @@
 #include "MeshBlockHighlight.h"
+#include "ResourceManager.h"
+#include "CameraManager.h"
+#include "SceneManager.h"
 
 void MeshBlockHighlight::setupMesh() {
 	vao.genBuffer();
@@ -104,10 +107,25 @@ void MeshBlockHighlight::transferMeshToGPU() {
 	vertices.clear();
 	triangles.clear();
 }
-void MeshBlockHighlight::draw() {
+void MeshBlockHighlight::render() {
 	if (triCount == 0) return;
+	//check scene is renderer on without depth test
 
+	//setup shader
+	auto shaderOutline = ResourceManager::GetInstance()->m_shaders["block_outline"];
+	CameraManager::GetInstance().uploadCameraMatrixToShader(shaderOutline);
+	shaderOutline->Bind();
+	shaderOutline->SetVec3("colorOutline", glm::vec3(0.0f));
 	vao.bind();
+
+	auto came = CameraManager::GetCurrentCamera();
+	came->setRenderMode(1);
+	glDisable(GL_DEPTH_TEST);
+	glLineWidth(4);
 	glDrawElements(GL_TRIANGLES, triCount, GL_UNSIGNED_INT, 0);
+	came->setRenderMode(0);
+	glEnable(GL_DEPTH_TEST);
+
 	vao.unbind();
+	shaderOutline->UnBind();
 }

@@ -14,10 +14,14 @@ public:
 	Scene(std::string sceneNam);
 	std::string name = "Unknow Scene";
 	unsigned int index = 0;
+
+	std::vector<void(*)()> m_ptrFuncRenderWithoutDepth;
+
 	void setActive(bool state) {
 		m_active = state;
 	};
 	bool isActive() const { return m_active; }
+	void registerRenderWithoutDepth(void (*refFunc)());
 	virtual void init() {
 		if (isHasInitial) return;
 
@@ -27,6 +31,7 @@ public:
 	virtual void update() {};
 	virtual void lastUpdate() {};
 	virtual void render() {};
+	virtual void renderWithoutDepth() {};
 public:
 	UIMenu m_UIMenu;
 	entt::registry registry;

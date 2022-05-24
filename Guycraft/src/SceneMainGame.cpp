@@ -50,4 +50,9 @@ void SceneMainGame::render() {
 	//debug
 	auto cameManager = &CameraManager::GetInstance();
 	cameManager->render();
+
+	//render without depth
+	for (auto ptrFunc : m_ptrFuncRenderWithoutDepth) {
+		ptrFunc();
+	}
 }

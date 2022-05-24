@@ -19,11 +19,17 @@ PlayerController::PlayerController() {
 }
 void PlayerController::init() {
 	meshBlockHighlight.setupMesh();
+	
 	Input::GetInstance().setMouseMode(0);
 	getGameObject()->transform.rotation = glm::vec3(0,-90.f,0);
 	//setup corsur
 	auto spriteCursor = ResourceManager::GetInstance()->getSprite("assets/textures/gui/cursor");
 	auto sc = SceneManager::GetInstance()->getCurrent();
+	sc->registerRenderWithoutDepth([] {
+		auto pc = PlayerController::GetInstance();
+		pc->meshBlockHighlight.render();
+	});
+
 	auto canvas = sc->m_UIMenu.createContainer("UI Player", {0, 0}, {1920,1080});
 	auto imageCursor = canvas->createImage();
 	imageCursor->rect.size = { 20, 20 };
@@ -45,7 +51,7 @@ void PlayerController::update() { //update every frame on ECS
 	auto input = &Input::GetInstance();
 	//reload some shader such block_highlight
 	if (input->isKeyDown(GLFW_KEY_R)) {
-		auto shader = ResourceManager::GetInstance()->m_shaders["block_highlight"];
+		auto shader = ResourceManager::GetInstance()->m_shaders["block_outline"];
 		shader->reload();
 	}
 }
@@ -74,17 +80,6 @@ void PlayerController::updateInteractionBlock() {
 		meshBlockHighlight.isActive = true;
 		meshBlockHighlight.genMeshCube(hit.worldPos);
 	}
-}
-void PlayerController::render() {
-	if (meshBlockHighlight.isActive == 0) return;
-
-	auto came = CameraManager::GetCurrentCamera();
-	auto shader = ResourceManager::GetInstance()->m_shaders["block_highlight"];
-	CameraManager::GetInstance().uploadCameraMatrixToShader(shader);
-
-	shader->Bind();
-	meshBlockHighlight.draw();
-	shader->UnBind();
 }
 void PlayerController::UpdateInputs()
 {

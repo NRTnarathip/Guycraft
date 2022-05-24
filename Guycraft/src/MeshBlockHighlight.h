@@ -21,7 +21,7 @@ public:
 	EBO ebo;
 	void genMeshCube(glm::vec3 pos);
 	void setupMesh();
-	void draw();
+	void render();
 private:
 	void genQuadFaceCube();
 	void transferMeshToGPU();

@@ -16,7 +16,6 @@ public:
 	void init();
 	void start();
 	void update();
-	void render();
 	float speedMove = 3.f;
 	float speedRun = 64.f; 
 	VoxelRaycast voxelRaycast;
