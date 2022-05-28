@@ -1,6 +1,7 @@
 #pragma once
+#include "Types.h"
+
 struct Voxel {
-public:
-	unsigned char id;
-	unsigned char type;
+	u8 data;
+	u8 type;
 };

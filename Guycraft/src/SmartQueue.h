@@ -26,6 +26,11 @@ public:
 	void pushFront(T data) {
 		m_queue.push_front(data);
 	}
+	void pushFrontLock(T data) {
+		lock();
+		pushFront(data);
+		unlock();
+	}
 	void pushLock(T d) {
 		lock();
 		push(d);

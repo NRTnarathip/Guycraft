@@ -76,7 +76,9 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 			//add chunk container
 			manager->chunks.add(chunk);
 			//setup chunk neighbor
-			chunk->m_allocateChunkNeighborCount = 0;
+			chunk->lock();
+
+			chunk->m_allocateChunkNeighbor = 0;
 			Chunk* chunksNeighbor[8];
 			glm::ivec2 posChunkNeighbor[8] = {
 				glm::ivec2(0, CHUNK_SIZE) + pos,//north
@@ -98,14 +100,18 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 				//set chunk allocate
 				bool isExist = m_allocateChunk.has(posNext);
 				if (isExist) {
-					chunk->m_allocateChunkNeighborCount++;
+					chunk->m_allocateChunkNeighbor++;
 				}
 			}
 			//link chunk neightbor, genmesh
+			chunk->mutexNeighbor.lock();
 			chunk->linkChunkNeighbor(chunksNeighbor);
+			chunk->mutexNeighbor.unlock();
+
 			//on chunk loaded
 			chunk->isLoad = true;
 			chunk->isShouldUnload = false;
+			chunk->unlock();
 		}
 		//update chunk voxel data
 		else {
@@ -114,20 +120,22 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 			delete job;
 		}
 		manager->chunks.unlock();
-		ChunkMeshBuilding::GetInstance()->addQueue(chunk);
+		auto genMesh = ChunkMeshBuilding::GetInstance();
+		genMesh->addQueue(chunk,9,true,true);
+		//onNewChunk should regenmesh AtNeighbor
+		auto cnear = chunk->getAllChunkNeighbor();
+		for (auto c : cnear) {
+			if (c == nullptr) continue;
+			genMesh->addQueue(c, 9, true, false);
+		}
 	}
 }
-int ChunkLoader::getAllocateChunkNeighborCount(Chunk* chunk)
+int ChunkLoader::getAllocateChunkNeighbor(Chunk* chunk)
 {
 	auto pos = chunk->pos;
 	int count = 0;
 	for (int i = 0; i < 8; i++) {
-		auto next = chunkNeighborPositions[i] + pos;
-		//set chunk allocate
-		m_allocateChunk.lock();
-		bool isExist = m_allocateChunk.has(next);
-		m_allocateChunk.unlock();
-		if (isExist) {
+		if (m_allocateChunk.has(chunkNeighborPositions[i] + pos)) {
 			count++;
 		}
 	}
@@ -152,7 +160,9 @@ void ChunkLoader::onPlayerMoveToNewChunk()
 	//marker chunk loader edge
 	//to do refresh allocate chunk neighbor
 	for (auto chunk : listUnloadChunk) {
+		chunk->lock();
 		unloadChunk(chunk);
+		chunk->unlock();
 	}
 	std::vector<glm::ivec2> listAllocatePosChunk;
 	for (auto elem : m_allocateChunk.m_map) {

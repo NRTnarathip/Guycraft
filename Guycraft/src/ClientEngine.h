@@ -3,6 +3,7 @@
 #include <GraphicSetting.h>
 #include "TextRenderer.h"
 #include "GUI.h"
+#include "BlockSystem/BlockDatabase.h"
 
 class Input;
 
@@ -24,6 +25,7 @@ public:
 	TextRenderer* m_textRenderer = nullptr;
 	ResourceManager* m_resouceManager = nullptr;
 	SceneManager *m_sceneManager = nullptr;
+	BlockDatabase *m_blockDatabase = nullptr;
 	GUI* m_gui = nullptr;
 
 	int setupWindow();

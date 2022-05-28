@@ -4,6 +4,7 @@ struct VoxelHit {
 	bool isHit;
 	Voxel voxel;
 	glm::ivec3 pos;
+	int voxelGroup;
 	glm::vec3 worldPos;
 	Chunk* chunk;
 	u32 access;//index of voxel in chunk

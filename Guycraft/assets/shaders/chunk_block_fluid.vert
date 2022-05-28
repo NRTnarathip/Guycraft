@@ -61,17 +61,17 @@ const vec3 tbNormal[6] = vec3[6](
 	vec3(-1.0,0.0,0.0)//west
 );
 vec2 toTextureCood(float val) {
-	int x = int(val) & 63;
-	int y = (int(val) >> 6) & 63;
+	int x = int(val) & 15;
+	int y = (int(val) >> 4) & 15;
 
 	float tileX = x * tileSize;
 	float tileY = y * tileSize;
 
-	int uvIndex = (int(val) >> 12) & 3;
+	int vertIndex = (int(val) >> 8) & 3;
 
 	vec2 uv = vec2(tileX,tileY);
 	uv * tileSize;
-	uv += tbUV[uvIndex] * tileSize;
+	uv += tbUV[vertIndex] * tileSize;
 	return uv;
 };
 float noiseWave(float x, float z) {
@@ -96,5 +96,5 @@ void main()
 	sunLampLight = 0; //temp
 
 	texcoord = toTextureCood(aUVTileAndNormal);
-	normal = tbNormal[( int(aUVTileAndNormal) >> 12) & 7];
+	normal = tbNormal[( int(aUVTileAndNormal) >> 11) & 7];
 }

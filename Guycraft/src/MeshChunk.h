@@ -5,25 +5,6 @@
 #include <glm/glm.hpp>
 #include <mutex>
 #include "Types.h"
-
-class DirectionHelper{
-public:
-	const glm::ivec3 directionVectors[6] = {
-	glm::ivec3(0,1,0),
-	glm::ivec3(0,-1,0),
-	glm::ivec3(0,0,1),
-	glm::ivec3(0,0,-1),
-	glm::ivec3(1,0,0),
-	glm::ivec3(-1,0,0),
-	};
-};
-enum Direction
-{
-	up, down,
-	forward, backward,
-	left, right,
-	count,
-};
 class MeshChunk {
 public:
 	// Vertex layout
@@ -37,13 +18,20 @@ public:
 
 		void SetPos(float x, float y, float z);
 		//float position[3];//-125-> 124;
-		//int == 4byte 32bit;
-		unsigned int uvTileAndNormal = 0;
-		unsigned int GetUVTile();
-		unsigned int GetUVIndex();
-		void SetUVTile(unsigned int voxID, unsigned int voxType);
-		void SetUVIndex(unsigned int i);
-		void SetNormal(unsigned int index);
+		//use vertex index:2bit, uvTileIndex:4bit, normal table index:2bit
+		//2byte 0000:0000 0000:0000
+		unsigned short dataUVTNVI= 0;
+		//range 0000:0000 1111:1111
+		void SetUVTile(uint16_t tileIndex);
+		//range 0000:0011 0000:0000
+		void setVertexIndex(int index) {
+			dataUVTNVI = dataUVTNVI | index << 8;
+		}
+		//range 0001:1100 0000:0000
+		void SetNormal(unsigned int index) {
+			dataUVTNVI = dataUVTNVI | index << 11;
+		}
+		
 		unsigned short lighting = 0;//
 		unsigned char GetSun() {
 			return lighting & 15;
@@ -66,22 +54,16 @@ public:
 	};
 	MeshChunk();
 	~MeshChunk();
-	std::mutex mutex;
 	static int triangleGPU;
 	// 3D directions
 	GLuint vbo;
 	GLuint vao;
 	GLuint ebo;
-	bool isFourceStop = false;
-	bool isOnGenerate = false;
 	std::vector<Vertex> vertexs;
 	std::vector<GLuint> triangles;
 	void setupMesh();
 	void transferToGPU();
 	void draw();
-	bool isComplete = false;
-	void lock() { mutex.lock(); }
-	void unlock() { mutex.unlock(); }
 	void clearOnGPU();
 	unsigned int reserveAmount = 0;
 private:

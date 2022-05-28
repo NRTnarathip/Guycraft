@@ -31,6 +31,9 @@
     <Filter Include="src\Biomes">
       <UniqueIdentifier>{d286199e-8b7d-4294-8e68-73c99461c608}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Block System">
+      <UniqueIdentifier>{6814116c-dc1f-445b-b23c-533b03d09c09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Physics\BoxCollision.cpp">
@@ -164,6 +167,12 @@
     </ClCompile>
     <ClCompile Include="src\MeshBlockHighlight.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JobUpdateVoxel.h">
+      <Filter>src\Chunk System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Blocks\BlockDatabase.cpp">
+      <Filter>src\Block System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -346,6 +355,18 @@
     </ClInclude>
     <ClInclude Include="src\OpenGL Class\VBOAndEBO.h">
       <Filter>src\OpenGL Class</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JobGenerateMesh.h">
+      <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BlockSystem\BlockDatabase.h">
+      <Filter>src\Block System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BlockSystem\BlockModel.h">
+      <Filter>src\Block System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshChunkVoxelGroup.h">
+      <Filter>src\Chunk System</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

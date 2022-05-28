@@ -78,6 +78,9 @@ int ClientEngine::launch() {
     m_gui = new GUI(glfwWindow);
     m_textRenderer = new TextRenderer(glfwWindow);
     m_textRenderer->setupGL();
+    m_blockDatabase = new BlockDatabase();
+    m_blockDatabase->init();
+
 
     //part game logic
 	game = new Game(window);

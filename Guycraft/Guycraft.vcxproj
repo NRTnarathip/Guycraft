@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Blocks\BlockDatabase.cpp" />
     <ClCompile Include="src\Button.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraManager.cpp" />
@@ -36,6 +37,7 @@
     <ClCompile Include="src\GUI.cpp" />
     <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\JobUpdateVoxel.h" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MeshBlockHighlight.cpp" />
     <ClCompile Include="src\MeshChunk.cpp" />
@@ -68,6 +70,8 @@
     <ClInclude Include="src\AABB.h" />
     <ClInclude Include="src\Biomes\Biomes.h" />
     <ClInclude Include="src\Biomes\Plant.h" />
+    <ClInclude Include="src\BlockSystem\BlockDatabase.h" />
+    <ClInclude Include="src\BlockSystem\BlockModel.h" />
     <ClInclude Include="src\Button.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\CameraManager.h" />
@@ -88,8 +92,10 @@
     <ClInclude Include="src\Biome.h" />
     <ClInclude Include="src\Image.h" />
     <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\JobGenerateMesh.h" />
     <ClInclude Include="src\MeshBlockHighlight.h" />
     <ClInclude Include="src\MeshChunk.h" />
+    <ClInclude Include="src\MeshChunkVoxelGroup.h" />
     <ClInclude Include="src\OpenGL Class\VAO.h" />
     <ClInclude Include="src\OpenGL Class\VBOAndEBO.h" />
     <ClInclude Include="src\Physics\BoxCollision.h" />

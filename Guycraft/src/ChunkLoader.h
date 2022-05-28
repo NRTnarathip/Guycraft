@@ -26,7 +26,7 @@ public:
 	void firstLoader(glm::ivec2 pos);
 	void update(glm::ivec2 pos);
 	//none safe thread
-	int getAllocateChunkNeighborCount(Chunk* chunk);
+	int getAllocateChunkNeighbor(Chunk* chunk);
 	void onPlayerMoveToNewChunk();
 	//none safe thread, dont use in loop chunkGroups.container
 	void unloadChunk(Chunk* chunk);

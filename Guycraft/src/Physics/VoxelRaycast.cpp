@@ -97,6 +97,7 @@ VoxelHit VoxelRaycast::raycast(glm::vec3 rayStart, glm::vec3 direction, float di
 			hit.voxel = voxel;
 			hit.chunk = chunk;
 			hit.worldPos = voxelPosTravel;
+			hit.voxelGroup = voxelGroup;
 			hit.pos = voxPos;
 			hit.access = access;
 			break;

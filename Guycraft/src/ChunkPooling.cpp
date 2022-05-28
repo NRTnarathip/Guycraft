@@ -15,7 +15,5 @@ Chunk* ChunkPooling::get() {
 	return chunk;
 }
 void ChunkPooling::collectPooling(Chunk* c) {
-	m_chunkPooling.lock();
-	m_chunkPooling.push(c);
-	m_chunkPooling.unlock();
+	m_chunkPooling.pushFrontLock(c);
 }

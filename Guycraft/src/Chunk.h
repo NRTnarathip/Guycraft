@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Voxel.h>
-#include <MeshChunk.h>
+#include <MeshChunkVoxelGroup.h>
 #include <Renderer/shaderClass.h>
 #include <glm/glm.hpp>
 #include <mutex>
@@ -46,19 +46,7 @@ public:
 	unsigned char lightMap[CHUNK_SIZE_BLOCK];
 	glm::ivec2 pos;
 	Voxel voxels[CHUNK_BLOCK_ALL];
-	void changeVoxels(Voxel voxelsOther[CHUNK_BLOCK_ALL]) {
-		for (int i = 0; i < CHUNK_BLOCK_ALL; i++) {
-			voxels[i] = voxelsOther[i];
-		}
-	};
-	//mesh block solid 8 mesh, block fluid 8 mesh
-	MeshChunk meshs[VOXEL_GROUP_COUNT * 2];
-	bool isEmpty();
-	u16 getBlockCount();
-	bool isNeedGenerateMesh = false;
-	//for threading
-	void lock() { mutex.lock(); }
-	void unlock() { mutex.unlock(); }
+	MeshChunkVoxelGroup meshs[8];
 	//chunk neighbor 8 direction
 	Chunk* north = nullptr;
 	Chunk* northEast = nullptr;
@@ -69,18 +57,32 @@ public:
 	Chunk* east = nullptr;
 	Chunk* west = nullptr;
 	std::vector<Chunk*> getAllChunkNeighbor();
-	int m_allocateChunkNeighborCount = 0;
+	int m_allocateChunkNeighbor = 0;
+
+	void changeVoxels(Voxel voxelsOther[CHUNK_BLOCK_ALL]) {
+		for (int i = 0; i < CHUNK_BLOCK_ALL; i++) {
+			voxels[i] = voxelsOther[i];
+		}
+	};
+	//mesh block solid 8 mesh, block fluid 8 mesh
+	bool isEmpty();
+	u16 getBlockCount();
+	//for threading
+	void lock() { mutex.lock(); }
+	void unlock() { mutex.unlock(); }
 	void render();
 	void unload();
-	int getChunkNieghborCount();
+	int getHasChunkNeighborCount();
 	void linkChunkNeighbor(Chunk* chunkNiehgbor[8]);
 	Voxel getvoxel(u8 group, u8 x, u8 y, u8 z);
 	//for generate mesh
-	void generateMeshChunk();
+	void generateMesh(int voxelGroup);
 	void genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel* voxel,
 		bool useFuncitonGetVoxelOutChunk);
 	void genMeshWater(MeshChunk* mesh, u8 voxelGroup, char x, char y, char z, Voxel* voxel,
 		bool useFuncGetVoxelOutChunk);
+	void genMeshStair(MeshChunk* mesh, u8 voxelGroup, int8_t x, int8_t y, int8_t z, Voxel* voxel,
+		bool useFunc);
 	bool voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z);
 	bool voxelDownIsSolid(u8 group, i8 x, i8 y, i8 z);
 	bool voxelNorthIsSolid(u8 group, i8 x, i8 y, i8 z);

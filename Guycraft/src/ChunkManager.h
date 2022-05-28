@@ -17,6 +17,7 @@
 
 #include "SmartMutex.h"
 #include "ChunkContainer.h"
+#include "JobUpdateVoxel.h"
 
 class ChunkManager {
 private:
@@ -27,9 +28,15 @@ public:
 	ChunkMeshBuilding chunkMeshBuilding;
 	ChunkLoader chunkLoader;
 	ChunkPooling chunkPooling;
+
+	SmartQueue<glm::ivec3> m_queueDestroyBlock;
+	SmartQueue<JobUpdateVoxel> m_queueAddBlock;
+
 	void init();
 	void render();
 	void update();
+	void addQueueDestroyBlock(glm::ivec3 worldPos);
+
 
 	static bool ChunkInRange(glm::ivec2 posPlayer, glm::ivec2 chunkPos);
 	glm::vec3 ToChunkPosition(glm::vec3 pos) const;

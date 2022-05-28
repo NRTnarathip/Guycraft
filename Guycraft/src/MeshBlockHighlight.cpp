@@ -108,7 +108,7 @@ void MeshBlockHighlight::transferMeshToGPU() {
 	triangles.clear();
 }
 void MeshBlockHighlight::render() {
-	if (triCount == 0) return;
+	if (triCount == 0 or not isActive) return;
 	//check scene is renderer on without depth test
 
 	//setup shader

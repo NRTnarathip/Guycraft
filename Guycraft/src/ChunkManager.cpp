@@ -11,6 +11,10 @@ bool inRange(int value, int min, int max)
 {
 	return (value >= min) and (value <= max);
 }
+void ChunkManager::addQueueDestroyBlock(glm::ivec3 blockWorldPos)
+{
+	m_queueDestroyBlock.pushLock(blockWorldPos);
+}
 void ChunkManager::init() {
 	lastViewPos = CameraManager::GetCurrentCamera()->transform.position;
 	chunkMeshBuilding.startWithThread();
@@ -18,24 +22,14 @@ void ChunkManager::init() {
 	auto posPlayerToChunk = ToChunkPosition(camera->transform.position);
 	chunkLoader.firstLoader(posPlayerToChunk);
 }
-glm::vec3 ChunkManager::ToChunkPosition(glm::vec3 pos) const
+glm::vec3 ChunkManager::ToChunkPosition(glm::vec3 worldPos) const
 {
-	if (pos.x < 0.f) {
-		pos.x -= 32;
-	}
-	pos.y = glm::clamp(pos.y, 0.f, 255.f);
+	worldPos.y = glm::clamp(worldPos.y, 0.f, 255.f);
+	int x = floor(worldPos.x / 32);
+	int y = floor(worldPos.y / 32);
+	int z = floor(worldPos.z / 32);
 
-	if (pos.z < 0.f)
-		pos.z -= 32;
-
-	int x = floor(pos.x);
-	int y = floor(pos.y);
-	int z = floor(pos.z);
-
-	return glm::vec3(
-		(x / (int)CHUNK_SIZE) << 5,
-		(y / (int)CHUNK_SIZE) << 5,
-		(z / (int)CHUNK_SIZE) << 5);
+	return { x << 5, y << 5, z << 5 };
 }
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();
@@ -44,6 +38,54 @@ void ChunkManager::update() {
 
 	//check if chunk is not use or out of range render system
 	chunkLoader.update({ posPlayerToChunk.x, posPlayerToChunk.z });
+
+	//update destroy block
+	Voxel voxReplace;
+	voxReplace.data = 0;
+	voxReplace.type = 0;
+	SmartQueue<JobGenerateMesh> queJobGenMesh;
+	SmartUnorderMap<glm::ivec3,bool> chunkUpdateVoxel;
+	while (m_queueDestroyBlock.size() > 0) {
+		glm::ivec3 blockWorldPos = m_queueDestroyBlock.getFront();
+		glm::ivec3 chunkpos = ToChunkPosition(blockWorldPos);
+		auto chunk = getChunk({ chunkpos.x,chunkpos.z });
+		if (chunk == nullptr) continue;
+
+		int voxelGroup = chunkpos.y / 32;
+		auto blockPos = blockWorldPos - chunkpos;
+		chunk->voxels[blockPos.x + (blockPos.y << 5) + (blockPos.z << 10) + (voxelGroup << 15)] = voxReplace;
+
+		if(chunkUpdateVoxel.has(chunkpos) == 0) {
+			chunkUpdateVoxel.add(chunkpos,1);
+			queJobGenMesh.push({chunk, voxelGroup});
+		}
+	}
+	while (m_queueAddBlock.size() > 0) {
+		auto job = m_queueAddBlock.getFront();
+
+		glm::ivec3 chunkpos = ToChunkPosition(job.worldPos);
+		auto chunk = getChunk({ chunkpos.x,chunkpos.z });
+		if (chunk == nullptr) continue;
+
+		int voxelGroup = chunkpos.y / 32;
+		auto blockPos = job.worldPos - chunkpos;
+		chunk->voxels[blockPos.x + (blockPos.y << 5) + (blockPos.z << 10) + (voxelGroup << 15)] = job.voxel;
+		if (chunkUpdateVoxel.has(chunkpos) == 0) {
+			chunkUpdateVoxel.add(chunkpos, 1);
+			queJobGenMesh.push({ chunk, voxelGroup });
+		}
+	}
+	while(queJobGenMesh.empty() == 0) {
+		auto job = queJobGenMesh.getFront();
+		auto chunk = job.chunk;
+		chunkMeshBuilding.addQueue(chunk,job.voxelGroup,true,true);
+		//regen chunk neighbor block
+		auto cnears = chunk->getAllChunkNeighbor();
+		for (auto c : cnears) {
+			if (c == nullptr) continue;
+			chunkMeshBuilding.addQueue(c, job.voxelGroup, true, true);
+		}
+	}
 }
 bool ChunkManager::ChunkInRange(glm::ivec2 playerPos, glm::ivec2 chunkPos)
 {

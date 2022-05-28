@@ -71,9 +71,14 @@ void PlayerController::updateInteractionBlock() {
 	meshBlockHighlight.isActive = false;
 	if (hit.isHit) {
 		if (input->onMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
-			auto chunk = hit.chunk;
-			chunk->voxels[hit.access].type = 0;//change to block air
-			cManager->chunkMeshBuilding.addQueueFront(chunk);
+			cManager->m_queueDestroyBlock.pushLock(hit.worldPos);
+		}
+		else if (input->onMouseDown(GLFW_MOUSE_BUTTON_RIGHT)) {
+			auto placePos = hit.worldPos;
+			Voxel voxelAdd;
+			voxelAdd.data = 0;
+			voxelAdd.type = 1;
+			cManager->m_queueAddBlock.pushLock({voxelAdd,placePos });
 		}
 
 		//block highlight

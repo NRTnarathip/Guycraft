@@ -6,32 +6,10 @@ void MeshChunk::Vertex::SetPos(float x, float y, float z) {
 	pos[1] = u16(y * 16);
 	pos[2] = u16(z * 16);
 }
-void MeshChunk::Vertex::SetUVTile(unsigned int voxID, unsigned int voxType) {
-	//use 12bit
-	//each axis use 6bit range 0->63;
-	//bit int 
-	// 0000 0000 0000 0000 0000 0000 0000 0000
-	unsigned int index = voxID + voxType;
-	unsigned int x = (index % TILE_ROW);
-	unsigned int y = (index / TILE_ROW);
-	uvTileAndNormal = uvTileAndNormal | x;
-	uvTileAndNormal = uvTileAndNormal | (y << 6); //mask
-}
-unsigned int  MeshChunk::Vertex::GetUVTile() {
-	unsigned int x = uvTileAndNormal & 63;//mask 63;
-	unsigned int y = (uvTileAndNormal >> 6) & 63;
-	return x + y;
-}
-void  MeshChunk::Vertex::SetUVIndex(unsigned int index) {
-	//use 0->3 array index; 2bit
-	uvTileAndNormal = uvTileAndNormal | (index << 12);//range 13->14
-}
-unsigned int  MeshChunk::Vertex::GetUVIndex() {
-	return (uvTileAndNormal >> 12) & 3;
-}
-void  MeshChunk::Vertex::SetNormal(unsigned int index) {
-	//use 3bit range 0-7;
-	uvTileAndNormal = uvTileAndNormal | (index << 14); //range 15->17
+void MeshChunk::Vertex::SetUVTile(uint16_t tileIndex) {
+	int x = tileIndex % TILE_ROW;
+	int y = tileIndex / TILE_ROW;
+	dataUVTNVI = dataUVTNVI | x | y << 4;
 }
 MeshChunk::MeshChunk() {
 	setupMesh();
@@ -44,7 +22,6 @@ MeshChunk::~MeshChunk() {
 	clearOnGPU();
 }
 void MeshChunk::clearOnGPU() {
-	isComplete = false;
 	//remove buffer object
 	MeshChunk::triangleGPU -= triCount;
 	triCount = 0;
@@ -72,8 +49,8 @@ void MeshChunk::setupMesh() {
 		(void*)offsetof(Vertex, pos));
 	// uv tile; uv index of table texcoord; normal index of table normal
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(Vertex),
-		(void*)offsetof(Vertex, uvTileAndNormal));
+	glVertexAttribPointer(1, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
+		(void*)offsetof(Vertex, dataUVTNVI));
 	// lighting ao,sun,lamp 
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex), 
