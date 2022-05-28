@@ -12,6 +12,11 @@ public:
 	void add(Key key, T value) {
 		m_map.emplace(key, value);
 	}
+	void addNoneExist(Key k, T v) {
+		if (not has(k)) {
+			add(k, v);
+		}
+	}
 	bool has(Key key) {
 		return m_map.find(key) != m_map.end();
 	}

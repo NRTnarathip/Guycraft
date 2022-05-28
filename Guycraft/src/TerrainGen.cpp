@@ -23,7 +23,7 @@ void TerrainGen::populate(JobPopulate* job) {
 
 
     float chunkSize = CHUNK_SIZE;
-    float scale = .18f;
+    float scale = .08f;
     auto noise = FastNoise::New<FastNoise::Perlin>();
 
     auto pos = job->pos;
@@ -32,7 +32,7 @@ void TerrainGen::populate(JobPopulate* job) {
         int z = k + pos.y;
         float nz = (z / chunkSize) * scale;
         for (int i = 0; i < CHUNK_SIZE; i++) {
-            int accMap = i + (k << BS_CH);
+            int accMap = i + (k << 4);
             int x = i + pos.x;
             float nx = (x / chunkSize) * scale;
 
@@ -41,29 +41,26 @@ void TerrainGen::populate(JobPopulate* job) {
             heightMap[accMap] = n;
 
             //gen moiseture map
-            float nMoiseture = noise->GenSingle2D(nx, nz, seed);
-            nMoiseture = (nMoiseture + 1) / 2.f;
-            moisetureMap[accMap] = nMoiseture;
+            moisetureMap[accMap] = genOctave(nx + 0.05f, nz + 0.025f, 3);
         }
     }
     //place biome block
-    for (u8 group = 0; group < 8; group++) {
-        for (unsigned char z = 0; z < CHUNK_SIZE; z++) {
-            for (unsigned char x = 0; x < CHUNK_SIZE; x++) {
-                int accDataMap = x + (z << BS_CH);
-                float noiseData[3] = { heightMap[accDataMap],0,0 };
-                for (unsigned char y = 0; y < CHUNK_SIZE; y++) {
-                    int height = y + (group * 32);
+    for (unsigned char z = 0; z < CHUNK_SIZE; z++) {
+        for (unsigned char x = 0; x < CHUNK_SIZE; x++) {
+            int accDataMap = x + (z << 4);
+            float noiseData[3] = { heightMap[accDataMap],0,0 };
 
-                    job->voxels[x+(y<<5)+(z<<10)+(group<<15)]=GetVoxelTerrain(noiseData, height);
-                }
+            for (int worldY = 0; worldY < CHUNK_HEIGHT_MAX; worldY++) {
+                int y = worldY % CHUNK_SIZE;
+                int voxelGroup = worldY / CHUNK_SIZE;
+                job->voxels[x+(y<<4)+(z<<8)+(voxelGroup<<12)]=GetVoxelTerrain(noiseData, worldY);
             }
         }
     }
 }
 Voxel TerrainGen::GetVoxelTerrain(float noiseData[3], int y) {
     Voxel voxel = { 0, 0};
-    int height = (int)(noiseData[0] * 255);
+    int height = floor(noiseData[0] * CHUNK_HEIGHT_MAX);
     if (y == height) {
         //dirt
         voxel.type = 1;

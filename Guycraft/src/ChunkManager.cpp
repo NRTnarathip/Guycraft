@@ -21,15 +21,27 @@ void ChunkManager::init() {
 	auto camera = CameraManager::GetCurrentCamera();
 	auto posPlayerToChunk = ToChunkPosition(camera->transform.position);
 	chunkLoader.firstLoader(posPlayerToChunk);
+
+	auto res = ResourceManager::GetInstance();
+	auto sdSolid = res->m_shaders["chunk_block_solid"];
+	auto sdFulid = res->m_shaders["chunk_block_fluid"];
+	sdSolid->Bind();
+	sdSolid->SetVar("tex", 0);
+	sdSolid->SetFloat("aoStrength", 0.45f);
+
+	sdFulid->Bind();
+	sdFulid->SetVar("tex", 0);
+	sdFulid->SetFloat("aoStrength", 0.45f);
+	sdFulid->SetFloat("time", (float)Time::lastTime);
 }
 glm::vec3 ChunkManager::ToChunkPosition(glm::vec3 worldPos) const
 {
-	worldPos.y = glm::clamp(worldPos.y, 0.f, 255.f);
-	int x = floor(worldPos.x / 32);
-	int y = floor(worldPos.y / 32);
-	int z = floor(worldPos.z / 32);
+	worldPos.y = glm::clamp(worldPos.y, 0.f, (float)CHUNK_HEIGHT_INDEX);
+	int x = floor(worldPos.x / CHUNK_SIZE);
+	int y = floor(worldPos.y / CHUNK_SIZE);
+	int z = floor(worldPos.z / CHUNK_SIZE);
 
-	return { x << 5, y << 5, z << 5 };
+	return { x << 4, y << 4, z << 4 };
 }
 void ChunkManager::update() {
 	auto camera = CameraManager::GetCurrentCamera();
@@ -47,19 +59,9 @@ void ChunkManager::update() {
 	SmartUnorderMap<glm::ivec3,bool> chunkUpdateVoxel;
 	while (m_queueDestroyBlock.size() > 0) {
 		glm::ivec3 blockWorldPos = m_queueDestroyBlock.getFront();
-		glm::ivec3 chunkpos = ToChunkPosition(blockWorldPos);
-		auto chunk = getChunk({ chunkpos.x,chunkpos.z });
-		if (chunk == nullptr) continue;
-
-		int voxelGroup = chunkpos.y / 32;
-		auto blockPos = blockWorldPos - chunkpos;
-		chunk->voxels[blockPos.x + (blockPos.y << 5) + (blockPos.z << 10) + (voxelGroup << 15)] = voxReplace;
-
-		if(chunkUpdateVoxel.has(chunkpos) == 0) {
-			chunkUpdateVoxel.add(chunkpos,1);
-			queJobGenMesh.push({chunk, voxelGroup});
-		}
+		m_queueAddBlock.push({ voxReplace, blockWorldPos });
 	}
+
 	while (m_queueAddBlock.size() > 0) {
 		auto job = m_queueAddBlock.getFront();
 
@@ -67,10 +69,10 @@ void ChunkManager::update() {
 		auto chunk = getChunk({ chunkpos.x,chunkpos.z });
 		if (chunk == nullptr) continue;
 
-		int voxelGroup = chunkpos.y / 32;
+		int voxelGroup = chunkpos.y / CHUNK_SIZE;
 		auto blockPos = job.worldPos - chunkpos;
-		chunk->voxels[blockPos.x + (blockPos.y << 5) + (blockPos.z << 10) + (voxelGroup << 15)] = job.voxel;
-		if (chunkUpdateVoxel.has(chunkpos) == 0) {
+		chunk->voxels[blockPos.x + (blockPos.y << 4) + (blockPos.z << 8) + (voxelGroup << 12)] = job.voxel;
+		if (not chunkUpdateVoxel.has(chunkpos)) {
 			chunkUpdateVoxel.add(chunkpos, 1);
 			queJobGenMesh.push({ chunk, voxelGroup });
 		}
@@ -99,26 +101,32 @@ bool ChunkManager::ChunkInRange(glm::ivec2 playerPos, glm::ivec2 chunkPos)
 	return false;
 }
 void ChunkManager::render() {
-	auto camera = CameraManager::GetCurrentCamera();
 	auto res = ResourceManager::GetInstance();
+
 	auto sdSolid = res->m_shaders["chunk_block_solid"];
 	auto sdFulid = res->m_shaders["chunk_block_fluid"];
-	sdSolid->Bind();
-	sdSolid->SetVar("tex", 0);
-	sdSolid->SetFloat("aoStrength", 0.45f);
-
 	sdFulid->Bind();
-	sdFulid->SetVar("tex", 0);
-	sdFulid->SetFloat("aoStrength", 0.45f);
-	sdFulid->SetFloat("time", (float)Time::lastTime);
+	sdSolid->Bind();
+	sdFulid->SetFloat("time", Time::lastTime);
+	sdSolid->SetFloat("time", Time::lastTime);
 
 	CameraManager::GetInstance().uploadCameraMatrixToShader(sdSolid);
 	CameraManager::GetInstance().uploadCameraMatrixToShader(sdFulid);
 
+	using std::chrono::high_resolution_clock;
+	using std::chrono::duration_cast;
+	using std::chrono::duration;
+	using std::chrono::milliseconds;
+
+	auto t1 = high_resolution_clock::now();
 	for (auto kvp : chunks.m_container) {
-		auto chunk = kvp.second;
-		chunk->render();
+		kvp.second->render();
 	}
+	auto t2 = high_resolution_clock::now();
+	/* Getting number of milliseconds as an integer. */
+	auto ms_int = duration_cast<milliseconds>(t2 - t1);
+	std::cout << ms_int.count() << " ms of render chunk count " << chunks.m_container.size() << " \n";
+
 }
 Chunk* ChunkManager::getChunk(glm::ivec2 pos) {
 	if (chunks.exist(pos)) {

@@ -39,7 +39,8 @@ void ChunkLoader::firstLoader(glm::ivec2 pos) {
 
 }
 void ChunkLoader::update(glm::ivec2 posPlayer) {
-	if (lastPosChunk != posPlayer) {
+	auto offsetLastPos = abs(lastPosChunk - posPlayer);
+	if (offsetLastPos.x > 16 or offsetLastPos.y > 16) {
 		lastPosChunk = posPlayer;
 		//impl unload chunk
 		onPlayerMoveToNewChunk();
@@ -77,8 +78,6 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 			manager->chunks.add(chunk);
 			//setup chunk neighbor
 			chunk->lock();
-
-			chunk->m_allocateChunkNeighbor = 0;
 			Chunk* chunksNeighbor[8];
 			glm::ivec2 posChunkNeighbor[8] = {
 				glm::ivec2(0, CHUNK_SIZE) + pos,//north
@@ -97,11 +96,6 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 					nextChunk = nullptr;
 				}
 				chunksNeighbor[i] = nextChunk;
-				//set chunk allocate
-				bool isExist = m_allocateChunk.has(posNext);
-				if (isExist) {
-					chunk->m_allocateChunkNeighbor++;
-				}
 			}
 			//link chunk neightbor, genmesh
 			chunk->mutexNeighbor.lock();
@@ -121,12 +115,12 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 		}
 		manager->chunks.unlock();
 		auto genMesh = ChunkMeshBuilding::GetInstance();
-		genMesh->addQueue(chunk,9,true,true);
+		genMesh->addQueue(chunk,VOXELGROUP_COUNT,true,true);
 		//onNewChunk should regenmesh AtNeighbor
 		auto cnear = chunk->getAllChunkNeighbor();
 		for (auto c : cnear) {
 			if (c == nullptr) continue;
-			genMesh->addQueue(c, 9, true, false);
+			genMesh->addQueue(c, VOXELGROUP_COUNT, true, false);
 		}
 	}
 }

@@ -6,24 +6,17 @@
 #include <glm/glm.hpp>
 #include <mutex>
 #include "Types.h"
-#define Bitsift_ChunkSize << 5
-#define Bitsift_ChunkSizeSquared << 10
-//BitShift Chunk Size
-#define BS_CH 5 
-//BitShift Chunk Size Squared
-#define BS_CH2 10 
-//BitShift Chunk Size Block
-#define BS_CH4 15 
-#define CHUNK_SIZE 32
-#define CHUNK_SIZE_INDEX 31
-#define CHUNK_SIZE_SQUARED 1024
-#define CHUNK_SIZE_BLOCK 32768
-#define CHUNK_BLOCK_ALL 262144
+
+#define CHUNK_SIZE 16
+#define CHUNK_SIZE_INDEX 15
+#define CHUNK_SIZE_SQUARED 256
+#define CHUNK_SIZE_BLOCK 4096
+#define CHUNK_BLOCK_ALL 65536
 #define CHUNK_HEIGHT_MAX 256
 #define CHUNK_HEIGHT_INDEX 255
 #define CHUNK_TOP_HEIGHT 224
-#define VOXEL_GROUP_COUNT 8
-#define VOXEL_GROUP_INDEX 7
+#define VOXELGROUP_COUNT 16
+#define VOXELGROUP_INDEX 15
 
 struct JobPopulate {
 	glm::ivec2 pos;
@@ -46,7 +39,7 @@ public:
 	unsigned char lightMap[CHUNK_SIZE_BLOCK];
 	glm::ivec2 pos;
 	Voxel voxels[CHUNK_BLOCK_ALL];
-	MeshChunkVoxelGroup meshs[8];
+	MeshChunkVoxelGroup meshs[VOXELGROUP_COUNT];
 	//chunk neighbor 8 direction
 	Chunk* north = nullptr;
 	Chunk* northEast = nullptr;
@@ -64,7 +57,6 @@ public:
 			voxels[i] = voxelsOther[i];
 		}
 	};
-	//mesh block solid 8 mesh, block fluid 8 mesh
 	bool isEmpty();
 	u16 getBlockCount();
 	//for threading

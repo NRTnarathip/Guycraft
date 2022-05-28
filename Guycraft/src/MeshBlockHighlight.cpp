@@ -115,7 +115,6 @@ void MeshBlockHighlight::render() {
 	auto shaderOutline = ResourceManager::GetInstance()->m_shaders["block_outline"];
 	CameraManager::GetInstance().uploadCameraMatrixToShader(shaderOutline);
 	shaderOutline->Bind();
-	shaderOutline->SetVec3("colorOutline", glm::vec3(0.0f));
 	vao.bind();
 
 	auto came = CameraManager::GetCurrentCamera();

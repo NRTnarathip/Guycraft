@@ -6,8 +6,9 @@
 #include <algorithm>
 #include <iostream>
 
-#define ACCESSVOXEL voxels[x + (y << BS_CH) + (z << BS_CH2) + (group << BS_CH4)]
+#define ACCESSVOXEL voxels[x + (y << 4) + (z << 8) + (group << 12)]
 #define IMP_RETURN_VOXELISSOLID u8 type = ACCESSVOXEL.type; return type !=0 and type != 4;
+
 std::vector<Chunk*> Chunk::getAllChunkNeighbor()
 {
     return  { north,south, east,west,northEast, northWest, southEast,southWest };
@@ -17,33 +18,28 @@ void Chunk::render() {
     auto sdSolid = resource->m_shaders["chunk_block_solid"];
     auto sdFluid = resource->m_shaders["chunk_block_fluid"];
     auto mcatlas = resource->m_textures["assets/textures/blocks/mcatlas.png"];
-
     glm::vec3 position = { pos.x, 0.f, pos.y };
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < VOXELGROUP_COUNT; i++) {
         auto m = &meshs[i];
         m->lock();
         if (not m->isComplete) {
             m->unlock();
             continue;
         }
-
-        auto meshSolid = &m->solid;
-        auto meshFluid = &m->fluid;
-
-        // Mesh must be on gpu to draw
         glm::mat4 model = glm::mat4(1.f);
+        // Mesh must be on gpu to draw
         position.y = i * CHUNK_SIZE;
         model = glm::translate(model, position);
         //render mesh solid
         sdSolid->Bind();
         sdSolid->SetMat4("model", model);
         mcatlas->Activate(GL_TEXTURE0);
-        meshSolid->draw();
+        m->solid.draw();
 
         sdFluid->Bind();
         sdFluid->SetMat4("model", model);
         mcatlas->Activate(GL_TEXTURE0);
-        meshFluid->draw();
+        m->fluid.draw();
 
         m->unlock();
     }
@@ -160,8 +156,8 @@ bool Chunk::isEmpty() {
     return true;
 }
 Voxel Chunk::getvoxel(u8 group, u8 x, u8 y, u8 z) {
-    if (y > 31) {
-        if (group == VOXEL_GROUP_INDEX) return { 0,0 };
+    if (y > CHUNK_SIZE_INDEX) {
+        if (group == VOXELGROUP_INDEX) return { 0,0 };
         y = 0;
         group++;
     }
@@ -194,7 +190,7 @@ void Chunk::generateMesh(int voxelGroup) {
                 }
                 mesh->unlock();
 
-                voxel = &voxels[x + (y << 5) + (z << 10) + (voxelGroup << 15)];
+                voxel = &voxels[x + (y << 4) + (z << 8) + (voxelGroup << 12)];
                 if (voxel->type == 0) continue; //dont gen block air
 
                 bool useFuncGetVoxelOutChunk = x == 0 or x == CHUNK_SIZE_INDEX
@@ -261,7 +257,7 @@ unsigned char Chunk::GetVoxType(u8 groupVoxel,char x, char y, char z)
         y = CHUNK_SIZE_INDEX;
     }
     else if (y > CHUNK_SIZE_INDEX) {
-        if (groupVoxel == VOXEL_GROUP_COUNT - 1) return 0;
+        if (groupVoxel == VOXELGROUP_COUNT - 1) return 0;
         groupVoxel++;
         y = 0;
     }
@@ -278,7 +274,7 @@ unsigned char Chunk::GetVoxType(u8 groupVoxel,char x, char y, char z)
         z = 0;
     }
 
-    return cNow->voxels[x + (y << 5) + (z << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type;
+    return cNow->voxels[x + (y << 4) + (z << 8) + (groupVoxel << 12)].type;
 }
 void Chunk::GetVoxSurround(unsigned char (&args)[27],u8 groupVoxel, u8 x, u8 y, u8 z,bool useFuncGetVoxOutChunk)
 {
@@ -296,7 +292,7 @@ void Chunk::GetVoxSurround(unsigned char (&args)[27],u8 groupVoxel, u8 x, u8 y, 
     for (u8 j = y - 1; j <= y + 1; j++)
         for (u8 k = z - 1; k <= z + 1; k++)
             for (u8 i = x - 1; i <= x + 1; i++)
-                args[index++] = voxels[i + (j << 5) + (k << 10) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0?  0 : 1;
+                args[index++] = voxels[i + (j << 4) + (k << 8) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0?  0 : 1;
 }
 void Chunk::GetAO(unsigned char (&refAO)[4], unsigned char dir, unsigned char (&voxSurr)[27]) {
     if (dir == 0)//Face up
@@ -436,12 +432,12 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
     using FaceDir = BlockModel::FaceDirection;
     int uvTiles[6];
     int tile = vox->type;
-    uvTiles[0] = tile;
-    uvTiles[1] = tile;
-    uvTiles[2] = tile;
-    uvTiles[3] = tile;
-    uvTiles[4] = tile;
-    uvTiles[5] = tile;
+    for (auto elem : model->m_textures) {
+        if (elem.dir == FaceDir::All) {
+            std::fill(std::begin(uvTiles),std::end(uvTiles), 
+                blockDB->m_texturesTileIndex[elem.texture]);
+        }
+    }
 
     if (not voxelUpIsSolid(groupVoxel, x, yy, z))
     {
@@ -601,9 +597,9 @@ void Chunk::SetSunLight(unsigned short acc, unsigned char val) {
 }
 
 bool Chunk::voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (y > 31) {
-        if (group == VOXEL_GROUP_INDEX) return false;
-        u8 type = voxels[x + (z << 10) + ((group+1) << 15)].type;
+    if (y > CHUNK_SIZE_INDEX) {
+        if (group == VOXELGROUP_INDEX) return false;
+        u8 type = voxels[x + (z << 8) + ((group+1) << 12)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID
@@ -611,15 +607,15 @@ bool Chunk::voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z) {
 bool Chunk::voxelDownIsSolid(u8 group, i8 x, i8 y, i8 z) {
     if (y < 0) {
         if (group == 0) return false;
-        u8 type = voxels[x + (31 << 5) + (z << 10) + ((group - 1) << 15)].type;
+        u8 type = voxels[x + (15 << 4) + (z << 8) + ((group - 1) << 12)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID
 }
 bool Chunk::voxelNorthIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (z > 31) {
+    if (z > CHUNK_SIZE_INDEX) {
         if (north == nullptr) return true;
-        u8 type = north->voxels[x + (y << 5) + (group << 15)].type;
+        u8 type = north->voxels[x + (y << 4) + (group << 12)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID
@@ -627,15 +623,15 @@ bool Chunk::voxelNorthIsSolid(u8 group, i8 x, i8 y, i8 z) {
 bool Chunk::voxelSouthIsSolid(u8 group, i8 x, i8 y, i8 z) {
     if (z < 0) {
         if (south == nullptr) return true;
-        u8 type = south->voxels[x + (y << 5) + (31 << 10) + (group << 15)].type;
+        u8 type = south->voxels[x + (y << 4) + (15 << 8) + (group << 12)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID
 }
 bool Chunk::voxelEastIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (x > 31) {
+    if (x > CHUNK_SIZE_INDEX) {
         if (east == nullptr) return true;
-        u8 type = east->voxels[(y << 5) + (z<<10) + (group << 15)].type;
+        u8 type = east->voxels[(y << 4) + (z<<8) + (group << 12)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID
@@ -643,7 +639,7 @@ bool Chunk::voxelEastIsSolid(u8 group, i8 x, i8 y, i8 z) {
 bool Chunk::voxelWestIsSolid(u8 group, i8 x, i8 y, i8 z) {
     if (x < 0) {
         if (west == nullptr) return true;
-        u8 type = west->voxels[31 + (y << 5) + (z << 10) + (group << 15)].type;
+        u8 type = west->voxels[15 + (y << 4) + (z << 8) + (group << 12)].type;
         return type != 0 and type != 4;
     }
     IMP_RETURN_VOXELISSOLID

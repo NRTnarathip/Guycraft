@@ -72,8 +72,8 @@ void ChunkMeshBuilding::updateMainThread()
 void ChunkMeshBuilding::addQueue(Chunk* chunk, int voxelGroup, 
 	bool isRebuildMesh, bool isPushFront) {
 
-	if (voxelGroup == 9) {
-		for (u8 i = 0; i < 8; i++) {
+	if (voxelGroup == VOXELGROUP_COUNT) {
+		for (u8 i = 0; i < CHUNK_SIZE; i++) {
 			auto mesh = &chunk->meshs[i];
 			mesh->lock();
 			if (not isRebuildMesh and mesh->isNeedGenMesh) {

@@ -88,8 +88,8 @@ VoxelHit VoxelRaycast::raycast(glm::vec3 rayStart, glm::vec3 direction, float di
 
 		glm::vec3 voxPos = voxelPosTravel - chunkPos;
 		int voxelGroup = chunkPos.y / CHUNK_SIZE;
-		u32 access = (int)voxPos.x + ((int)voxPos.y << 5) + ((int)voxPos.z << 10)
-			+ (voxelGroup << 15);
+		u32 access = (int)voxPos.x + ((int)voxPos.y << 4) + ((int)voxPos.z << 8)
+			+ (voxelGroup << 12);
 		auto voxel = chunk->voxels[access];
 		//hit block not air
 		if (voxel.type > 0) {
