@@ -1,4 +1,6 @@
 #pragma once
+#ifndef CHUNK_H
+#define CHUNK_H
 
 #include <Voxel.h>
 #include <MeshChunkVoxelGroup.h>
@@ -6,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <mutex>
 #include "Types.h"
+#include "SmartUnorderMap.h"
 
 #define CHUNK_SIZE 16
 #define CHUNK_SIZE_INDEX 15
@@ -38,8 +41,11 @@ public:
 	//bitwise light lamp and sun;
 	unsigned char lightMap[CHUNK_SIZE_BLOCK];
 	glm::ivec2 pos;
+	//x + y<<4 + z<<8 + voxelGroup<<12
+	bool voxelGroupEmpty[VOXELGROUP_COUNT];
 	Voxel voxels[CHUNK_BLOCK_ALL];
 	MeshChunkVoxelGroup meshs[VOXELGROUP_COUNT];
+	SmartUnorderMap<int, MeshChunkVoxelGroup*> m_meshsActive;
 	//chunk neighbor 8 direction
 	Chunk* north = nullptr;
 	Chunk* northEast = nullptr;
@@ -52,12 +58,8 @@ public:
 	std::vector<Chunk*> getAllChunkNeighbor();
 	int m_allocateChunkNeighbor = 0;
 
-	void changeVoxels(Voxel voxelsOther[CHUNK_BLOCK_ALL]) {
-		for (int i = 0; i < CHUNK_BLOCK_ALL; i++) {
-			voxels[i] = voxelsOther[i];
-		}
-	};
-	bool isEmpty();
+	void changeVoxels(Voxel voxels[CHUNK_BLOCK_ALL]);
+	bool isEmpty(int voxelGroup);
 	u16 getBlockCount();
 	//for threading
 	void lock() { mutex.lock(); }
@@ -98,3 +100,4 @@ public:
 	static const unsigned char tileCountRow = 16;
 	static const float tileSize;
 };
+#endif // !CHUNK_H

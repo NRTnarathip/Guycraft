@@ -72,6 +72,7 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 			//setup chunk
 			chunk->pos = pos;
 			chunk->changeVoxels(job->voxels);
+
 			delete job;
 
 			//add chunk container
@@ -114,12 +115,12 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 		}
 		manager->chunks.unlock();
 		auto genMesh = ChunkMeshBuilding::GetInstance();
-		genMesh->addQueue(chunk,VOXELGROUP_COUNT,true,true);
+		genMesh->addQueue(chunk,VOXELGROUP_COUNT, false);
 		//onNewChunk should regenmesh AtNeighbor
 		auto cnear = chunk->getAllChunkNeighbor();
 		for (auto c : cnear) {
 			if (c == nullptr) continue;
-			genMesh->addQueue(c, VOXELGROUP_COUNT, true, false);
+			genMesh->addQueue(c, VOXELGROUP_COUNT, false);
 		}
 	}
 }

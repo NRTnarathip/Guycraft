@@ -1,4 +1,6 @@
 #pragma once
+#ifndef CHUNKMANAGER_H
+#define CHUNKMANAGER_H
 #include <iostream>
 #include <map>
 #include <queue>
@@ -46,3 +48,4 @@ public: //none safe thread
 	ChunkContainer chunks;
 	Chunk* getChunk(glm::ivec2 pos);
 };
+#endif // !CHUNKMANAGER_H

@@ -90,6 +90,7 @@ void MeshChunk::transferToGPU() {
 void MeshChunk::draw() {
 	// Mesh must be on gpu to draw
 	if (triCount == 0) return;
+
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, triCount, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

@@ -47,37 +47,40 @@ void ChunkMeshBuilding::startWithThread()
 
 void ChunkMeshBuilding::updateMainThread()
 {
-	m_queueComplete.lock();
-	if (m_queueComplete.empty()) {
+	while (true) {
+		m_queueComplete.lock();
+		if (m_queueComplete.empty()) {
+			m_queueComplete.unlock();
+			return;
+		}
+		auto mesh = m_queueComplete.getFront();
 		m_queueComplete.unlock();
-		return;
-	}
-	auto mesh = m_queueComplete.getFront();
-	m_queueComplete.unlock();
 
-	mesh->lock();
-	if (mesh->isNeedGenMesh) {
+		mesh->lock();
+		if (mesh->isNeedGenMesh) {
+			mesh->unlock();
+			continue;
+		}
+
+		mesh->fluid.transferToGPU();
+		mesh->solid.transferToGPU();
+		mesh->isComplete = true;
+		mesh->isActive = true;
+		mesh->chunk->m_meshsActive.m_map[mesh->pos.y / CHUNK_SIZE] = mesh;
 		mesh->unlock();
-		return;
 	}
-
-	mesh->fluid.transferToGPU();
-	mesh->solid.transferToGPU();
-	mesh->isComplete = true;
-	mesh->unlock();
 }
 
 void ChunkMeshBuilding::addQueue(Chunk* chunk, int voxelGroup, 
-	bool isRebuildMesh, bool isPushFront) {
+	bool isPushFront) {
 
 	if (voxelGroup == VOXELGROUP_COUNT) {
-		for (u8 i = 0; i < CHUNK_SIZE; i++) {
+		for (u8 i = 0; i < VOXELGROUP_COUNT; i++) {
+			if (chunk->voxelGroupEmpty[i]) { return; }
+
+
 			auto mesh = &chunk->meshs[i];
 			mesh->lock();
-			if (not isRebuildMesh and mesh->isNeedGenMesh) {
-				mesh->unlock();
-				continue;
-			}
 			mesh->isNeedGenMesh = true;
 			mesh->unlock();
 
@@ -88,12 +91,9 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk, int voxelGroup,
 		}
 		return;
 	}
+	if (chunk->voxelGroupEmpty[voxelGroup]) { return; }
 	auto mesh = &chunk->meshs[voxelGroup];
 	mesh->lock();
-	if (not isRebuildMesh and mesh->isNeedGenMesh) {
-		mesh->unlock();
-		return;
-	}
 	mesh->isNeedGenMesh = true;
 	mesh->unlock();
 

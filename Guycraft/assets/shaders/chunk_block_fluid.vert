@@ -68,9 +68,7 @@ vec2 toTextureCood(float val) {
 	float tileY = y * tileSize;
 
 	int vertIndex = (int(val) >> 8) & 3;
-
 	vec2 uv = vec2(tileX,tileY);
-	uv * tileSize;
 	uv += tbUV[vertIndex] * tileSize;
 	return uv;
 };

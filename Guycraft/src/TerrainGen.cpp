@@ -21,7 +21,6 @@ void TerrainGen::populate(JobPopulate* job) {
     float moisetureMap[CHUNK_SIZE_SQUARED] = {};
     float heatMap[CHUNK_SIZE_SQUARED] = {};
 
-
     float chunkSize = CHUNK_SIZE;
     float scale = .08f;
     auto noise = FastNoise::New<FastNoise::Perlin>();

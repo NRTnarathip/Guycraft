@@ -56,7 +56,7 @@ void ChunkManager::update() {
 	voxReplace.data = 0;
 	voxReplace.type = 0;
 	SmartQueue<JobGenerateMesh> queJobGenMesh;
-	SmartUnorderMap<glm::ivec3,bool> chunkUpdateVoxel;
+	SmartUnorderMap<glm::ivec3, bool> chunkUpdateVoxel;
 	while (m_queueDestroyBlock.size() > 0) {
 		glm::ivec3 blockWorldPos = m_queueDestroyBlock.getFront();
 		m_queueAddBlock.push({ voxReplace, blockWorldPos });
@@ -72,21 +72,30 @@ void ChunkManager::update() {
 		int voxelGroup = chunkpos.y / CHUNK_SIZE;
 		auto blockPos = job.worldPos - chunkpos;
 		chunk->voxels[blockPos.x + (blockPos.y << 4) + (blockPos.z << 8) + (voxelGroup << 12)] = job.voxel;
+
+		auto chunkNeighbor = chunk->getAllChunkNeighbor();
 		if (not chunkUpdateVoxel.has(chunkpos)) {
 			chunkUpdateVoxel.add(chunkpos, 1);
 			queJobGenMesh.push({ chunk, voxelGroup });
 		}
 	}
-	while(queJobGenMesh.empty() == 0) {
+	while(queJobGenMesh.size() > 0) {
 		auto job = queJobGenMesh.getFront();
 		auto chunk = job.chunk;
-		chunkMeshBuilding.addQueue(chunk,job.voxelGroup,true,true);
-		//regen chunk neighbor block
-		auto cnears = chunk->getAllChunkNeighbor();
-		for (auto c : cnears) {
-			if (c == nullptr) continue;
-			chunkMeshBuilding.addQueue(c, job.voxelGroup, true, true);
+		auto chunksGen = chunk->getAllChunkNeighbor();
+		chunksGen.push_back(chunk);
+
+		int voxelGroup = job.voxelGroup;
+		for (auto chunk : chunksGen) {
+			chunkMeshBuilding.addQueue(chunk, voxelGroup, true);
+			if (voxelGroup > 0) {
+				chunkMeshBuilding.addQueue(chunk, voxelGroup - 1, true);
+			}
+			if (voxelGroup < CHUNK_SIZE_INDEX) {
+				chunkMeshBuilding.addQueue(chunk, voxelGroup + 1, true);
+			}
 		}
+
 	}
 }
 bool ChunkManager::ChunkInRange(glm::ivec2 playerPos, glm::ivec2 chunkPos)
@@ -107,6 +116,7 @@ void ChunkManager::render() {
 	auto sdFulid = res->m_shaders["chunk_block_fluid"];
 	auto mcatlas = res->m_textures["assets/textures/blocks/mcatlas.png"];
 	sdFulid->Bind();
+	mcatlas->Activate(GL_TEXTURE0);
 	sdSolid->Bind();
 	mcatlas->Activate(GL_TEXTURE0);
 	sdFulid->SetFloat("time", Time::lastTime);
@@ -114,21 +124,10 @@ void ChunkManager::render() {
 
 	CameraManager::GetInstance().uploadCameraMatrixToShader(sdSolid);
 	CameraManager::GetInstance().uploadCameraMatrixToShader(sdFulid);
-
-	using std::chrono::high_resolution_clock;
-	using std::chrono::duration_cast;
-	using std::chrono::duration;
-	using std::chrono::milliseconds;
 	Shader* shaders[2]{sdSolid,sdFulid};
-	auto t1 = high_resolution_clock::now();
 	for (auto kvp : chunks.m_container) {
 		kvp.second->render(shaders);
 	}
-	//auto t2 = high_resolution_clock::now();
-	///* Getting number of milliseconds as an integer. */
-	//auto ms_int = duration_cast<milliseconds>(t2 - t1);
-	//std::cout << ms_int.count() << " ms of render chunk count " << chunks.m_container.size() << " \n";
-
 }
 Chunk* ChunkManager::getChunk(glm::ivec2 pos) {
 	if (chunks.exist(pos)) {

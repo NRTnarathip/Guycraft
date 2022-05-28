@@ -19,8 +19,10 @@ public:
 		void SetPos(float x, float y, float z);
 		//float position[3];//-125-> 124;
 		//use vertex index:2bit, uvTileIndex:4bit, normal table index:2bit
-		//2byte 0000:0000 0000:0000
 		unsigned short dataUVTNVI= 0;
+
+		unsigned short lighting = 0;
+
 		//range 0000:0000 1111:1111
 		void SetUVTile(uint16_t tileIndex);
 		//range 0000:0011 0000:0000
@@ -32,7 +34,6 @@ public:
 			dataUVTNVI = dataUVTNVI | index << 11;
 		}
 		
-		unsigned short lighting = 0;//
 		unsigned char GetSun() {
 			return lighting & 15;
 		}

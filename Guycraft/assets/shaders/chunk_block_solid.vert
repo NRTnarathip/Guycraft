@@ -13,7 +13,6 @@ const float tileSize = 0.0625;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-//Warning!!!! u invert axis X
 const vec2 tbUV[4] = vec2[4](
 	vec2(0.0,0.0),//0
 	vec2(0.0,1.0),//1
@@ -39,7 +38,6 @@ vec2 toTextureCood(float val) {
 	int vertIndex = (int(val) >> 8) & 3;
 
 	vec2 uv = vec2(tileX,tileY);
-	uv * tileSize;
 	uv += tbUV[vertIndex] * tileSize;
 	return uv;
 };
