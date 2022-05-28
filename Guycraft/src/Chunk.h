@@ -39,8 +39,8 @@ public:
 	bool isLoad = false;
 	std::mutex mutex;
 	std::mutex mutexNeighbor;
-	//bitwise light lamp and sun;
-	unsigned char lightMap[CHUNK_SIZE_BLOCK];
+	//light (0000 lmap):(0000 sun)
+	uint8_t m_light[CHUNK_BLOCK_ALL];
 	glm::ivec2 pos;
 	//x + y<<4 + z<<8 + voxelGroup<<12
 	bool voxelGroupEmpty[VOXELGROUP_COUNT];
@@ -93,11 +93,10 @@ public:
 	void GetAO(unsigned char(&refAO)[4], unsigned char directFace, unsigned char(&voxSurr)[27]);
 	void GetVertLightMaping(unsigned char(&ref)[4], unsigned char dir, unsigned char(&voxSurr)[27]);
 	static unsigned char CalculateAO(unsigned char side1, unsigned char side2, unsigned char corner);
-	unsigned char GetLightExtra(int x, int y, int z);
-	unsigned char GetSunLight(unsigned short acc);
-	unsigned char GetLampLight(unsigned short acc);
-	void SetSunLight(unsigned short acc, unsigned char val);
-	void SetLampLight(unsigned short acc, unsigned char val);
+	void setSunLight(uint8_t level,uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup);
+	uint8_t getSunLight(uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup);
+	void getLightSurround(uint8_t (&light)[27], uint8_t x, uint8_t y, uint8_t z, 
+		uint8_t voxelGroup,bool useFuncAccessOutChunk);
 	static const unsigned char tileCountRow = 16;
 	static const float tileSize;
 };

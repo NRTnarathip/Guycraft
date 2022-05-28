@@ -240,6 +240,7 @@ void Chunk::genMeshWater(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, 
     vert.SetUVTile(4);//water
     u8 voxSurr[27];
     u8 lightSurr[27];
+    getLightSurround(lightSurr, x, y, z, groupVoxel, useFuncGetVoxelOutChunk);
     GetVoxSurround(voxSurr, groupVoxel, x, y, z, useFuncGetVoxelOutChunk);
     i8 xx = x + 1;
     i8 yy = y + 1;
@@ -259,6 +260,15 @@ void Chunk::genMeshWater(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, 
         mesh->vertexs.push_back(vert);//3
         MakeQuadFace(mesh,  0, voxSurr, lightSurr);
     }
+}
+uint8_t Chunk::getSunLight(uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup) {
+
+    return m_light[x + (y<<4) + (z << 8) + (voxelGroup << 12)] & 15;
+}
+void Chunk::setSunLight(uint8_t level, uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup)
+{
+    int acc = x + (y << 4) + (z << 8) + (voxelGroup << 12);
+    m_light[acc] = m_light[acc] | level;
 }
 unsigned char Chunk::GetVoxType(u8 groupVoxel,char x, char y, char z)
 {
@@ -419,7 +429,8 @@ void Chunk::GetVertLightMaping(unsigned char(&ref)[4], unsigned char dir, unsign
     ref[2] = lightSurr[12];
     ref[3] = lightSurr[12];
 }
-void Chunk::MakeQuadFace(MeshChunk* mesh, unsigned char directFace, unsigned char (&voxSurr)[27], unsigned char (&lightSurr)[27]) {
+void Chunk::MakeQuadFace(MeshChunk* mesh, unsigned char directFace, 
+    unsigned char (&voxSurr)[27], unsigned char (&lightSurr)[27]) {
     u32 vertCount = mesh->vertexs.size();
     u32 vertCountMinus_1 = vertCount - 1;//index 3
     u32 vertCountMinus_2 = vertCount - 2;//index 2
@@ -434,22 +445,36 @@ void Chunk::MakeQuadFace(MeshChunk* mesh, unsigned char directFace, unsigned cha
     mesh->triangles.push_back(vertCountMinus_3);//1
 
     u8 aos[4];
-    u8 lightMaping[4];
+    u8 lightFace[4];
     GetAO(aos, directFace, voxSurr);
-    GetVertLightMaping(lightMaping, directFace, lightSurr);
+    GetVertLightMaping(lightFace, directFace, lightSurr);
     for (u8 i = 0; i < 4; i++) {
         auto& vert = mesh->vertexs[vertCount - (4 - i)];
         vert.setVertexIndex(i);
         vert.SetAO(aos[i]);
+        vert.lighting = lightFace[i] & 255;
     }
+}
+void Chunk::getLightSurround(uint8_t (&lights)[27], uint8_t x, uint8_t y, uint8_t z, 
+    uint8_t voxelGroup,bool useFuncAccessOutChunk)
+{
+    int posChunkY = voxelGroup << 12;
+    uint8_t index = 0;
+    for (int8_t j = y - 1; j <= y + 1; j++)
+        for (int8_t k = z - 1; k <= z + 1; k++)
+            for (int8_t i = x - 1; i <= x + 1; i++) {
+                lights[index++] = 15;
+            }
+
 }
 void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel* vox, bool useFuncGetVoxOutChunk) {
     char xx = x + 1;
     char yy = y + 1;
     char zz = z + 1;
     unsigned char voxSurr[27];
-    unsigned char lightSurr[27];//lighting surround
+    uint8_t lightSurr[27];//lighting surround
     MeshChunk::Vertex vert;
+    getLightSurround(lightSurr, x, y, z, groupVoxel, useFuncGetVoxOutChunk);
     GetVoxSurround(voxSurr, groupVoxel, x, y, z, useFuncGetVoxOutChunk);
     auto blockDB = BlockDatabase::GetInstance();
     auto model = blockDB->m_models[vox->type];
@@ -561,62 +586,6 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh,  5, voxSurr, lightSurr);
     }
-}
-unsigned char Chunk::GetLightExtra(int x, int y, int z)
-{/*
-    Chunk* cNow = this;
-    if (x < 0)
-    {
-        if (cnearWest == nullptr) return 0;
-        cNow = cnearWest;
-        x = 15;
-    }
-    else if (x > 15)
-    {
-        if (cnearEast == nullptr) return 0;
-        cNow = cnearEast;
-        x = 0;
-    }
-    if (y < 0)
-    {
-        if (cNow->cnearDown == nullptr) return 0;
-        cNow = cNow->cnearDown;
-        y = 15;
-    }
-    else if (y > 15)
-    {
-        if (cNow->cnearUp == nullptr) return 0;
-        cNow = cNow->cnearUp;
-        y = 0;
-    }
-    if (z < 0)
-    {
-        if (cNow->cnearUp == nullptr) return 0;
-        cNow = cNow->cnearUp;
-        z = 15;
-    }
-    else if (z > 15)
-    {
-        if (cNow->cnearUp == nullptr) return 0;
-        cNow = cNow->cnearUp;
-        z = 0;
-    }
-    return cNow->lightMap[x + (y << 4) + (z << 8)];*/
-    return 15;
-}
-unsigned char Chunk::GetSunLight(unsigned short acc) {
-    return lightMap[acc] & 15;
-}
-unsigned char Chunk::GetLampLight(unsigned short acc) {
-    return (lightMap[acc] >> 4 ) & 15;
-}
-void Chunk::SetLampLight(unsigned short acc, unsigned char val) {
-    //mask 240;//bit 1111 0000
-    lightMap[acc] = (lightMap[acc] & 0xF0 )| (val);
-}
-void Chunk::SetSunLight(unsigned short acc, unsigned char val) {
-    //mask 15; bit 0000 1111
-    lightMap[acc] = (lightMap[acc]& 0x0F) | (val << 4);
 }
 
 bool Chunk::voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z) {

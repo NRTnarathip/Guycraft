@@ -4,9 +4,6 @@
     <Filter Include="src">
       <UniqueIdentifier>{eab57440-bc6b-4357-bf46-90690867f95b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Physics">
-      <UniqueIdentifier>{236207de-561c-4422-82f4-5561efa369ab}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\OpenGL Class">
       <UniqueIdentifier>{2364528a-79b7-4fd8-ad3e-c798201477dd}</UniqueIdentifier>
     </Filter>
@@ -34,10 +31,28 @@
     <Filter Include="src\Block System">
       <UniqueIdentifier>{6814116c-dc1f-445b-b23c-533b03d09c09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Graphic 2D">
+      <UniqueIdentifier>{47dcf353-65e6-4d66-82bf-bd870ba53767}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Physics 3D">
+      <UniqueIdentifier>{236207de-561c-4422-82f4-5561efa369ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphic 3D">
+      <UniqueIdentifier>{d78edc26-9d13-4a8e-bba1-80e52aa82a04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\World">
+      <UniqueIdentifier>{b56b8c4a-bef0-43b1-a457-565568d967e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Utility">
+      <UniqueIdentifier>{f545dfed-77b5-4a7f-9904-9b2c65670e28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Client">
+      <UniqueIdentifier>{933720be-d677-4d12-a2c4-c392489b5658}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Physics\BoxCollision.cpp">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer\MeshGameObject.cpp">
       <Filter>src\Renderer</Filter>
@@ -47,81 +62,6 @@
     </ClCompile>
     <ClCompile Include="src\Scenes\SceneMainMenu.cpp">
       <Filter>src\Scenes</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UIText.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Window.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\World.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Button.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Camera.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CameraManager.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ClientEngine.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComponentManager.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GameObject.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\glad.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GUI.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Image.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Raycast.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RectTransform.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ResourceManager.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sprite.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SpriteRenderer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextRenderer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Texture.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UIContainer.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UIMenu.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UIObject.cpp">
-      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene.cpp">
       <Filter>src\Scene System</Filter>
@@ -144,9 +84,6 @@
     <ClCompile Include="src\TerrainGen.cpp">
       <Filter>src\Terrain Generate</Filter>
     </ClCompile>
-    <ClCompile Include="src\GenerateMap\GenerateMap.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\ChunkMeshBuilding.cpp">
       <Filter>src\Chunk System</Filter>
     </ClCompile>
@@ -160,10 +97,10 @@
       <Filter>src\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\Physics\Transform.cpp">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClCompile>
     <ClCompile Include="src\Physics\VoxelRaycast.cpp">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClCompile>
     <ClCompile Include="src\MeshBlockHighlight.cpp">
       <Filter>src</Filter>
@@ -174,16 +111,91 @@
     <ClCompile Include="src\Blocks\BlockDatabase.cpp">
       <Filter>src\Block System</Filter>
     </ClCompile>
+    <ClCompile Include="src\UIContainer.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIMenu.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIObject.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UIText.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sprite.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RectTransform.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextRenderer.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SpriteRenderer.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>src\Graphic 3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Button.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComponentManager.cpp">
+      <Filter>src\Physics 3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Image.cpp">
+      <Filter>src\Graphic 2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>src\Physics 3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\World.cpp">
+      <Filter>src\World</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window.cpp">
+      <Filter>src\Graphic 3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GenerateMap\GenerateMap.cpp">
+      <Filter>src\World</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ClientEngine.cpp">
+      <Filter>src\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CameraManager.cpp">
+      <Filter>src\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>src\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ResourceManager.cpp">
+      <Filter>src\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glad.c">
+      <Filter>src\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Physics\BoxCollision.h">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClInclude>
     <ClInclude Include="src\Physics\GameObject.h">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClInclude>
     <ClInclude Include="src\Physics\Transform.h">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClInclude>
     <ClInclude Include="src\Renderer\MeshGameObject.h">
       <Filter>src\Renderer</Filter>
@@ -196,96 +208,6 @@
     </ClInclude>
     <ClInclude Include="src\Scenes\SceneMainMenu.h">
       <Filter>src\Scenes</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UIText.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Voxel.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Window.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\World.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AABB.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Button.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Camera.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CameraManager.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ClientEngine.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Component.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ComponentManager.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GameObject.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GraphicSetting.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GUI.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Image.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Raycast.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RectTransform.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ResourceManager.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SmartQueue.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Sprite.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SpriteRenderer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextRenderer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Texture.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Transform2D.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UIComponent.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UIContainer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UIMenu.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UIObject.h">
-      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\SceneManager.h">
       <Filter>src\Scene System</Filter>
@@ -305,9 +227,6 @@
     <ClInclude Include="src\TerrainGen.h">
       <Filter>src\Terrain Generate</Filter>
     </ClInclude>
-    <ClInclude Include="src\GenerateMap\GenerateMap.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\ChunkMeshBuilding.h">
       <Filter>src\Chunk System</Filter>
     </ClInclude>
@@ -316,9 +235,6 @@
     </ClInclude>
     <ClInclude Include="src\MeshChunk.h">
       <Filter>src\Chunk System</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SmartMutex.h">
-      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\ChunkContainer.h">
       <Filter>src\Chunk System</Filter>
@@ -335,17 +251,11 @@
     <ClInclude Include="src\ChunkPooling.h">
       <Filter>src\Chunk System</Filter>
     </ClInclude>
-    <ClInclude Include="src\Types.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SmartUnorderMap.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Physics\Vector.h">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClInclude>
     <ClInclude Include="src\Physics\VoxelRaycast.h">
-      <Filter>src\Physics</Filter>
+      <Filter>src\Physics 3D</Filter>
     </ClInclude>
     <ClInclude Include="src\MeshBlockHighlight.h">
       <Filter>src</Filter>
@@ -367,6 +277,105 @@
     </ClInclude>
     <ClInclude Include="src\MeshChunkVoxelGroup.h">
       <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIComponent.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIContainer.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIMenu.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIObject.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIText.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Sprite.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RectTransform.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Transform2D.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextRenderer.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SpriteRenderer.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AABB.h">
+      <Filter>src\Physics 3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>src\Graphic 3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Button.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Component.h">
+      <Filter>src\Physics 3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ComponentManager.h">
+      <Filter>src\Physics 3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Image.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameObject.h">
+      <Filter>src\Physics 3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\World.h">
+      <Filter>src\World</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Window.h">
+      <Filter>src\Graphic 3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Voxel.h">
+      <Filter>src\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartUnorderMap.h">
+      <Filter>src\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartMutex.h">
+      <Filter>src\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartQueue.h">
+      <Filter>src\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Types.h">
+      <Filter>src\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GenerateMap\GenerateMap.h">
+      <Filter>src\World</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ClientEngine.h">
+      <Filter>src\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CameraManager.h">
+      <Filter>src\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input.h">
+      <Filter>src\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ResourceManager.h">
+      <Filter>src\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicSetting.h">
+      <Filter>src\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

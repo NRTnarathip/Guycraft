@@ -53,7 +53,7 @@ void MeshChunk::setupMesh() {
 		(void*)offsetof(Vertex, dataUVTNVI));
 	// lighting ao,sun,lamp 
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex), 
+	glVertexAttribPointer(2, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
 		(void*)offsetof(Vertex, lighting));
 
 	

@@ -45,6 +45,14 @@ void SceneMainGame::update() {
 	chManager->chunkMeshBuilding.updateMainThread();
 }
 void SceneMainGame::render() {
+	auto res = ResourceManager::GetInstance();
+
+	std::vector<Shader*> shadersChunk;
+	shadersChunk.push_back(res->m_shaders["chunk_block_solid"]);
+	shadersChunk.push_back(res->m_shaders["chunk_block_fluid"]);
+	for (auto shader : shadersChunk) {
+		shader->SetFloat("worldSunLevel", world->lighting.sunLevel);
+	}
 	world->render();
 	chManager->render();
 	//debug

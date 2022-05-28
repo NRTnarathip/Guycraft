@@ -4,10 +4,14 @@ out vec4 FragColor;
 in float ao;
 in vec2 texcoord;
 in vec3 normal;
-in float sunLampLight;
+in float lightFace;
 
 uniform sampler2D tex;
 uniform float aoStrength;
+uniform float worldSunLevel;
+
+const float maxLight = 0.94;
+const float minLight = 0.06;
 
 float waterTransparency = 0.85;
 
@@ -18,20 +22,21 @@ void main()
 	if(texCol.a < .5) {
 		discard;
 	}
-	float maxLight = 0.98;
-	float minLight = 0.02;
+	
 
-	float lightLamp = 15.0;
-	float lightSun = 15.0;
-	float maxLightLampSun = max(lightSun,lightLamp) / 15;
+	float lightLamp = 0.0;
+	float lightSunFace = int(lightFace) & 15;
+	float lightSun = min(lightSunFace, worldSunLevel);
 
-	float light = maxLight;
-	light = min(light,maxLight); // limit max light
+	float faceLightLevel = max(lightSun, lightLamp) / 15;
+	faceLightLevel = clamp(faceLightLevel,minLight,maxLight);
+	
 	// Ambient occlusion light value
 	if(ao > 0.0) {
-		float aoTemp = ao / 3.0;
-		aoTemp *= aoStrength;
-		light -= aoTemp;
+		float aoLevel = ao / 3.0;
+		faceLightLevel = clamp(faceLightLevel * aoLevel * aoStrength,minLight,maxLight);
 	}
-	FragColor = vec4(texCol.rgb * light, texCol.a);
+
+
+	FragColor = vec4(texCol.rgb * faceLightLevel, texCol.a);
 }

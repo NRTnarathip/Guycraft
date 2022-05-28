@@ -47,7 +47,7 @@ void useThreadChunkMeshBuilding() {
 		chunk->generateMesh(job.voxelGroup);
 		auto t2 = high_resolution_clock::now();
 		auto ms_int = duration_cast<milliseconds>(t2 - t1);
-		std::cout << "generate mesh chunk: " << ms_int.count() << "ms\n";
+		//std::cout << "generate mesh chunk: " << ms_int.count() << "ms\n";
 
 		chunk->unlock();
 	}

@@ -4,7 +4,7 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in float aUVTileAndNormal;
 layout (location = 2) in float aLighting;
 
-out float sunLampLight;
+out float lightFace;
 out float ao;
 out vec2 texcoord;
 out vec3 normal;
@@ -91,7 +91,7 @@ void main()
 
 	gl_Position = projection * view * model * vec4(vertexLocal, 1.0);
 	ao = (int(aLighting) >> 8) & 3;
-	sunLampLight = 0; //temp
+	lightFace = int(aLighting); //temp
 
 	texcoord = toTextureCood(aUVTileAndNormal);
 	normal = tbNormal[( int(aUVTileAndNormal) >> 11) & 7];
