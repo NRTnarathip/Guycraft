@@ -1,7 +1,9 @@
 #pragma once
 #include "MeshChunk.h"
+
 class MeshChunkVoxelGroup {
 public:
+	glm::vec3 pos;
 	std::mutex mutex;
 	bool isNeedGenMesh = false;
 	bool isComplete = false;

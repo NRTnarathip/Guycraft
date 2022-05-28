@@ -66,6 +66,7 @@ int ClientEngine::launch() {
 
     //resize window
     window->resize(1920, 1080);
+    window->setActiveVsync(false);
     auto glfwWindow = window->window;
 
     //part core engine

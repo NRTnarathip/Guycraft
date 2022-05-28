@@ -105,8 +105,10 @@ void ChunkManager::render() {
 
 	auto sdSolid = res->m_shaders["chunk_block_solid"];
 	auto sdFulid = res->m_shaders["chunk_block_fluid"];
+	auto mcatlas = res->m_textures["assets/textures/blocks/mcatlas.png"];
 	sdFulid->Bind();
 	sdSolid->Bind();
+	mcatlas->Activate(GL_TEXTURE0);
 	sdFulid->SetFloat("time", Time::lastTime);
 	sdSolid->SetFloat("time", Time::lastTime);
 
@@ -117,15 +119,15 @@ void ChunkManager::render() {
 	using std::chrono::duration_cast;
 	using std::chrono::duration;
 	using std::chrono::milliseconds;
-
+	Shader* shaders[2]{sdSolid,sdFulid};
 	auto t1 = high_resolution_clock::now();
 	for (auto kvp : chunks.m_container) {
-		kvp.second->render();
+		kvp.second->render(shaders);
 	}
-	auto t2 = high_resolution_clock::now();
-	/* Getting number of milliseconds as an integer. */
-	auto ms_int = duration_cast<milliseconds>(t2 - t1);
-	std::cout << ms_int.count() << " ms of render chunk count " << chunks.m_container.size() << " \n";
+	//auto t2 = high_resolution_clock::now();
+	///* Getting number of milliseconds as an integer. */
+	//auto ms_int = duration_cast<milliseconds>(t2 - t1);
+	//std::cout << ms_int.count() << " ms of render chunk count " << chunks.m_container.size() << " \n";
 
 }
 Chunk* ChunkManager::getChunk(glm::ivec2 pos) {

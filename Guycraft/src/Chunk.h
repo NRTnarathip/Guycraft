@@ -62,8 +62,9 @@ public:
 	//for threading
 	void lock() { mutex.lock(); }
 	void unlock() { mutex.unlock(); }
-	void render();
+	void render(Shader* shaders[2]);
 	void unload();
+	void onload();
 	int getHasChunkNeighborCount();
 	void linkChunkNeighbor(Chunk* chunkNiehgbor[8]);
 	Voxel getvoxel(u8 group, u8 x, u8 y, u8 z);

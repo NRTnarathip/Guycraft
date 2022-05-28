@@ -103,8 +103,7 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 			chunk->mutexNeighbor.unlock();
 
 			//on chunk loaded
-			chunk->isLoad = true;
-			chunk->isShouldUnload = false;
+			chunk->onload();
 			chunk->unlock();
 		}
 		//update chunk voxel data

@@ -21,9 +21,7 @@ void useThreadChunkMeshBuilding() {
 		queueJob->unlock();
 		auto chunk = job.chunk;
 		chunk->lock();
-		cManager->chunkLoader.m_allocateChunk.lock();
 		int newAllocateChunkNeighbor = cManager->chunkLoader.getAllocateChunkNeighbor(chunk);
-		cManager->chunkLoader.m_allocateChunk.unlock();
 		chunk->m_allocateChunkNeighbor = newAllocateChunkNeighbor;
 		if (chunk->getHasChunkNeighborCount() != chunk->m_allocateChunkNeighbor) {
 			chunk->unlock();
@@ -49,24 +47,24 @@ void ChunkMeshBuilding::startWithThread()
 
 void ChunkMeshBuilding::updateMainThread()
 {
-	while(true) {
-		m_queueComplete.lock();
-		if (m_queueComplete.empty()) {
-			m_queueComplete.unlock();
-			break;
-		}
-		auto mesh = m_queueComplete.getFront();
+	m_queueComplete.lock();
+	if (m_queueComplete.empty()) {
 		m_queueComplete.unlock();
-		mesh->lock();
-		if (mesh->isNeedGenMesh) {
-			mesh->unlock();
-			continue;
-		}
-		mesh->fluid.transferToGPU();
-		mesh->solid.transferToGPU();
-		mesh->isComplete = true;
-		mesh->unlock();
+		return;
 	}
+	auto mesh = m_queueComplete.getFront();
+	m_queueComplete.unlock();
+
+	mesh->lock();
+	if (mesh->isNeedGenMesh) {
+		mesh->unlock();
+		return;
+	}
+
+	mesh->fluid.transferToGPU();
+	mesh->solid.transferToGPU();
+	mesh->isComplete = true;
+	mesh->unlock();
 }
 
 void ChunkMeshBuilding::addQueue(Chunk* chunk, int voxelGroup, 

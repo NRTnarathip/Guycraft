@@ -13,35 +13,33 @@ std::vector<Chunk*> Chunk::getAllChunkNeighbor()
 {
     return  { north,south, east,west,northEast, northWest, southEast,southWest };
 }
-void Chunk::render() {
-    auto resource = ResourceManager::GetInstance();
-    auto sdSolid = resource->m_shaders["chunk_block_solid"];
-    auto sdFluid = resource->m_shaders["chunk_block_fluid"];
-    auto mcatlas = resource->m_textures["assets/textures/blocks/mcatlas.png"];
+void Chunk::render(Shader* shaders[2]) {
+    auto sdSolid = shaders[0];
+    auto sdFluid = shaders[1];
+    sdFluid->Bind();
+
     glm::vec3 position = { pos.x, 0.f, pos.y };
-    for (int i = 0; i < VOXELGROUP_COUNT; i++) {
-        auto m = &meshs[i];
-        m->lock();
-        if (not m->isComplete) {
-            m->unlock();
+    glm::mat4 model = glm::mat4(1.f);
+
+    for (auto &m : meshs) {
+        m.lock();
+        if (not m.isComplete) {
+            m.unlock();
             continue;
         }
-        glm::mat4 model = glm::mat4(1.f);
+        model = glm::mat4(1.f);
         // Mesh must be on gpu to draw
-        position.y = i * CHUNK_SIZE;
-        model = glm::translate(model, position);
+        model = glm::translate(model, m.pos);
         //render mesh solid
         sdSolid->Bind();
         sdSolid->SetMat4("model", model);
-        mcatlas->Activate(GL_TEXTURE0);
-        m->solid.draw();
+        m.solid.draw();
 
         sdFluid->Bind();
         sdFluid->SetMat4("model", model);
-        mcatlas->Activate(GL_TEXTURE0);
-        m->fluid.draw();
+        m.fluid.draw();
 
-        m->unlock();
+        m.unlock();
     }
 }
 void Chunk::unload() {
@@ -95,6 +93,13 @@ void Chunk::unload() {
     mutexNeighbor.unlock();
   
 }
+void Chunk::onload() { 
+    isLoad = true;
+    isShouldUnload = false;
+    for (int i = 0; i < VOXELGROUP_COUNT; i++) {
+        meshs[i].pos = { pos.x, i << 4, pos.y };
+    }
+};
 int Chunk::getHasChunkNeighborCount() {
     int count = 0;
     auto cnb = getAllChunkNeighbor();
