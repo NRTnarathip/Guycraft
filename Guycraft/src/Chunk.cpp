@@ -17,7 +17,6 @@ void Chunk::changeVoxels(Voxel voxelsReplace[CHUNK_BLOCK_ALL]) {
     for (int i = 0; i < CHUNK_BLOCK_ALL; i++) {
         voxels[i] = voxelsReplace[i];
     }
-    //std::fill(std::begin(voxels), std::end(voxels), voxelsReplace);
     for (int i = 0; i < VOXELGROUP_COUNT; i++) {
         voxelGroupEmpty[i] = isEmpty(i);
     }
@@ -197,24 +196,17 @@ void Chunk::generateMesh(int voxelGroup) {
     mesh->lock();
     mesh->isNeedGenMesh = false;
     mesh->unlock();
-
-    if (voxelGroupEmpty[voxelGroup]) {
-        return;
-    }
-
-
     Voxel* voxel;
     bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
     auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
 
     for (u8 z = 0; z < CHUNK_SIZE; z++) {
-        mesh->lock();
-        if (mesh->isNeedGenMesh or not isLoad) {
+        if (mesh->isNeedGenMesh) {
+            mesh->lock();
             mesh->isNeedGenMesh = false;
             mesh->unlock();
             return;
         }
-        mesh->unlock();
 
         isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
         for (u8 y = 0; y < CHUNK_SIZE; y++) {
@@ -237,11 +229,8 @@ void Chunk::generateMesh(int voxelGroup) {
             }
         }
     }
-    if (mesh->solid.vertexs.size() > 0 or mesh->fluid.vertexs.size() > 0) {
+    if ((mesh->solid.vertexs.size() + mesh->fluid.vertexs.size()) != 0) {
         cMeshBuilding->m_queueComplete.pushLock(mesh);
-    }
-    else {
-        mesh->isActive = false;
     }
     //end one task for gen mesh
 }
@@ -390,30 +379,39 @@ void Chunk::GetVertLightMaping(unsigned char(&ref)[4], unsigned char dir, unsign
         ref[1] = lightSurr[22];
         ref[2] = lightSurr[22];
         ref[3] = lightSurr[22];
+        return;
+
     }
     else if (dir == 1) {//down
         ref[0] = lightSurr[4];
         ref[1] = lightSurr[4];
         ref[2] = lightSurr[4];
         ref[3] = lightSurr[4];
+        return;
+
     }
     else if (dir == 2) {//north
         ref[0] = lightSurr[16];
         ref[1] = lightSurr[16];
         ref[2] = lightSurr[16];
         ref[3] = lightSurr[16];
+        return;
+
     }
     else if (dir == 3) {//south
         ref[0] = lightSurr[10];
         ref[1] = lightSurr[10];
         ref[2] = lightSurr[10];
         ref[3] = lightSurr[10];
+        return;
+
     }
     else if (dir == 4) {//east
         ref[0] = lightSurr[14];
         ref[1] = lightSurr[14];
         ref[2] = lightSurr[14];
         ref[3] = lightSurr[14];
+        return;
     }
     //west
     ref[0] = lightSurr[12];
@@ -427,7 +425,6 @@ void Chunk::MakeQuadFace(MeshChunk* mesh, unsigned char directFace, unsigned cha
     u32 vertCountMinus_2 = vertCount - 2;//index 2
     u32 vertCountMinus_3 = vertCount - 3;//index 1
     u32 vertCountMinus_4 = vertCount - 4;//index 0
-
     mesh->triangles.push_back(vertCountMinus_4);//0
     mesh->triangles.push_back(vertCountMinus_3);//1
     mesh->triangles.push_back(vertCountMinus_1);//3
@@ -436,18 +433,10 @@ void Chunk::MakeQuadFace(MeshChunk* mesh, unsigned char directFace, unsigned cha
     mesh->triangles.push_back(vertCountMinus_1);//3
     mesh->triangles.push_back(vertCountMinus_3);//1
 
-    //ao use 2bit 0->3;
-    //2bit *4 = 8bit or 1 byte;
     u8 aos[4];
-    //light map between sun and lamp light
     u8 lightMaping[4];
     GetAO(aos, directFace, voxSurr);
-    //flip ao if
-
     GetVertLightMaping(lightMaping, directFace, lightSurr);
-
-    //lightmap
-    //set vertex from vertCount - 4 to vertcount - 1;
     for (u8 i = 0; i < 4; i++) {
         auto& vert = mesh->vertexs[vertCount - (4 - i)];
         vert.setVertexIndex(i);
@@ -465,8 +454,7 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
     auto blockDB = BlockDatabase::GetInstance();
     auto model = blockDB->m_models[vox->type];
     using FaceDir = BlockModel::FaceDirection;
-    int uvTiles[6];
-    int tile = vox->type;
+    uint16_t uvTiles[6];
     for (auto elem : model->m_textures) {
         if (elem.dir == FaceDir::All) {
             std::fill(std::begin(uvTiles),std::end(uvTiles), 

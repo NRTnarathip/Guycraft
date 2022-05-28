@@ -20,5 +20,5 @@ public:
 	static auto GetInstance() { return m_instance; }
 	void startWithThread();
 	void updateMainThread();//update for main thread
-	void addQueue(Chunk* chunk, int voxelGroup, bool isPushFront);
+	void addQueue(Chunk* chunk, int voxelGroup, bool isPushFront,bool isGenForNeighbor = false);
 };

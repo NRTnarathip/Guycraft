@@ -1,4 +1,6 @@
 #pragma once
+#ifndef WORLD_H
+#define WORLD_H
 #include <ChunkManager.h>
 #include "entt/entt.hpp"
 #include "GameObject.h"
@@ -40,3 +42,4 @@ public:
 	Lighting lighting;
 
 };
+#endif // !WORLD_H

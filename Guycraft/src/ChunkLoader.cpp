@@ -120,7 +120,7 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 		auto cnear = chunk->getAllChunkNeighbor();
 		for (auto c : cnear) {
 			if (c == nullptr) continue;
-			genMesh->addQueue(c, VOXELGROUP_COUNT, false);
+			genMesh->addQueue(c, VOXELGROUP_COUNT, false, true);
 		}
 	}
 }

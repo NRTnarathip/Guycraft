@@ -1,4 +1,7 @@
 #pragma once
+#ifndef CAMERAMENAGER_H
+#define CAMERAMENAGER_H
+
 #include <Camera.h>
 #include <list>
 #include "Renderer/shaderClass.h"
@@ -28,3 +31,4 @@ public:
 	static Camera* GetCurrentCamera() { return instance->m_currentCamera; }
 	static void SwitchCamera(Camera* other) { instance->switchCamera(other); }
 };
+#endif // !CAMERAMENAGER_H

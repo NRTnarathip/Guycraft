@@ -11,6 +11,11 @@ void useThreadChunkMeshBuilding() {
 	auto cMeshBuilder = &cManager->chunkMeshBuilding;
 	auto queueJob = &cManager->chunkMeshBuilding.m_queueJob;
 	auto scMainGame = SceneManager::GetInstance()->getScene<SceneMainGame>(1);
+	using std::chrono::high_resolution_clock;
+	using std::chrono::duration_cast;
+	using std::chrono::duration;
+	using std::chrono::milliseconds;
+
 	while (not scMainGame->isNeedExitToLobby) {
 		queueJob->lock();
 		if (queueJob->empty()) {
@@ -20,23 +25,30 @@ void useThreadChunkMeshBuilding() {
 		auto job = queueJob->getFront();
 		queueJob->unlock();
 		auto chunk = job.chunk;
-		chunk->lock();
-		int newAllocateChunkNeighbor = cManager->chunkLoader.getAllocateChunkNeighbor(chunk);
-		chunk->m_allocateChunkNeighbor = newAllocateChunkNeighbor;
-		if (chunk->getHasChunkNeighborCount() != chunk->m_allocateChunkNeighbor) {
-			chunk->unlock();
-			queueJob->pushLock(job);
-			continue;
-		}
 		auto mesh = &chunk->meshs[job.voxelGroup];
 		mesh->lock();
 		if (mesh->isNeedGenMesh == false) {
 			mesh->unlock();
-			chunk->unlock();
 			continue;
 		}
 		mesh->unlock();
+
+		chunk->lock();
+		if (chunk->getHasChunkNeighborCount() != chunk->m_allocateChunkNeighbor) {
+			chunk->m_allocateChunkNeighbor = cManager->chunkLoader.getAllocateChunkNeighbor(chunk);
+			chunk->unlock();
+			queueJob->pushLock(job);
+			continue;
+		}
+	
+
+		/* Getting number of milliseconds as an integer. */
+		auto t1 = high_resolution_clock::now();
 		chunk->generateMesh(job.voxelGroup);
+		auto t2 = high_resolution_clock::now();
+		auto ms_int = duration_cast<milliseconds>(t2 - t1);
+		std::cout << "generate mesh chunk: " << ms_int.count() << "ms\n";
+
 		chunk->unlock();
 	}
 }
@@ -72,15 +84,17 @@ void ChunkMeshBuilding::updateMainThread()
 }
 
 void ChunkMeshBuilding::addQueue(Chunk* chunk, int voxelGroup, 
-	bool isPushFront) {
+	bool isPushFront,bool isGenForChunkNeighbor) {
 
 	if (voxelGroup == VOXELGROUP_COUNT) {
 		for (u8 i = 0; i < VOXELGROUP_COUNT; i++) {
 			if (chunk->voxelGroupEmpty[i]) { return; }
-
-
 			auto mesh = &chunk->meshs[i];
 			mesh->lock();
+			if (isGenForChunkNeighbor and mesh->isNeedGenMesh) {
+				mesh->unlock();
+				continue;
+			}
 			mesh->isNeedGenMesh = true;
 			mesh->unlock();
 
@@ -94,6 +108,10 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk, int voxelGroup,
 	if (chunk->voxelGroupEmpty[voxelGroup]) { return; }
 	auto mesh = &chunk->meshs[voxelGroup];
 	mesh->lock();
+	if (isGenForChunkNeighbor and mesh->isNeedGenMesh) {
+		mesh->unlock();
+		return;
+	}
 	mesh->isNeedGenMesh = true;
 	mesh->unlock();
 

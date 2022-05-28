@@ -1,4 +1,7 @@
 #pragma once
+#ifndef UICONTAINER_H
+#define UICONTAINER_H
+
 #include "RectTransform.h"
 #include <string>
 #include <map>
@@ -26,3 +29,4 @@ public:
 	UIObject* createButton(std::string name);
 	UIObject* createImage();
 };
+#endif // !UICONTAINER_H

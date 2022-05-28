@@ -1,4 +1,6 @@
 #pragma once
+#ifndef SCENEMAINGAME_H
+#define SCENEMAINGAME_H
 #include "Scene.h"
 #include <World.h>
 #include <ChunkManager.h>
@@ -20,3 +22,4 @@ public:
 	void render();
 	void exit();
 };
+#endif // !SCENEMAINGAME_H

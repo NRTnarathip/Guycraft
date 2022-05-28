@@ -1,4 +1,7 @@
+#ifndef BUTTON_H
+#define BUTTON_H
 #pragma once
+
 #include "SpriteRenderer.h"
 #include "Physics/Transform.h"
 #include "AABB.h"
@@ -7,6 +10,7 @@
 #include "Image.h"
 #include "UIComponent.h"
 #include <vector>
+
 
 class Button : public UIComponent {
 private:
@@ -35,3 +39,5 @@ public:
 	void init();
 	void updateEventInput();
 };
+
+#endif // !BUTTON_H

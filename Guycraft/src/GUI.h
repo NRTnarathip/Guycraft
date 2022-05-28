@@ -1,10 +1,11 @@
 #pragma once
+#ifndef GUI_H
+#define GUI_H
 #include <string>
 #include <map>
 #include "UIMenu.h"
 #include <glm/glm.hpp>
 #include "TextRenderer.h"
-#include <map>
 
 class GUI {
 private:
@@ -20,3 +21,4 @@ public:
 	void update();
 	glm::vec2 getWindowSize();
 };
+#endif

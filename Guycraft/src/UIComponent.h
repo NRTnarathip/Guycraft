@@ -1,4 +1,6 @@
 #pragma once
+#ifndef UICOMPONENT_H
+#define UICOMPONENT_H
 #include <iostream>
 
 class UIObject;
@@ -13,3 +15,4 @@ public:
 	virtual void update() {};
 	virtual void render() {};
 };
+#endif // !UICOMPONENT_H

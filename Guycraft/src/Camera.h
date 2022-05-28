@@ -1,6 +1,5 @@
-//
-// Created by sven on 01.05.19. Class taken and adjusted from learnopengl.com (Joey DeVries)
-//
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #pragma once
 #include<glad/glad.h>
@@ -34,3 +33,4 @@ public:
 	void drawLineViaSize(glm::vec3 start, glm::vec3 end, glm::vec3 color, float size);
 	MeshGameObject mesh;
 };
+#endif //CAMERA_H

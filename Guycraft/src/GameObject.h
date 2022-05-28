@@ -1,4 +1,6 @@
 #pragma once
+#ifndef GAMEOBJECT_H
+#define GAMEOBJECT_H
 #include "Physics/Transform.h"
 #include <string>
 #include <vector>
@@ -43,3 +45,4 @@ public:
 	void setEntityID(entt::entity id) { m_entity = id; };
 	entt::entity getEntity() const { return m_entity; }
 };
+#endif // !GAMEOBJECT_H

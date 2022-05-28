@@ -1,4 +1,7 @@
+#ifndef UIMENU_H
+#define UIMENU_H
 #pragma once
+	
 #include <glm/vec2.hpp>
 #include <map>
 #include <string>
@@ -18,3 +21,4 @@ public:
 	void updateEventInput();
 	void render();
 };
+#endif // !UIMENU_H
