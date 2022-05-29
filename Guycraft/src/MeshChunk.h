@@ -41,7 +41,8 @@ public:
 	void transferToGPU();
 	void draw();
 	void clearOnGPU();
-	unsigned int reserveAmount = 0;
+	//just clear all vertex, triangle;
+	void clearData();
+	unsigned int m_lastTriangleOnGPU= 0;
 private:
-	unsigned int triCount = 0;
 };

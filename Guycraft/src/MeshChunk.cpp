@@ -21,10 +21,16 @@ MeshChunk::~MeshChunk() {
 
 	clearOnGPU();
 }
+void MeshChunk::clearData() {
+	vertexs.clear();
+	vertexs.shrink_to_fit();
+	triangles.clear();
+	triangles.shrink_to_fit();
+}
 void MeshChunk::clearOnGPU() {
 	//remove buffer object
-	MeshChunk::triangleGPU -= triCount;
-	triCount = 0;
+	MeshChunk::triangleGPU -= m_lastTriangleOnGPU;
+	m_lastTriangleOnGPU = 0;
 	// Remove cpu data
 	vertexs.clear();
 	vertexs.shrink_to_fit();
@@ -80,18 +86,19 @@ void MeshChunk::transferToGPU() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// Remove cpu data
-	triCount = triangles.size();
+	MeshChunk::triangleGPU -= m_lastTriangleOnGPU;
+	m_lastTriangleOnGPU = triangles.size();
+	MeshChunk::triangleGPU += m_lastTriangleOnGPU;
 
 	triangles.clear();
 	triangles.shrink_to_fit();
 
-	MeshChunk::triangleGPU += triCount;
 }
 void MeshChunk::draw() {
 	// Mesh must be on gpu to draw
-	if (triCount == 0) return;
+	if (m_lastTriangleOnGPU == 0) return;
 
 	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, triCount, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, m_lastTriangleOnGPU, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

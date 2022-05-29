@@ -81,12 +81,13 @@ void ChunkManager::update() {
 	}
 	while(queJobGenMesh.size() > 0) {
 		auto job = queJobGenMesh.getFront();
-		auto chunk = job.chunk;
-		auto chunksGen = chunk->getAllChunkNeighbor();
-		chunksGen.push_back(chunk);
+		auto chunksGen = job.chunk->getAllChunkNeighbor();
+		chunksGen.push_back(job.chunk);
 
 		int voxelGroup = job.voxelGroup;
 		for (auto chunk : chunksGen) {
+			if(chunk == nullptr) continue;
+
 			chunkMeshBuilding.addQueue(chunk, voxelGroup, true);
 			if (voxelGroup > 0) {
 				chunkMeshBuilding.addQueue(chunk, voxelGroup - 1, true);

@@ -3,6 +3,8 @@
 class Chunk;
 
 class MeshChunkVoxelGroup {
+private:
+	std::mutex mutexIsNeedGenMesh;
 public:
 	Chunk* chunk = nullptr;
 	glm::vec3 pos;
@@ -16,14 +18,25 @@ public:
 	void unlock() {
 		mutex.unlock();
 	}
+	void setNeedGenMesh(bool state = true) {
+		mutexIsNeedGenMesh.lock();
+		isNeedGenMesh = state;
+		mutexIsNeedGenMesh.unlock();
+	}
+	bool checkIsNeedGenMesh() {
+		mutexIsNeedGenMesh.lock();
+		bool b = isNeedGenMesh;
+		mutexIsNeedGenMesh.unlock();
+		return b;
+	}
 	void clear() {
 		isActive = false;
 		isNeedGenMesh = true;
 		isComplete = false;
-
 		fluid.clearOnGPU();
 		solid.clearOnGPU();
 	}
+
 	MeshChunk fluid;
 	MeshChunk solid;
 };

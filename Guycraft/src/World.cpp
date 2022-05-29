@@ -23,9 +23,7 @@ void World::init() {
 	auto* boxCollision = player->addComponent<BoxCollision>();
 }
 void World::tick() {
-	lighting.sunLevel = floor(((sin(tickLastTime) + 1) / 2) * 16);
-	printf("sun level %d\n",lighting.sunLevel);
-
+	//lighting.sunLevel = floor(((sin(tickLastTime) + 1) / 2) * 16);
 	for (auto gameObject : m_gameObjects) {
 		auto comps = gameObject->getAllComponents();
 		for (auto c : comps) {

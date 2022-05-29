@@ -26,12 +26,15 @@ void Chunk::render(Shader* shaders[2]) {
     auto sdFluid = shaders[1];
     glm::vec3 position = { pos.x, 0.f, pos.y };
     glm::mat4 model = glm::mat4(1.f);
-    int meshActiveCount = 0;
+    std::vector<MeshChunkVoxelGroup*> meshUnActive;
     for (auto& elem : m_meshsActive.m_map) {
-        meshActiveCount++;
         auto m = elem.second;
         m->lock();
-
+        if (m->isActive == false) {
+            meshUnActive.push_back(m);
+            m->unlock();
+            continue;
+        }
         model = glm::mat4(1.f);
         // Mesh must be on gpu to draw
         model = glm::translate(model, m->pos);
@@ -45,11 +48,14 @@ void Chunk::render(Shader* shaders[2]) {
         sdFluid->SetMat4("model", model);
         m->fluid.draw();
         sdFluid->UnBind();
-
-
         m->unlock();
     }
-
+    for (auto m : meshUnActive) {
+        auto voxelGroup = m->pos.y / CHUNK_SIZE;
+        if (m_meshsActive.has(voxelGroup)) {
+            m_meshsActive.m_map.erase(voxelGroup);
+        }
+    }
 }
 void Chunk::unload() {
     isLoad = false;
@@ -57,6 +63,7 @@ void Chunk::unload() {
     for (auto& mesh : meshs) {
         mesh.lock();
         mesh.clear();
+        mesh.isComplete = false;
         mesh.isActive = false;
         mesh.unlock();
     }
@@ -193,7 +200,10 @@ Voxel Chunk::getvoxel(u8 group, u8 x, u8 y, u8 z) {
 };
 void Chunk::generateMesh(int voxelGroup) {
     auto mesh = &meshs[voxelGroup];
+    //clear mesh before gen
     mesh->lock();
+    mesh->fluid.clearData();
+    mesh->solid.clearData();
     mesh->isNeedGenMesh = false;
     mesh->unlock();
     Voxel* voxel;
@@ -201,12 +211,16 @@ void Chunk::generateMesh(int voxelGroup) {
     auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
 
     for (u8 z = 0; z < CHUNK_SIZE; z++) {
+        mesh->lock();
         if (mesh->isNeedGenMesh) {
-            mesh->lock();
             mesh->isNeedGenMesh = false;
+            mesh->fluid.clearData();
+            mesh->solid.clearData();
             mesh->unlock();
             return;
         }
+        mesh->unlock();
+
 
         isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
         for (u8 y = 0; y < CHUNK_SIZE; y++) {
@@ -229,10 +243,13 @@ void Chunk::generateMesh(int voxelGroup) {
             }
         }
     }
-    if ((mesh->solid.vertexs.size() + mesh->fluid.vertexs.size()) != 0) {
+    mesh->lock();
+    bool isNeedTransferToGPU = mesh->fluid.vertexs.size() > 0 or mesh->solid.vertexs.size() > 0;
+    mesh->unlock();
+
+    if (isNeedTransferToGPU) {
         cMeshBuilding->m_queueComplete.pushLock(mesh);
     }
-    //end one task for gen mesh
 }
 void Chunk::genMeshWater(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel* voxel, bool useFuncGetVoxelOutChunk)
 {
@@ -291,7 +308,7 @@ unsigned char Chunk::GetVoxType(u8 groupVoxel,char x, char y, char z)
         y = CHUNK_SIZE_INDEX;
     }
     else if (y > CHUNK_SIZE_INDEX) {
-        if (groupVoxel == VOXELGROUP_COUNT - 1) return 0;
+        if (groupVoxel == CHUNK_SIZE_INDEX) return 0;
         groupVoxel++;
         y = 0;
     }
