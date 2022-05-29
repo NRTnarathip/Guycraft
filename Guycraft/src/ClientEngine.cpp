@@ -88,7 +88,7 @@ int ClientEngine::launch() {
     game->init();
 
     //graphic setting
-    graphicSetting.renderDistance = 8;
+    graphicSetting.renderDistance = 3;
 
 
     while (not glfwWindowShouldClose(glfwWindow))

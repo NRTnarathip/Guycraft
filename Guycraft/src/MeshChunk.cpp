@@ -21,21 +21,48 @@ MeshChunk::~MeshChunk() {
 
 	clearOnGPU();
 }
-void MeshChunk::clearData() {
-	vertexs.clear();
-	vertexs.shrink_to_fit();
-	triangles.clear();
-	triangles.shrink_to_fit();
+void MeshChunk::clearDataOnGenerate() {
+	triangles.lock();
+	triangles.m_vector.clear();
+	triangles.m_vector.shrink_to_fit();
+	triangles.unlock();
+
+	vertexs.lock();
+	vertexs.m_vector.clear();
+	vertexs.m_vector.shrink_to_fit();
+	vertexs.unlock();
+}
+void MeshChunk::clearDataComplete() {
+	m_trianglesComplete.clear();
+	m_trianglesComplete.shrink_to_fit();
+	m_vertexsComplete.clear();
+	m_vertexsComplete.shrink_to_fit();
 }
 void MeshChunk::clearOnGPU() {
-	//remove buffer object
+	//remove buffer object on gpu
+	{
+		triangles_t temptriangles;
+		// rewrite VBO
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, temptriangles.size() * sizeof(*temptriangles.data()),
+			temptriangles.data(), GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+	{
+		vertexs_t tempVertexs;
+		// rewrite EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			tempVertexs.size() * sizeof(*tempVertexs.data()),
+			tempVertexs.data(), GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+
+
 	MeshChunk::triangleGPU -= m_lastTriangleOnGPU;
 	m_lastTriangleOnGPU = 0;
 	// Remove cpu data
-	vertexs.clear();
-	vertexs.shrink_to_fit();
-	triangles.clear();
-	triangles.shrink_to_fit();
+	clearDataOnGenerate();
 }
 void MeshChunk::setupMesh() {
 	//gen buffer 3 type
@@ -61,7 +88,6 @@ void MeshChunk::setupMesh() {
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
 		(void*)offsetof(Vertex, lighting));
-
 	
 	//UnBine
 	glBindVertexArray(0);
@@ -69,30 +95,43 @@ void MeshChunk::setupMesh() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 void MeshChunk::transferToGPU() {
-	if (triangles.size() == 0) return;
+	if (m_vertexsComplete.size() == 0) return;
 
 	// Send VBO
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertexs.size() * sizeof(*vertexs.data()), vertexs.data(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, m_vertexsComplete.size() * sizeof(*m_vertexsComplete.data()), 
+		m_vertexsComplete.data(), GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// Remove cpu data
-	vertexs.clear();
-	vertexs.shrink_to_fit();
+	m_vertexsComplete.clear();
+	m_vertexsComplete.shrink_to_fit();
 
 	// Send EBO
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles.size() * sizeof(*triangles.data()), triangles.data(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+		m_trianglesComplete.size() * sizeof(*m_trianglesComplete.data()), 
+		m_trianglesComplete.data(), GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// Remove cpu data
 	MeshChunk::triangleGPU -= m_lastTriangleOnGPU;
-	m_lastTriangleOnGPU = triangles.size();
+	m_lastTriangleOnGPU = m_trianglesComplete.size();
 	MeshChunk::triangleGPU += m_lastTriangleOnGPU;
 
-	triangles.clear();
-	triangles.shrink_to_fit();
+	m_trianglesComplete.clear();
+	m_trianglesComplete.shrink_to_fit();
 
+}
+void MeshChunk::makeCopyDataJobToComplete()
+{
+	triangles.lock();
+	triangles.transferData(m_trianglesComplete);
+	triangles.unlock();
+
+	vertexs.lock();
+	vertexs.transferData(m_vertexsComplete);
+	vertexs.unlock();
 }
 void MeshChunk::draw() {
 	// Mesh must be on gpu to draw

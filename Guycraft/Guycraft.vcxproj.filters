@@ -377,5 +377,11 @@
     <ClInclude Include="src\Game.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\IMutex.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SmartVector.h">
+      <Filter>src\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

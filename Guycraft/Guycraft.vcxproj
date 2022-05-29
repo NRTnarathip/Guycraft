@@ -90,6 +90,7 @@
     <ClInclude Include="src\GUI.h" />
     <ClInclude Include="src\Biome.h" />
     <ClInclude Include="src\Image.h" />
+    <ClInclude Include="src\IMutex.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\JobGenerateMesh.h" />
     <ClInclude Include="src\MeshBlockHighlight.h" />
@@ -114,6 +115,7 @@
     <ClInclude Include="src\SmartMutex.h" />
     <ClInclude Include="src\SmartQueue.h" />
     <ClInclude Include="src\SmartUnorderMap.h" />
+    <ClInclude Include="src\SmartVector.h" />
     <ClInclude Include="src\Sprite.h" />
     <ClInclude Include="src\SpriteRenderer.h" />
     <ClInclude Include="src\TerrainGen.h" />

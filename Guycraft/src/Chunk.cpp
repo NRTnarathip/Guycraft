@@ -201,9 +201,10 @@ Voxel Chunk::getvoxel(u8 group, u8 x, u8 y, u8 z) {
 void Chunk::generateMesh(int voxelGroup) {
     auto mesh = &meshs[voxelGroup];
     //clear mesh before gen
+    mesh->fluid.clearDataOnGenerate();
+    mesh->solid.clearDataOnGenerate();
     mesh->lock();
-    mesh->fluid.clearData();
-    mesh->solid.clearData();
+   
     mesh->isNeedGenMesh = false;
     mesh->unlock();
     Voxel* voxel;
@@ -214,9 +215,9 @@ void Chunk::generateMesh(int voxelGroup) {
         mesh->lock();
         if (mesh->isNeedGenMesh) {
             mesh->isNeedGenMesh = false;
-            mesh->fluid.clearData();
-            mesh->solid.clearData();
             mesh->unlock();
+            mesh->fluid.clearDataOnGenerate();
+            mesh->solid.clearDataOnGenerate();
             return;
         }
         mesh->unlock();
@@ -239,14 +240,12 @@ void Chunk::generateMesh(int voxelGroup) {
                 else {
                     genMeshCube(&mesh->solid, voxelGroup, x, y, z, voxel, useFuncGetVoxelOutChunk);
                 }
+
                 mutexNeighbor.unlock();
             }
         }
     }
-    mesh->lock();
-    bool isNeedTransferToGPU = mesh->fluid.vertexs.size() > 0 or mesh->solid.vertexs.size() > 0;
-    mesh->unlock();
-
+    bool isNeedTransferToGPU = mesh->fluid.vertexs.saftSize() > 0 or mesh->solid.vertexs.saftSize() > 0;
     if (isNeedTransferToGPU) {
         cMeshBuilding->m_queueComplete.pushLock(mesh);
     }
@@ -466,7 +465,7 @@ void Chunk::MakeQuadFace(MeshChunk* mesh, unsigned char directFace,
     GetAO(aos, directFace, voxSurr);
     GetVertLightMaping(lightFace, directFace, lightSurr);
     for (u8 i = 0; i < 4; i++) {
-        auto& vert = mesh->vertexs[vertCount - (4 - i)];
+        auto& vert = mesh->vertexs.m_vector[vertCount - (4 - i)];
         vert.setVertexIndex(i);
         vert.SetAO(aos[i]);
         vert.lighting = lightFace[i] & 255;
@@ -551,12 +550,14 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         vert.SetPos(x, y, zz);
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh,  2, voxSurr, lightSurr);
+
     }
     if (not voxelSouthIsSolid(groupVoxel, x, y, z - 1))
     {
         vert.SetUVTile(uvTiles[3]);
         vert.SetNormal(3);
         vert.SetPos(x, y, z);
+
         mesh->vertexs.push_back(vert);
 
         vert.SetPos(x, yy, z);
@@ -568,6 +569,7 @@ void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, V
         vert.SetPos(xx, y, z);
         mesh->vertexs.push_back(vert);
         MakeQuadFace(mesh, 3, voxSurr, lightSurr);
+
     }
     if (not voxelEastIsSolid(groupVoxel, xx, y, z))
     {

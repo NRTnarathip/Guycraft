@@ -68,16 +68,18 @@ void ChunkMeshBuilding::updateMainThread()
 		auto mesh = m_queueComplete.getFront();
 		m_queueComplete.unlock();
 
-		mesh->lock();
 		if (mesh->chunk->isLoad == false) {
-			mesh->unlock();
 			continue;
 		}
-		mesh->fluid.transferToGPU();
-		mesh->solid.transferToGPU();
+
 		mesh->isComplete = true;
 		mesh->isActive = true;
-		mesh->unlock();
+
+		mesh->fluid.makeCopyDataJobToComplete();
+		mesh->fluid.transferToGPU();
+		mesh->solid.makeCopyDataJobToComplete();
+		mesh->solid.transferToGPU();
+
 		auto chunk = mesh->chunk;
 		int voxelGroup = mesh->pos.y / CHUNK_SIZE;
 		if (not chunk->m_meshsActive.has(voxelGroup)) {

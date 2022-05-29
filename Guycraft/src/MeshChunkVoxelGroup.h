@@ -9,7 +9,11 @@ public:
 	Chunk* chunk = nullptr;
 	glm::vec3 pos;
 	std::mutex mutex;
+
+	//is not saft thread
 	bool isNeedGenMesh = false;
+	
+
 	bool isComplete = false;
 	bool isActive = false;
 	void lock() {

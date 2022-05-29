@@ -3,11 +3,11 @@
 #include <vector>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <mutex>
 #include "Types.h"
-class MeshChunk {
+#include <SmartVector.h>
+
+class MeshChunk : public IMutex {
 public:
-	// Vertex layout
 	class Vertex
 	{
 	public:
@@ -28,6 +28,10 @@ public:
 			lighting = lighting | (val << 8);
 		}
 	};
+
+	typedef std::vector<Vertex> vertexs_t;
+	typedef std::vector<uint32_t> triangles_t;
+
 	MeshChunk();
 	~MeshChunk();
 	static int triangleGPU;
@@ -35,14 +39,22 @@ public:
 	GLuint vbo;
 	GLuint vao;
 	GLuint ebo;
-	std::vector<Vertex> vertexs;
-	std::vector<GLuint> triangles;
+	//on generate mesh. none saft thread
+	SmartVector<Vertex> vertexs;
+	SmartVector<uint32_t> triangles;
+	//after generate mesh end. saft thread
+	std::vector<Vertex> m_vertexsComplete;
+	std::vector<uint32_t> m_trianglesComplete;
+
 	void setupMesh();
 	void transferToGPU();
+	void makeCopyDataJobToComplete();
 	void draw();
+
 	void clearOnGPU();
-	//just clear all vertex, triangle;
-	void clearData();
+	//is safty thread
+	void clearDataOnGenerate();
+	void clearDataComplete();
 	unsigned int m_lastTriangleOnGPU= 0;
 private:
 };
