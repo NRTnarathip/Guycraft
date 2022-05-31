@@ -58,7 +58,7 @@ VoxelHit VoxelRaycast::raycast(glm::vec3 rayStart, glm::vec3 direction, float di
 	int loop = 0;
 	while (currentVoxelPos != endVoxelPos) {
 		if (loop > 30) {
-			printf("errro voxel traversal\n");
+			//printf("errro voxel traversal\n");
 			break;
 		}
 		loop++;
@@ -86,19 +86,19 @@ VoxelHit VoxelRaycast::raycast(glm::vec3 rayStart, glm::vec3 direction, float di
 		auto chunk = cManager->getChunk({ chunkPos.x, chunkPos.z });
 		if (chunk == nullptr) break;
 
-		glm::vec3 voxPos = voxelPosTravel - chunkPos;
-		int voxelGroup = chunkPos.y / CHUNK_SIZE;
-		u32 access = (int)voxPos.x + ((int)voxPos.y << 4) + ((int)voxPos.z << 8)
-			+ (voxelGroup << 12);
-		auto voxel = chunk->voxels[access];
+		glm::vec3 blockPos = voxelPosTravel - chunkPos;
+		int chunkIndex = chunkPos.y / CHUNK_SIZE;
+		uint16_t access = (int)blockPos.x + ((int)blockPos.y << 4) + ((int)blockPos.z << 8);
+		auto chunkSection = chunk->m_chunks[chunkIndex];
+		auto block = chunkSection->m_blocks[access];
 		//hit block not air
-		if (voxel.type > 0) {
+		if (block.type > 0) {
 			hit.isHit = true;
-			hit.voxel = voxel;
-			hit.chunk = chunk;
+			hit.block = block;
+			hit.chunkSection = chunkSection;
 			hit.worldPos = voxelPosTravel;
-			hit.voxelGroup = voxelGroup;
-			hit.pos = voxPos;
+			hit.chunkIndex = chunkIndex;
+			hit.blockPos = blockPos;
 			hit.access = access;
 			break;
 		}

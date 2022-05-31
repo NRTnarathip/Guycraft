@@ -3,7 +3,6 @@
 #include <GenerateMap/GenerateMap.h>
 #include "Biomes/Plant.h"
 #include "Biomes/Biomes.h"
-#include <FastNoise/FastNoise.h>
 
 TerrainGen::TerrainGen()
 {
@@ -16,15 +15,13 @@ TerrainGen::TerrainGen()
     m_biomes.push_back(boPlant);
 }
 
-void TerrainGen::populate(JobPopulate* job) {
-    float heightMap[CHUNK_SIZE_SQUARED] = {};
-    float moisetureMap[CHUNK_SIZE_SQUARED] = {};
-    float heatMap[CHUNK_SIZE_SQUARED] = {};
+void TerrainGen::populate(JobPopulateChunk* job) {
+    float heightMap[CHUNK_SIZE_SQUARED];
+    float moisetureMap[CHUNK_SIZE_SQUARED];
+    float heatMap[CHUNK_SIZE_SQUARED];
 
     float chunkSize = CHUNK_SIZE;
     float scale = .08f;
-    auto noise = FastNoise::New<FastNoise::Perlin>();
-
     auto pos = job->pos;
     //gen all noise map
     for (int k = 0; k < CHUNK_SIZE; k++) {
@@ -36,8 +33,7 @@ void TerrainGen::populate(JobPopulate* job) {
             float nx = (x / chunkSize) * scale;
 
             //gen height map
-            float n = genOctave(nx, nz, 3);
-            heightMap[accMap] = n;
+            heightMap[accMap] = genOctave(nx, nz, 3);;
 
             //gen moiseture map
             moisetureMap[accMap] = genOctave(nx + 0.05f, nz + 0.025f, 3);
@@ -51,14 +47,14 @@ void TerrainGen::populate(JobPopulate* job) {
 
             for (int worldY = 0; worldY < CHUNK_HEIGHT_MAX; worldY++) {
                 int y = worldY % CHUNK_SIZE;
-                int voxelGroup = worldY / CHUNK_SIZE;
-                job->voxels[x+(y<<4)+(z<<8)+(voxelGroup<<12)]=GetVoxelTerrain(noiseData, worldY);
+                int chunkIndex = worldY / CHUNK_SIZE;
+                job->blocks[x+(y<<4)+(z<<8)+(chunkIndex<<12)]=GetVoxelTerrain(noiseData, worldY);
             }
         }
     }
 }
-Voxel TerrainGen::GetVoxelTerrain(float noiseData[3], int y) {
-    Voxel voxel = { 0, 0};
+Block TerrainGen::GetVoxelTerrain(float noiseData[3], int y) {
+    Block voxel = { 0, 0};
     int height = floor(noiseData[0] * CHUNK_HEIGHT_MAX);
     if (y == height) {
         //dirt
@@ -77,8 +73,6 @@ Voxel TerrainGen::GetVoxelTerrain(float noiseData[3], int y) {
 
 float TerrainGen::genOctave(float nx, float nz, int octave)
 {
-    auto noise = FastNoise::New<FastNoise::Perlin>();
-
     float n = 0.f;
     int scale = 1;
     float sumScale = 0.f;

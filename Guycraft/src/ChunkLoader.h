@@ -2,6 +2,7 @@
 #include "ChunkContainer.h"
 #include "SmartQueue.h"
 #include "SmartUnorderMap.h"
+#include <JobPopulateChunk.h>
 
 class ChunkLoader {
 public:
@@ -18,7 +19,7 @@ public:
 
 	SmartUnorderMap<glm::ivec2, bool> m_allocateChunk;
 	SmartQueue<glm::ivec2> m_queueJobPopulate;
-	SmartQueue<JobPopulate*> m_queueJobPopulateComplete;
+	SmartQueue<JobPopulateChunk*> m_queueJobPopulateComplete;
 	glm::ivec2 lastPosChunk;
 	std::thread m_threadPopulate;
 

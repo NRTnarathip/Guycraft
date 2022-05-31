@@ -16,7 +16,7 @@ Shader* ResourceManager::addShader(std::string pathVertexAndFragment, std::strin
 }
 
 Texture* ResourceManager::addTexture(const char* pathFile, bool isMipmapping) {
-    auto texture = new Texture(pathFile, isMipmapping, GL_REPEAT, GL_NEAREST);
+    auto texture = new Texture(pathFile);
     m_textures.emplace(pathFile, texture);
     return texture;
 }

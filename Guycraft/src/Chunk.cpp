@@ -5,20 +5,38 @@
 #include "BlockSystem/BlockDatabase.h"
 #include <algorithm>
 #include <iostream>
+void Chunk::init() {
+    for (int i = 0; i < CHUNK_SIZE; i++) {
+        auto chunkSection = new ChunkSection();
+        auto mesh = new MeshChunkSection();
 
-#define ACCESSVOXEL voxels[x + (y << 4) + (z << 8) + (group << 12)]
-#define IMP_RETURN_VOXELISSOLID u8 type = ACCESSVOXEL.type; return type !=0 and type != 4;
+        mesh->m_chunk = chunkSection;
+        mesh->m_index = i;
 
+        chunkSection->m_mesh = mesh;
+        chunkSection->m_index = i;
+        chunkSection->chunk = this;
+
+        m_chunks[i] = chunkSection;
+    }
+}
 std::vector<Chunk*> Chunk::getAllChunkNeighbor()
 {
     return  { north,south, east,west,northEast, northWest, southEast,southWest };
 }
-void Chunk::changeVoxels(Voxel voxelsReplace[CHUNK_BLOCK_ALL]) {
-    for (int i = 0; i < CHUNK_BLOCK_ALL; i++) {
-        voxels[i] = voxelsReplace[i];
-    }
-    for (int i = 0; i < VOXELGROUP_COUNT; i++) {
-        voxelGroupEmpty[i] = isEmpty(i);
+void Chunk::changeBlocks(Block blocksReplace[CHUNK_BLOCK_ALL]) {
+    for (int chunkIndex = 0; chunkIndex < CHUNK_SIZE; chunkIndex++) {
+        auto cs = m_chunks[chunkIndex];
+        for(int z = 0; z< CHUNK_SIZE;z++)
+            for (int y = 0; y < CHUNK_SIZE; y++)
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    int acc = (z << 8) + (y << 4) + x;
+                    auto block = blocksReplace[acc + (chunkIndex << 12)];
+                    cs->m_blocks[acc] = block;
+                    if (block.type != 0) {
+                        cs->m_isBlocksEmpty = false;
+                    }
+                }
     }
 }
 void Chunk::render(Shader* shaders[2]) {
@@ -26,18 +44,19 @@ void Chunk::render(Shader* shaders[2]) {
     auto sdFluid = shaders[1];
     glm::vec3 position = { pos.x, 0.f, pos.y };
     glm::mat4 model = glm::mat4(1.f);
-    std::vector<MeshChunkVoxelGroup*> meshUnActive;
-    for (auto& elem : m_meshsActive.m_map) {
-        auto m = elem.second;
-        m->lock();
-        if (m->isActive == false) {
-            meshUnActive.push_back(m);
-            m->unlock();
-            continue;
+    std::vector<MeshChunkSection*> meshsActive;
+    for (auto chunkSection : m_chunks) {
+        auto mesh = chunkSection->m_mesh;
+        if (mesh->isActive) {
+            meshsActive.push_back(mesh);
         }
+    }
+    for (auto m : meshsActive) {
+        auto chunkSection = m->m_chunk;
+        glm::vec3 chunkSectionPos = chunkSection->pos;
+
         model = glm::mat4(1.f);
-        // Mesh must be on gpu to draw
-        model = glm::translate(model, m->pos);
+        model = glm::translate(model, chunkSectionPos);
         //render mesh solid
         sdSolid->Bind();
         sdSolid->SetMat4("model", model);
@@ -48,78 +67,60 @@ void Chunk::render(Shader* shaders[2]) {
         sdFluid->SetMat4("model", model);
         m->fluid.draw();
         sdFluid->UnBind();
-        m->unlock();
-    }
-    for (auto m : meshUnActive) {
-        auto voxelGroup = m->pos.y / CHUNK_SIZE;
-        if (m_meshsActive.has(voxelGroup)) {
-            m_meshsActive.m_map.erase(voxelGroup);
-        }
     }
 }
 void Chunk::unload() {
     isLoad = false;
     m_meshsActive.m_map.clear();
-    for (auto& mesh : meshs) {
-        mesh.lock();
-        mesh.clear();
-        mesh.isComplete = false;
-        mesh.isActive = false;
-        mesh.unlock();
+    for (auto cs : m_chunks) {
+        cs->unLoad();
     }
 
     mutexNeighbor.lock();
     if (northEast != nullptr) {
-        northEast->m_allocateChunkNeighbor--;
         northEast->southWest = nullptr;
         northEast = nullptr;
     }
     if (northWest != nullptr) {
-        northWest->m_allocateChunkNeighbor--;
         northWest->southEast = nullptr;
         northWest = nullptr;
     }
     if (southEast != nullptr) {
-        southEast->m_allocateChunkNeighbor--;
         southEast->northWest = nullptr;
         southEast = nullptr;
     }
     if (southWest != nullptr) {
-        southWest->m_allocateChunkNeighbor--;
         southWest->northEast = nullptr;
         southWest = nullptr;
     }
     if (north != nullptr) {
-        north->m_allocateChunkNeighbor--;
         north->south = nullptr;
         north = nullptr;
     }
     if (south != nullptr) {
-        south->m_allocateChunkNeighbor--;
         south->north = nullptr;
         south = nullptr;
     }
     if (east != nullptr) {
-        east->m_allocateChunkNeighbor--;
         east->west = nullptr;
         east = nullptr;
     }
     if (west != nullptr) {
-        west->m_allocateChunkNeighbor--;
         west->east = nullptr;
         west = nullptr;
     }
     mutexNeighbor.unlock();
-  
 }
-void Chunk::onload() { 
+void Chunk::newSetupViaChunkPooling(glm::ivec2 newPos)
+{
+    pos = newPos;
+    for (int i = 0; i < CHUNK_SIZE; i++) {
+        m_chunks[i]->pos = { newPos.x, i << 4, newPos.y };
+    }
+}
+void Chunk::onload() {
     isLoad = true;
     isShouldUnload = false;
-    for (int i = 0; i < VOXELGROUP_COUNT; i++) {
-        auto mesh = &meshs[i];
-        mesh->pos = { pos.x, i << 4, pos.y };
-        mesh->chunk = this;
-    }
 };
 int Chunk::getHasChunkNeighborCount() {
     int count = 0;
@@ -172,486 +173,39 @@ void Chunk::linkChunkNeighbor(Chunk* chunks[8]) {
         cWest->east = this;
     }
 }
-u16 Chunk::getBlockCount() {
-    u16 i = 0;
-    for (auto voxel : voxels) if (voxel.type != 0) i++;
-    return i;
-}
-bool Chunk::isEmpty(int voxelGroup) {
-    for (int z = 0; z < CHUNK_SIZE; z++)
-        for (int y = 0; y < CHUNK_SIZE; y++)
-            for (int x = 0; x < CHUNK_SIZE; x++)
-                if (voxels[x + (y << 4) + (z << 8) + (voxelGroup << 12)].type != 0)
-                    return false;
-    return true;
-}
-Voxel Chunk::getvoxel(u8 group, u8 x, u8 y, u8 z) {
-    if (y > CHUNK_SIZE_INDEX) {
-        if (group == VOXELGROUP_INDEX) return { 0,0 };
-        y = 0;
-        group++;
+Block* Chunk::getBlock(glm::ivec3 pos) {
+    int x = pos.x;
+    int y = pos.y;
+    int z = pos.z;
+
+    if (y > CHUNK_HEIGHT_INDEX or y < 0) { 
+        return nullptr;
     }
-    else if (y < 0) {
-        if (group == 0) return { 0, 0 };
-        y = CHUNK_SIZE;
-        group--;
-    }
-    return ACCESSVOXEL;
-};
-void Chunk::generateMesh(int voxelGroup) {
-    auto mesh = &meshs[voxelGroup];
-    //clear mesh before gen
-    mesh->fluid.clearDataOnGenerate();
-    mesh->solid.clearDataOnGenerate();
-    mesh->lock();
-   
-    mesh->isNeedGenMesh = false;
-    mesh->unlock();
-    Voxel* voxel;
-    bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
-    auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
-
-    for (u8 z = 0; z < CHUNK_SIZE; z++) {
-        mesh->lock();
-        if (mesh->isNeedGenMesh) {
-            mesh->isNeedGenMesh = false;
-            mesh->unlock();
-            mesh->fluid.clearDataOnGenerate();
-            mesh->solid.clearDataOnGenerate();
-            return;
-        }
-        mesh->unlock();
-
-
-        isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
-        for (u8 y = 0; y < CHUNK_SIZE; y++) {
-            isVoxelOnEdgeY = (y == 0 or y == CHUNK_SIZE_INDEX);
-            for (u8 x = 0; x < CHUNK_SIZE; x++) {
-                voxel = &voxels[x + (y << 4) + (z << 8) + (voxelGroup << 12)];
-                if (voxel->type == 0) continue; //dont gen block air
-
-                bool useFuncGetVoxelOutChunk = x == 0 or x == CHUNK_SIZE_INDEX
-                    or isVoxelOnEdgeY or isVoxelOnEdgeZ;
-
-                mutexNeighbor.lock();
-                if (voxel->type == 4) {
-                    genMeshWater(&mesh->fluid, voxelGroup, x, y, z, voxel, useFuncGetVoxelOutChunk);
-                }
-                else {
-                    genMeshCube(&mesh->solid, voxelGroup, x, y, z, voxel, useFuncGetVoxelOutChunk);
-                }
-
-                mutexNeighbor.unlock();
-            }
-        }
-    }
-    bool isNeedTransferToGPU = mesh->fluid.vertexs.saftSize() > 0 or mesh->solid.vertexs.saftSize() > 0;
-    if (isNeedTransferToGPU) {
-        cMeshBuilding->m_queueComplete.pushLock(mesh);
-    }
-}
-void Chunk::genMeshWater(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel* voxel, bool useFuncGetVoxelOutChunk)
-{
-    MeshChunk::Vertex vert;
-    vert.SetUVTile(4);//water
-    u8 voxSurr[27];
-    u8 lightSurr[27];
-    getLightSurround(lightSurr, x, y, z, groupVoxel, useFuncGetVoxelOutChunk);
-    GetVoxSurround(voxSurr, groupVoxel, x, y, z, useFuncGetVoxelOutChunk);
-    i8 xx = x + 1;
-    i8 yy = y + 1;
-    i8 zz = z + 1;
-    float waterLevel = 15;
-    float vertexY = y + (waterLevel / 16);
-    //gen mesh water top away
-    if (getvoxel(groupVoxel,x,yy,z).type == 0) {
-        vert.SetNormal(0);
-        vert.SetPos(x, vertexY, z);
-        mesh->vertexs.push_back(vert);//0
-        vert.SetPos(x, vertexY, zz);
-        mesh->vertexs.push_back(vert);//1
-        vert.SetPos(xx, vertexY, zz);
-        mesh->vertexs.push_back(vert);//2
-        vert.SetPos(xx, vertexY, z);
-        mesh->vertexs.push_back(vert);//3
-        MakeQuadFace(mesh,  0, voxSurr, lightSurr);
-    }
-}
-uint8_t Chunk::getSunLight(uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup) {
-
-    return m_light[x + (y<<4) + (z << 8) + (voxelGroup << 12)] & 15;
-}
-void Chunk::setSunLight(uint8_t level, uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup)
-{
-    int acc = x + (y << 4) + (z << 8) + (voxelGroup << 12);
-    m_light[acc] = m_light[acc] | level;
-}
-unsigned char Chunk::GetVoxType(u8 groupVoxel,char x, char y, char z)
-{
-    Chunk* cNow = this;
-    if (x < 0)
-    {
-        if (west == nullptr) return 0;
-        cNow = west;
+    auto chunkCurrent = this;
+    if (x < 0) {
+        if (west == nullptr) return nullptr;
+        chunkCurrent = west;
         x = CHUNK_SIZE_INDEX;
     }
-    else if (x > CHUNK_SIZE_INDEX)
-    {
-        if (east == nullptr) return 0;
-        cNow = east;
+    else if (x > CHUNK_SIZE_INDEX) {
+        if (east == nullptr) return nullptr;
+        chunkCurrent = east;
         x = 0;
     }
-    if (y < 0) {
-        if (groupVoxel == 0) return 0;
-        groupVoxel--;
-        y = CHUNK_SIZE_INDEX;
-    }
-    else if (y > CHUNK_SIZE_INDEX) {
-        if (groupVoxel == CHUNK_SIZE_INDEX) return 0;
-        groupVoxel++;
-        y = 0;
-    }
-    if (z < 0)
-    {
-        if (cNow->south == nullptr) return 0;
-        cNow = cNow->south;
+
+    if (z < 0) {
+        if (chunkCurrent->south == nullptr) return nullptr;
+        chunkCurrent = chunkCurrent->south;
         z = CHUNK_SIZE_INDEX;
     }
-    else if (z > CHUNK_SIZE_INDEX)
-    {
-        if (cNow->north == nullptr) return 0;
-        cNow = cNow->north;
+    else if (z > CHUNK_SIZE_INDEX) {
+        if (chunkCurrent->north == nullptr) return nullptr;
+        chunkCurrent = chunkCurrent->north;
         z = 0;
     }
-
-    return cNow->voxels[x + (y << 4) + (z << 8) + (groupVoxel << 12)].type;
+    return &chunkCurrent->m_chunks[y / CHUNK_SIZE]->m_blocks[(z<<8) + ((y%CHUNK_SIZE)<<4) + x];
 }
-void Chunk::GetVoxSurround(unsigned char (&args)[27],u8 groupVoxel, u8 x, u8 y, u8 z,bool useFuncGetVoxOutChunk)
-{
-    u8 index = 0;
-    //optimize
-    //use function check next voxel of this chunk
-    if (useFuncGetVoxOutChunk) {
-        for (int j = y - 1; j <= y + 1; j++)
-            for (int k = z - 1; k <= z + 1; k++)
-                for (int i = x - 1; i <= x + 1; i++)
-                    args[index++] = GetVoxType(groupVoxel, i,j,k) == 0 ? 0 : 1;
-        return;
-    }
-    //get voxel in chunk
-    for (u8 j = y - 1; j <= y + 1; j++)
-        for (u8 k = z - 1; k <= z + 1; k++)
-            for (u8 i = x - 1; i <= x + 1; i++)
-                args[index++] = voxels[i + (j << 4) + (k << 8) + (groupVoxel * CHUNK_SIZE_BLOCK)].type == 0?  0 : 1;
-}
-void Chunk::GetAO(unsigned char (&refAO)[4], unsigned char dir, unsigned char (&voxSurr)[27]) {
-    if (dir == 0)//Face up
-    {
-        refAO[0] = CalculateAO(voxSurr[19], voxSurr[21], voxSurr[18]);
-        refAO[1] = CalculateAO(voxSurr[21], voxSurr[25], voxSurr[24]);
-        refAO[2] = CalculateAO(voxSurr[25], voxSurr[23], voxSurr[26]);
-        refAO[3] = CalculateAO(voxSurr[23], voxSurr[19], voxSurr[20]);
-        return;
-    }
-    else if (dir == 1)//down
-    {
-        refAO[0] = CalculateAO(voxSurr[7], voxSurr[3], voxSurr[6]);
-        refAO[1] = CalculateAO(voxSurr[3], voxSurr[1], voxSurr[0]);
-        refAO[2] = CalculateAO(voxSurr[1], voxSurr[5], voxSurr[2]);
-        refAO[3] = CalculateAO(voxSurr[5], voxSurr[7], voxSurr[8]);
-        return;
-    }
-    else if (dir == 2)//north
-    {
-        refAO[0] = CalculateAO(voxSurr[7], voxSurr[17], voxSurr[8]);
-        refAO[1] = CalculateAO(voxSurr[17], voxSurr[25], voxSurr[26]);
-        refAO[2] = CalculateAO(voxSurr[25], voxSurr[15], voxSurr[24]);
-        refAO[3] = CalculateAO(voxSurr[15], voxSurr[7], voxSurr[6]);
-        return;
-    }
-    else if (dir == 3)//south
-    {
-        refAO[0] = CalculateAO(voxSurr[1], voxSurr[9], voxSurr[0]);
-        refAO[1] = CalculateAO(voxSurr[9], voxSurr[19], voxSurr[18]);
-        refAO[2] = CalculateAO(voxSurr[19], voxSurr[11], voxSurr[20]);
-        refAO[3] = CalculateAO(voxSurr[11], voxSurr[1], voxSurr[2]);
-        return;
-    }
-    else if (dir == 4)//east
-    {
-        refAO[0] = CalculateAO(voxSurr[5], voxSurr[11], voxSurr[2]);
-        refAO[1] = CalculateAO(voxSurr[11], voxSurr[23], voxSurr[20]);
-        refAO[2] = CalculateAO(voxSurr[23], voxSurr[17], voxSurr[26]);
-        refAO[3] = CalculateAO(voxSurr[17], voxSurr[5], voxSurr[8]);
-        return;
-    }
-    //west
-    refAO[0] = CalculateAO(voxSurr[3], voxSurr[15], voxSurr[6]);
-    refAO[1] = CalculateAO(voxSurr[15], voxSurr[21], voxSurr[24]);
-    refAO[2] = CalculateAO(voxSurr[21], voxSurr[9], voxSurr[18]);
-    refAO[3] = CalculateAO(voxSurr[9], voxSurr[3], voxSurr[0]);
-    return;
-}
-unsigned char Chunk::CalculateAO(unsigned char side1, unsigned char side2, unsigned char corner) {
-    if (side1 == 1 && side2 == 1)
-    {
-        return 3;
-    }
-    return (unsigned char)(side1 + side2 + corner);
-}
-void Chunk::GetVertLightMaping(unsigned char(&ref)[4], unsigned char dir, unsigned char (&lightSurr)[27]) {
-    if (dir == 0) {//up
-        ref[0] = lightSurr[22];
-        ref[1] = lightSurr[22];
-        ref[2] = lightSurr[22];
-        ref[3] = lightSurr[22];
-        return;
-
-    }
-    else if (dir == 1) {//down
-        ref[0] = lightSurr[4];
-        ref[1] = lightSurr[4];
-        ref[2] = lightSurr[4];
-        ref[3] = lightSurr[4];
-        return;
-
-    }
-    else if (dir == 2) {//north
-        ref[0] = lightSurr[16];
-        ref[1] = lightSurr[16];
-        ref[2] = lightSurr[16];
-        ref[3] = lightSurr[16];
-        return;
-
-    }
-    else if (dir == 3) {//south
-        ref[0] = lightSurr[10];
-        ref[1] = lightSurr[10];
-        ref[2] = lightSurr[10];
-        ref[3] = lightSurr[10];
-        return;
-
-    }
-    else if (dir == 4) {//east
-        ref[0] = lightSurr[14];
-        ref[1] = lightSurr[14];
-        ref[2] = lightSurr[14];
-        ref[3] = lightSurr[14];
-        return;
-    }
-    //west
-    ref[0] = lightSurr[12];
-    ref[1] = lightSurr[12];
-    ref[2] = lightSurr[12];
-    ref[3] = lightSurr[12];
-}
-void Chunk::MakeQuadFace(MeshChunk* mesh, unsigned char directFace, 
-    unsigned char (&voxSurr)[27], unsigned char (&lightSurr)[27]) {
-    u32 vertCount = mesh->vertexs.size();
-    u32 vertCountMinus_1 = vertCount - 1;//index 3
-    u32 vertCountMinus_2 = vertCount - 2;//index 2
-    u32 vertCountMinus_3 = vertCount - 3;//index 1
-    u32 vertCountMinus_4 = vertCount - 4;//index 0
-    mesh->triangles.push_back(vertCountMinus_4);//0
-    mesh->triangles.push_back(vertCountMinus_3);//1
-    mesh->triangles.push_back(vertCountMinus_1);//3
-
-    mesh->triangles.push_back(vertCountMinus_2);//2
-    mesh->triangles.push_back(vertCountMinus_1);//3
-    mesh->triangles.push_back(vertCountMinus_3);//1
-
-    u8 aos[4];
-    u8 lightFace[4];
-    GetAO(aos, directFace, voxSurr);
-    GetVertLightMaping(lightFace, directFace, lightSurr);
-    for (u8 i = 0; i < 4; i++) {
-        auto& vert = mesh->vertexs.m_vector[vertCount - (4 - i)];
-        vert.setVertexIndex(i);
-        vert.SetAO(aos[i]);
-        vert.lighting = lightFace[i] & 255;
-    }
-}
-void Chunk::getLightSurround(uint8_t (&lights)[27], uint8_t x, uint8_t y, uint8_t z, 
-    uint8_t voxelGroup,bool useFuncAccessOutChunk)
-{
-    int posChunkY = voxelGroup << 12;
-    uint8_t index = 0;
-    for (int8_t j = y - 1; j <= y + 1; j++)
-        for (int8_t k = z - 1; k <= z + 1; k++)
-            for (int8_t i = x - 1; i <= x + 1; i++) {
-                lights[index++] = 15;
-            }
-
-}
-void Chunk::genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel* vox, bool useFuncGetVoxOutChunk) {
-    char xx = x + 1;
-    char yy = y + 1;
-    char zz = z + 1;
-    unsigned char voxSurr[27];
-    uint8_t lightSurr[27];//lighting surround
-    MeshChunk::Vertex vert;
-    getLightSurround(lightSurr, x, y, z, groupVoxel, useFuncGetVoxOutChunk);
-    GetVoxSurround(voxSurr, groupVoxel, x, y, z, useFuncGetVoxOutChunk);
-    auto blockDB = BlockDatabase::GetInstance();
-    auto model = blockDB->m_models[vox->type];
-    using FaceDir = BlockModel::FaceDirection;
-    uint16_t uvTiles[6];
-    for (auto elem : model->m_textures) {
-        if (elem.dir == FaceDir::All) {
-            std::fill(std::begin(uvTiles),std::end(uvTiles), 
-                blockDB->m_texturesTileIndex[elem.texture]);
-        }
-    }
-
-    if (not voxelUpIsSolid(groupVoxel, x, yy, z))
-    {
-        vert.SetUVTile(uvTiles[0]);
-        vert.SetNormal(0);
-        vert.SetPos(x, yy, z);
-        mesh->vertexs.push_back(vert);//0
-        vert.SetPos(x, yy, zz);
-        mesh->vertexs.push_back(vert);//1
-        vert.SetPos(xx, yy, zz);
-        mesh->vertexs.push_back(vert);//2
-        vert.SetPos(xx, yy, z);
-        mesh->vertexs.push_back(vert);//3
-        MakeQuadFace(mesh, 0, voxSurr, lightSurr);
-    }
-    if (not voxelDownIsSolid(groupVoxel, x,y - 1, z))
-    {
-        vert.SetUVTile(uvTiles[1]);
-        vert.SetNormal(1);
-        vert.SetPos(x, y, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(x, y, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, y, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, y, zz);
-        mesh->vertexs.push_back(vert);
-        MakeQuadFace(mesh,  1, voxSurr, lightSurr);
-    }
-    if (not voxelNorthIsSolid(groupVoxel, x, y, zz))
-    {
-        vert.SetUVTile(uvTiles[2]);
-        vert.SetNormal(2);
-        vert.SetPos(xx, y, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(x, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(x, y, zz);
-        mesh->vertexs.push_back(vert);
-        MakeQuadFace(mesh,  2, voxSurr, lightSurr);
-
-    }
-    if (not voxelSouthIsSolid(groupVoxel, x, y, z - 1))
-    {
-        vert.SetUVTile(uvTiles[3]);
-        vert.SetNormal(3);
-        vert.SetPos(x, y, z);
-
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(x, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, y, z);
-        mesh->vertexs.push_back(vert);
-        MakeQuadFace(mesh, 3, voxSurr, lightSurr);
-
-    }
-    if (not voxelEastIsSolid(groupVoxel, xx, y, z))
-    {
-        vert.SetUVTile(uvTiles[4]);
-        vert.SetNormal(4);
-        vert.SetPos(xx, y, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(xx, y, zz);
-        mesh->vertexs.push_back(vert);
-        MakeQuadFace(mesh,  4, voxSurr, lightSurr);
-    }
-    if (not voxelWestIsSolid(groupVoxel, x - 1, y, z))
-    {
-        vert.SetUVTile(uvTiles[5]);
-        vert.SetNormal(5);
-        vert.SetPos(x, y, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(x, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(x, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.SetPos(x, y, z);
-        mesh->vertexs.push_back(vert);
-        MakeQuadFace(mesh,  5, voxSurr, lightSurr);
-    }
-}
-
-bool Chunk::voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (y > CHUNK_SIZE_INDEX) {
-        if (group == VOXELGROUP_INDEX) return false;
-        u8 type = voxels[x + (z << 8) + ((group+1) << 12)].type;
-        return type != 0 and type != 4;
-    }
-    IMP_RETURN_VOXELISSOLID
-};
-bool Chunk::voxelDownIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (y < 0) {
-        if (group == 0) return false;
-        u8 type = voxels[x + (15 << 4) + (z << 8) + ((group - 1) << 12)].type;
-        return type != 0 and type != 4;
-    }
-    IMP_RETURN_VOXELISSOLID
-}
-bool Chunk::voxelNorthIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (z > CHUNK_SIZE_INDEX) {
-        if (north == nullptr) return true;
-        u8 type = north->voxels[x + (y << 4) + (group << 12)].type;
-        return type != 0 and type != 4;
-    }
-    IMP_RETURN_VOXELISSOLID
-}
-bool Chunk::voxelSouthIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (z < 0) {
-        if (south == nullptr) return true;
-        u8 type = south->voxels[x + (y << 4) + (15 << 8) + (group << 12)].type;
-        return type != 0 and type != 4;
-    }
-    IMP_RETURN_VOXELISSOLID
-}
-bool Chunk::voxelEastIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (x > CHUNK_SIZE_INDEX) {
-        if (east == nullptr) return true;
-        u8 type = east->voxels[(y << 4) + (z<<8) + (group << 12)].type;
-        return type != 0 and type != 4;
-    }
-    IMP_RETURN_VOXELISSOLID
-}
-bool Chunk::voxelWestIsSolid(u8 group, i8 x, i8 y, i8 z) {
-    if (x < 0) {
-        if (west == nullptr) return true;
-        u8 type = west->voxels[15 + (y << 4) + (z << 8) + (group << 12)].type;
-        return type != 0 and type != 4;
-    }
-    IMP_RETURN_VOXELISSOLID
+void Chunk::setBlock(glm::ivec3 pos, Block block) {
+    int y = pos.y;
+    m_chunks[y / CHUNK_SIZE]->m_blocks[pos.z << 8 + (y % CHUNK_SIZE << 4) + pos.x] = block;
 }

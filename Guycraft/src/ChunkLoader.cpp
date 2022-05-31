@@ -4,6 +4,7 @@
 #include "CameraManager.h"
 
 #include "Scenes/SceneMainGame.h"
+#include <chrono>
 
 void useThreadPopulate() {
 	auto scMainGame = SceneManager::GetInstance()->getScene<SceneMainGame>(1);
@@ -12,6 +13,12 @@ void useThreadPopulate() {
 	TerrainGen terrainGen;
 	auto cLoader = &cManager->chunkLoader;
 	auto queueJob = &cManager->chunkLoader.m_queueJobPopulate;
+
+	using std::chrono::high_resolution_clock;
+	using std::chrono::duration_cast;
+	using std::chrono::duration;
+	using std::chrono::milliseconds;
+
 	while (not scMainGame->isNeedExitToLobby) {
 		queueJob->lock();
 		if (queueJob->empty()) {
@@ -21,9 +28,15 @@ void useThreadPopulate() {
 		auto posJob = queueJob->getFront();
 		queueJob->unlock();
 
-		auto job = new JobPopulate();
+		auto job = new JobPopulateChunk();
 		job->pos = posJob;
+
+		auto t1 = high_resolution_clock::now();
 		terrainGen.populate(job);
+		auto t2 = high_resolution_clock::now();
+		auto ms_int = duration_cast<milliseconds>(t2 - t1);
+		//std::cout << "populate chunk: " << ms_int.count() << "ms\n";
+
 		cLoader->m_queueJobPopulateComplete.pushLock(job);
 	}
 }
@@ -70,9 +83,8 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 		if (not manager->chunks.exist(pos)) {
 			chunk = manager->chunkPooling.get();
 			//setup chunk
-			chunk->pos = pos;
-			chunk->changeVoxels(job->voxels);
-
+			chunk->newSetupViaChunkPooling(pos);
+			chunk->changeBlocks(job->blocks);
 			delete job;
 
 			//add chunk container
@@ -110,17 +122,17 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 		//update chunk voxel data
 		else {
 			chunk = manager->chunks.m_container[pos];
-			chunk->changeVoxels(job->voxels);
+			chunk->changeBlocks(job->blocks);
 			delete job;
 		}
 		manager->chunks.unlock();
 		auto genMesh = ChunkMeshBuilding::GetInstance();
-		genMesh->addQueue(chunk,VOXELGROUP_COUNT, false);
+		genMesh->addQueue(chunk,CHUNK_SIZE, false);
 		//onNewChunk should regenmesh AtNeighbor
 		auto cnear = chunk->getAllChunkNeighbor();
 		for (auto c : cnear) {
 			if (c == nullptr) continue;
-			genMesh->addQueue(c, VOXELGROUP_COUNT, false, true);
+			genMesh->addQueue(c, CHUNK_SIZE, false);
 		}
 	}
 }

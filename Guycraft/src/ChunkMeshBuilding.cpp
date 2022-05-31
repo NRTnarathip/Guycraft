@@ -11,118 +11,125 @@ void useThreadChunkMeshBuilding() {
 	auto cMeshBuilder = &cManager->chunkMeshBuilding;
 	auto queueJob = &cManager->chunkMeshBuilding.m_queueJob;
 	auto scMainGame = SceneManager::GetInstance()->getScene<SceneMainGame>(1);
-	using std::chrono::high_resolution_clock;
-	using std::chrono::duration_cast;
-	using std::chrono::duration;
-	using std::chrono::milliseconds;
+	auto cLoader = &cManager->chunkLoader;
 
 	while (not scMainGame->isNeedExitToLobby) {
 		queueJob->lock();
 		if (queueJob->empty()) {
 			queueJob->unlock();
 			continue;
-		} 
+		}
 		auto job = queueJob->getFront();
 		queueJob->unlock();
-		auto chunk = job.chunk;
-		auto mesh = &chunk->meshs[job.voxelGroup];
-		mesh->lock();
-		if (mesh->isNeedGenMesh == false) {
-			mesh->unlock();
+
+		auto chunkSection = job.chunkSection;
+		auto chunk = chunkSection->chunk;
+
+		auto allocateNeighbor = cLoader->getAllocateChunkNeighbor(chunk);
+		if (chunk->getHasChunkNeighborCount() != allocateNeighbor) {
+			queueJob->pushLock({chunkSection});
 			continue;
 		}
-		mesh->unlock();
-
-		chunk->lock();
-		if (chunk->getHasChunkNeighborCount() != chunk->m_allocateChunkNeighbor) {
-			chunk->m_allocateChunkNeighbor = cManager->chunkLoader.getAllocateChunkNeighbor(chunk);
-			chunk->unlock();
-			queueJob->pushLock(job);
-			continue;
-		}
-	
-
-		/* Getting number of milliseconds as an integer. */
-		auto t1 = high_resolution_clock::now();
-		chunk->generateMesh(job.voxelGroup);
-		auto t2 = high_resolution_clock::now();
-		auto ms_int = duration_cast<milliseconds>(t2 - t1);
-		//std::cout << "generate mesh chunk: " << ms_int.count() << "ms\n";
-
-		chunk->unlock();
+		
+		chunkSection->generateMesh();
 	}
 }
 void ChunkMeshBuilding::startWithThread()
 {
-	m_thread = std::move(std::thread(useThreadChunkMeshBuilding));
+	int numThreadMax = 1;
+	for (int i = 0; i < numThreadMax; i++) {
+		m_threads.push_back(std::move(std::thread(useThreadChunkMeshBuilding)));
+	}
 }
 
 void ChunkMeshBuilding::updateMainThread()
 {
-	while (true) {
+	while(true) {
 		m_queueComplete.lock();
 		if (m_queueComplete.empty()) {
 			m_queueComplete.unlock();
-			break;
+			return;
 		}
 		auto mesh = m_queueComplete.getFront();
 		m_queueComplete.unlock();
 
-		if (mesh->chunk->isLoad == false) {
+		if (mesh->m_chunk->chunk->isLoad == false) {
 			continue;
 		}
 
-		mesh->isComplete = true;
 		mesh->isActive = true;
-
 		mesh->fluid.makeCopyDataJobToComplete();
 		mesh->fluid.transferToGPU();
 		mesh->solid.makeCopyDataJobToComplete();
 		mesh->solid.transferToGPU();
-
-		auto chunk = mesh->chunk;
-		int voxelGroup = mesh->pos.y / CHUNK_SIZE;
-		if (not chunk->m_meshsActive.has(voxelGroup)) {
-			chunk->m_meshsActive.m_map[voxelGroup] = mesh;
-		}
 	}
 }
 
-void ChunkMeshBuilding::addQueue(Chunk* chunk, int voxelGroup, 
-	bool isPushFront,bool isGenForChunkNeighbor) {
+void ChunkMeshBuilding::addQueue(Chunk* chunk, int index,
+	bool isPushFront,bool isDontPushIfExist) {
 
-	if (voxelGroup == VOXELGROUP_COUNT) {
-		for (u8 i = 0; i < VOXELGROUP_COUNT; i++) {
-			if (chunk->voxelGroupEmpty[i]) { return; }
-			auto mesh = &chunk->meshs[i];
+	if (index == CHUNK_SIZE) {
+		for (u8 i = 0; i < CHUNK_SIZE; i++) {
+			int chunkSectionIndex = CHUNK_SIZE_INDEX - i;
+			auto cs = chunk->m_chunks[chunkSectionIndex];
+			if (cs->m_isBlocksEmpty) continue;
+
+			auto mesh = cs->m_mesh;
 			mesh->lock();
-			if (isGenForChunkNeighbor and mesh->isNeedGenMesh) {
+			if (isDontPushIfExist and
+				mesh->stateGenerateMesh >= StateGenerateMesh::OnNeedGenerate) {
 				mesh->unlock();
 				continue;
 			}
-			mesh->isNeedGenMesh = true;
+			auto pos = mesh->m_chunk->pos;
+			mesh->stateGenerateMesh = StateGenerateMesh::OnNeedGenerate;
 			mesh->unlock();
-
 			if (isPushFront)
-				m_queueJob.pushFrontLock({ chunk, i });
+				m_queueJob.pushFrontLock({ cs });
 			else
-				m_queueJob.pushLock({ chunk, i });
+				m_queueJob.pushLock({ cs });
 		}
 		return;
 	}
-	if (chunk->voxelGroupEmpty[voxelGroup]) { return; }
-	auto mesh = &chunk->meshs[voxelGroup];
+	auto cs = chunk->m_chunks[index];
+	if (cs->m_isBlocksEmpty) return;
+
+	auto mesh = cs->m_mesh;
+
 	mesh->lock();
-	if (isGenForChunkNeighbor and mesh->isNeedGenMesh) {
+	if (isDontPushIfExist and 
+		mesh->stateGenerateMesh >= StateGenerateMesh::OnNeedGenerate) {
 		mesh->unlock();
 		return;
 	}
-	mesh->isNeedGenMesh = true;
+	auto pos = mesh->m_chunk->pos;
+	mesh->stateGenerateMesh = StateGenerateMesh::OnNeedGenerate;
 	mesh->unlock();
 
 	if (isPushFront) {
-		m_queueJob.pushFrontLock({ chunk, voxelGroup });
+		m_queueJob.pushFrontLock({ chunk->m_chunks[index] });
 		return;
 	}
-	m_queueJob.pushLock({chunk, voxelGroup});
+	m_queueJob.pushLock({ chunk->m_chunks[index]});
+}
+
+void ChunkMeshBuilding::insertQueueAtFront(std::vector<JobGenerateMesh> jobs, bool isDontPushIfExist)
+{
+	std::vector<JobGenerateMesh> mainJobs;
+
+	for(auto job : jobs) {
+		auto chunkSection = job.chunkSection;
+		auto mesh = chunkSection->m_mesh;
+		mesh->lock();
+		if (isDontPushIfExist and
+			mesh->stateGenerateMesh >= StateGenerateMesh::OnNeedGenerate) {
+			mesh->unlock();
+
+			continue;
+		}
+		mesh->stateGenerateMesh = StateGenerateMesh::OnNeedGenerate;
+		mesh->unlock();
+		mainJobs.push_back({ chunkSection });
+	}
+	m_queueJob.insertFrontLock(mainJobs);
 }

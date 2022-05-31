@@ -19,7 +19,7 @@
 
 #include "SmartMutex.h"
 #include "ChunkContainer.h"
-#include "JobUpdateVoxel.h"
+#include "JobUpdateBlock.h"
 
 class ChunkManager {
 private:
@@ -32,7 +32,7 @@ public:
 	ChunkPooling chunkPooling;
 
 	SmartQueue<glm::ivec3> m_queueDestroyBlock;
-	SmartQueue<JobUpdateVoxel> m_queueAddBlock;
+	SmartQueue<JobUpdateBlock> m_queueUpdateBlock;
 
 	void init();
 	void render();

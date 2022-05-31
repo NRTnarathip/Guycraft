@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Blocks\BlockDatabase.cpp" />
+    <ClCompile Include="src\BlockSystem\BlockDatabase.cpp" />
     <ClCompile Include="src\Button.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraManager.cpp" />
@@ -28,6 +28,7 @@
     <ClCompile Include="src\ChunkLoader.cpp" />
     <ClCompile Include="src\ChunkManager.cpp" />
     <ClCompile Include="src\ChunkMeshBuilding.cpp" />
+    <ClCompile Include="src\ChunkSection.cpp" />
     <ClCompile Include="src\ClientEngine.cpp" />
     <ClCompile Include="src\ComponentManager.cpp" />
     <ClCompile Include="src\Game.cpp" />
@@ -37,7 +38,7 @@
     <ClCompile Include="src\GUI.cpp" />
     <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\Input.cpp" />
-    <ClCompile Include="src\JobUpdateVoxel.h" />
+    <ClCompile Include="src\JobUpdateBlock.h" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\MeshBlockHighlight.cpp" />
     <ClCompile Include="src\MeshChunk.cpp" />
@@ -69,6 +70,7 @@
     <ClInclude Include="src\AABB.h" />
     <ClInclude Include="src\Biomes\Biomes.h" />
     <ClInclude Include="src\Biomes\Plant.h" />
+    <ClInclude Include="src\BlockSystem\Block.h" />
     <ClInclude Include="src\BlockSystem\BlockDatabase.h" />
     <ClInclude Include="src\BlockSystem\BlockModel.h" />
     <ClInclude Include="src\Button.h" />
@@ -76,11 +78,14 @@
     <ClInclude Include="src\CameraManager.h" />
     <ClInclude Include="src\Chunk.h" />
     <ClInclude Include="src\ChunkContainer.h" />
+    <ClInclude Include="src\ChunkMarco.h" />
     <ClInclude Include="src\ChunkPooling.h" />
     <ClInclude Include="src\ChunkLoader.h" />
     <ClInclude Include="src\ChunkManager.h" />
     <ClInclude Include="src\ChunkMeshBuilding.h" />
+    <ClInclude Include="src\ChunkSection.h" />
     <ClInclude Include="src\ClientEngine.h" />
+    <ClInclude Include="src\Client\LaunchConfig.h" />
     <ClInclude Include="src\Component.h" />
     <ClInclude Include="src\ComponentManager.h" />
     <ClInclude Include="src\Game.h" />
@@ -93,9 +98,10 @@
     <ClInclude Include="src\IMutex.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\JobGenerateMesh.h" />
+    <ClInclude Include="src\JobPopulateChunk.h" />
     <ClInclude Include="src\MeshBlockHighlight.h" />
     <ClInclude Include="src\MeshChunk.h" />
-    <ClInclude Include="src\MeshChunkVoxelGroup.h" />
+    <ClInclude Include="src\MeshChunkSection.h" />
     <ClInclude Include="src\OpenGL Class\VAO.h" />
     <ClInclude Include="src\OpenGL Class\VBOAndEBO.h" />
     <ClInclude Include="src\Physics\BoxCollision.h" />
@@ -128,7 +134,6 @@
     <ClInclude Include="src\UIMenu.h" />
     <ClInclude Include="src\UIObject.h" />
     <ClInclude Include="src\UIText.h" />
-    <ClInclude Include="src\Voxel.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\World.h" />
   </ItemGroup>
@@ -275,7 +280,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)Linking\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /E /H /C /I "$(SolutionDir)Guycraft\assets" "$(OutDir)assets"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

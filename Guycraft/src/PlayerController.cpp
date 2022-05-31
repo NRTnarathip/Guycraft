@@ -75,10 +75,7 @@ void PlayerController::updateInteractionBlock() {
 		}
 		else if (input->onMouseDown(GLFW_MOUSE_BUTTON_RIGHT)) {
 			auto placePos = hit.worldPos;
-			Voxel voxelAdd;
-			voxelAdd.data = 0;
-			voxelAdd.type = 1;
-			cManager->m_queueAddBlock.pushLock({voxelAdd,placePos });
+			cManager->m_queueUpdateBlock.pushLock({ {1,0},placePos });
 		}
 
 		//block highlight

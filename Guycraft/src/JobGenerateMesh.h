@@ -2,6 +2,5 @@
 #include "Chunk.h"
 
 struct JobGenerateMesh {
-	Chunk* chunk;
-	int voxelGroup;
+	ChunkSection* chunkSection;
 };

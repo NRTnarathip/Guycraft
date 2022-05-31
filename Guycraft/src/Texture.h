@@ -7,7 +7,7 @@
 class Texture
 {
 public:
-	Texture(const char* path, bool mipmap = true, int wrapMode = GL_REPEAT, int filter = GL_NEAREST);
+	Texture(const char* path, int wrapMode = GL_REPEAT, int filter = GL_NEAREST);
 	// Getters
 	int GetWidth() const;
 	int GetHeight() const;

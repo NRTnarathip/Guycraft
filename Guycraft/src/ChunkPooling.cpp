@@ -5,6 +5,7 @@ Chunk* ChunkPooling::get() {
 	m_chunkPooling.lock();
 	if (m_chunkPooling.size() == 0) {
 		chunk = new Chunk();
+		chunk->init();
 		m_chunks.push_back(chunk);
 	}
 	//have pooling object

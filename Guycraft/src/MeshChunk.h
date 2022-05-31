@@ -8,7 +8,7 @@
 
 class MeshChunk : public IMutex {
 public:
-	class Vertex
+	struct Vertex
 	{
 	public:
 #define TILE_ROW 16
@@ -16,16 +16,19 @@ public:
 		uint16_t dataUVTNVI= 0;
 		uint16_t lighting = 0;
 
-		void SetPos(float x, float y, float z);
-		void SetUVTile(uint16_t tileIndex);
+		void setPos(float x, float y, float z);
+		void setUVTile(uint16_t tileIndex);
 		void setVertexIndex(int index) {
 			dataUVTNVI = dataUVTNVI | index << 8;
 		}
-		void SetNormal(unsigned int index) {
+		void setNormal(unsigned int index) {
 			dataUVTNVI = dataUVTNVI | index << 11;
 		}
-		void SetAO(unsigned char val) {
+		void setAO(unsigned char val) {
 			lighting = lighting | (val << 8);
+		}
+		void setLight(unsigned char val) {
+			lighting = lighting | val;
 		}
 	};
 
@@ -56,5 +59,4 @@ public:
 	void clearDataOnGenerate();
 	void clearDataComplete();
 	unsigned int m_lastTriangleOnGPU= 0;
-private:
 };

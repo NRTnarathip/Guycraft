@@ -4,8 +4,9 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in float aUVTileAndNormal;
 layout (location = 2) in float aLighting;
 
-out float lightFace;
-out float ao;
+out float sunLightFace;
+out float aoLightFace;
+out float lampLightFace;
 out vec2 texcoord;
 out vec3 normal;
 
@@ -90,8 +91,9 @@ void main()
 	vertexLocal.y += waveY;
 
 	gl_Position = projection * view * model * vec4(vertexLocal, 1.0);
-	ao = (int(aLighting) >> 8) & 3;
-	lightFace = int(aLighting); //temp
+	sunLightFace = int(aLighting) & 15;
+	aoLightFace = (int(aLighting) >> 8) & 3;
+	lampLightFace = (int(aLighting) >> 4) & 15;
 
 	texcoord = toTextureCood(aUVTileAndNormal);
 	normal = tbNormal[( int(aUVTileAndNormal) >> 11) & 7];

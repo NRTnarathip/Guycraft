@@ -11,8 +11,8 @@
 class ChunkMeshBuilding {
 public:
 	static ChunkMeshBuilding* m_instance;
-	std::thread m_thread;
-	SmartQueue<MeshChunkVoxelGroup*> m_queueComplete;
+	std::vector<std::thread> m_threads;
+	SmartQueue<MeshChunkSection*> m_queueComplete;
 	SmartQueue<JobGenerateMesh> m_queueJob;
 	ChunkMeshBuilding() {
 		m_instance = this;
@@ -20,5 +20,7 @@ public:
 	static auto GetInstance() { return m_instance; }
 	void startWithThread();
 	void updateMainThread();//update for main thread
-	void addQueue(Chunk* chunk, int voxelGroup, bool isPushFront,bool isGenForNeighbor = false);
+	void addQueue(Chunk* chunk, int index, 
+		bool isPushFront, bool isDontPushIfExist = true);
+	void insertQueueAtFront(std::vector<JobGenerateMesh> jobs, bool isDontPushIfExist = true);
 };

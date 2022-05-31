@@ -16,9 +16,6 @@
     <Filter Include="src\Scene System">
       <UniqueIdentifier>{3bcf8230-7da7-45bb-903b-dbd5419ce0e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Chunk System">
-      <UniqueIdentifier>{8df37374-8c3e-466a-b608-b4799904cd6d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scripts Addon Component">
       <UniqueIdentifier>{d68bb134-bb9b-421c-97a3-2211b84de07e}</UniqueIdentifier>
     </Filter>
@@ -27,9 +24,6 @@
     </Filter>
     <Filter Include="src\Biomes">
       <UniqueIdentifier>{d286199e-8b7d-4294-8e68-73c99461c608}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Block System">
-      <UniqueIdentifier>{6814116c-dc1f-445b-b23c-533b03d09c09}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Graphic 2D">
       <UniqueIdentifier>{47dcf353-65e6-4d66-82bf-bd870ba53767}</UniqueIdentifier>
@@ -48,6 +42,18 @@
     </Filter>
     <Filter Include="src\Client">
       <UniqueIdentifier>{933720be-d677-4d12-a2c4-c392489b5658}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Player">
+      <UniqueIdentifier>{67b54df3-e075-489b-9e83-fe0316669b62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\World\Chunk System">
+      <UniqueIdentifier>{8df37374-8c3e-466a-b608-b4799904cd6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\World\Block System">
+      <UniqueIdentifier>{6814116c-dc1f-445b-b23c-533b03d09c09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\World\Chunk System\Chunk Section">
+      <UniqueIdentifier>{14341d81-9093-4148-b07b-e7fca44df30d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -73,28 +79,25 @@
       <Filter>src\Scenes</Filter>
     </ClCompile>
     <ClCompile Include="src\Chunk.cpp">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\ChunkManager.cpp">
-      <Filter>src\Chunk System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PlayerController.cpp">
-      <Filter>Scripts Addon Component</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\TerrainGen.cpp">
       <Filter>src\Terrain Generate</Filter>
     </ClCompile>
     <ClCompile Include="src\ChunkMeshBuilding.cpp">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\ChunkLoader.cpp">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\MeshChunk.cpp">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\ChunkPooling.cpp">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\Physics\Transform.cpp">
       <Filter>src\Physics 3D</Filter>
@@ -102,14 +105,8 @@
     <ClCompile Include="src\Physics\VoxelRaycast.cpp">
       <Filter>src\Physics 3D</Filter>
     </ClCompile>
-    <ClCompile Include="src\MeshBlockHighlight.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JobUpdateVoxel.h">
-      <Filter>src\Chunk System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Blocks\BlockDatabase.cpp">
-      <Filter>src\Block System</Filter>
+    <ClCompile Include="src\JobUpdateBlock.h">
+      <Filter>src\World\Chunk System</Filter>
     </ClCompile>
     <ClCompile Include="src\UIContainer.cpp">
       <Filter>src\Graphic 2D</Filter>
@@ -186,6 +183,18 @@
     <ClCompile Include="src\Game.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\PlayerController.cpp">
+      <Filter>src\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshBlockHighlight.cpp">
+      <Filter>src\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BlockSystem\BlockDatabase.cpp">
+      <Filter>src\World\Block System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ChunkSection.cpp">
+      <Filter>src\World\Chunk System\Chunk Section</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Physics\BoxCollision.h">
@@ -216,28 +225,25 @@
       <Filter>src\Scene System</Filter>
     </ClInclude>
     <ClInclude Include="src\Chunk.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\ChunkManager.h">
-      <Filter>src\Chunk System</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PlayerController.h">
-      <Filter>Scripts Addon Component</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\TerrainGen.h">
       <Filter>src\Terrain Generate</Filter>
     </ClInclude>
     <ClInclude Include="src\ChunkMeshBuilding.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\ChunkLoader.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\MeshChunk.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\ChunkContainer.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\Biome.h">
       <Filter>src\Terrain Generate</Filter>
@@ -249,16 +255,13 @@
       <Filter>src\Biomes</Filter>
     </ClInclude>
     <ClInclude Include="src\ChunkPooling.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\Physics\Vector.h">
       <Filter>src\Physics 3D</Filter>
     </ClInclude>
     <ClInclude Include="src\Physics\VoxelRaycast.h">
       <Filter>src\Physics 3D</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MeshBlockHighlight.h">
-      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\OpenGL Class\VAO.h">
       <Filter>src\OpenGL Class</Filter>
@@ -267,16 +270,13 @@
       <Filter>src\OpenGL Class</Filter>
     </ClInclude>
     <ClInclude Include="src\JobGenerateMesh.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Chunk System</Filter>
     </ClInclude>
     <ClInclude Include="src\BlockSystem\BlockDatabase.h">
-      <Filter>src\Block System</Filter>
+      <Filter>src\World\Block System</Filter>
     </ClInclude>
     <ClInclude Include="src\BlockSystem\BlockModel.h">
-      <Filter>src\Block System</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MeshChunkVoxelGroup.h">
-      <Filter>src\Chunk System</Filter>
+      <Filter>src\World\Block System</Filter>
     </ClInclude>
     <ClInclude Include="src\UIComponent.h">
       <Filter>src\Graphic 2D</Filter>
@@ -341,9 +341,6 @@
     <ClInclude Include="src\Window.h">
       <Filter>src\Graphic 3D</Filter>
     </ClInclude>
-    <ClInclude Include="src\Voxel.h">
-      <Filter>src\Chunk System</Filter>
-    </ClInclude>
     <ClInclude Include="src\SmartUnorderMap.h">
       <Filter>src\Utility</Filter>
     </ClInclude>
@@ -382,6 +379,30 @@
     </ClInclude>
     <ClInclude Include="src\SmartVector.h">
       <Filter>src\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PlayerController.h">
+      <Filter>src\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshBlockHighlight.h">
+      <Filter>src\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BlockSystem\Block.h">
+      <Filter>src\World\Block System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkMarco.h">
+      <Filter>src\World\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JobPopulateChunk.h">
+      <Filter>src\World\Chunk System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshChunkSection.h">
+      <Filter>src\World\Chunk System\Chunk Section</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChunkSection.h">
+      <Filter>src\World\Chunk System\Chunk Section</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Client\LaunchConfig.h">
+      <Filter>src\Client</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

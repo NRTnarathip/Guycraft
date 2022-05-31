@@ -52,52 +52,52 @@ void ChunkManager::update() {
 	chunkLoader.update({ posPlayerToChunk.x, posPlayerToChunk.z });
 
 	//update destroy block
-	Voxel voxReplace;
+	Block voxReplace;
 	voxReplace.data = 0;
 	voxReplace.type = 0;
 	SmartQueue<JobGenerateMesh> queJobGenMesh;
 	SmartUnorderMap<glm::ivec3, bool> chunkUpdateVoxel;
 	while (m_queueDestroyBlock.size() > 0) {
 		glm::ivec3 blockWorldPos = m_queueDestroyBlock.getFront();
-		m_queueAddBlock.push({ voxReplace, blockWorldPos });
+		m_queueUpdateBlock.push({ voxReplace, blockWorldPos });
 	}
 
-	while (m_queueAddBlock.size() > 0) {
-		auto job = m_queueAddBlock.getFront();
+	while (m_queueUpdateBlock.size() > 0) {
+		auto job = m_queueUpdateBlock.getFront();
 
 		glm::ivec3 chunkpos = ToChunkPosition(job.worldPos);
 		auto chunk = getChunk({ chunkpos.x,chunkpos.z });
 		if (chunk == nullptr) continue;
 
-		int voxelGroup = chunkpos.y / CHUNK_SIZE;
+		int csIndex = chunkpos.y / CHUNK_SIZE;
 		auto blockPos = job.worldPos - chunkpos;
-		chunk->voxels[blockPos.x + (blockPos.y << 4) + (blockPos.z << 8) + (voxelGroup << 12)] = job.voxel;
+		auto chunkSection = chunk->m_chunks[csIndex];
+		chunkSection->setBlock((blockPos.z << 8) + (blockPos.y << 4) + blockPos.x, job.block);
 
-		auto chunkNeighbor = chunk->getAllChunkNeighbor();
 		if (not chunkUpdateVoxel.has(chunkpos)) {
 			chunkUpdateVoxel.add(chunkpos, 1);
-			queJobGenMesh.push({ chunk, voxelGroup });
+			queJobGenMesh.push({ chunkSection });
 		}
 	}
+	std::vector<JobGenerateMesh> jobGenerateMesh;
 	while(queJobGenMesh.size() > 0) {
 		auto job = queJobGenMesh.getFront();
-		auto chunksGen = job.chunk->getAllChunkNeighbor();
-		chunksGen.push_back(job.chunk);
+		auto chunk = job.chunkSection->chunk;
+		auto chunksGen = chunk->getAllChunkNeighbor();
+		chunksGen.push_back(chunk);
 
-		int voxelGroup = job.voxelGroup;
+		int chunkIndex = job.chunkSection->m_index;
 		for (auto chunk : chunksGen) {
 			if(chunk == nullptr) continue;
 
-			chunkMeshBuilding.addQueue(chunk, voxelGroup, true);
-			if (voxelGroup > 0) {
-				chunkMeshBuilding.addQueue(chunk, voxelGroup - 1, true);
-			}
-			if (voxelGroup < CHUNK_SIZE_INDEX) {
-				chunkMeshBuilding.addQueue(chunk, voxelGroup + 1, true);
-			}
+			jobGenerateMesh.push_back({ chunk->m_chunks[chunkIndex] });
+			if (chunkIndex > 0)
+				jobGenerateMesh.push_back({ chunk->m_chunks[chunkIndex - 1] });
+			if (chunkIndex < CHUNK_SIZE_INDEX)
+				jobGenerateMesh.push_back({ chunk->m_chunks[chunkIndex + 1] });
 		}
-
 	}
+	chunkMeshBuilding.insertQueueAtFront(jobGenerateMesh, false);
 }
 bool ChunkManager::ChunkInRange(glm::ivec2 playerPos, glm::ivec2 chunkPos)
 {

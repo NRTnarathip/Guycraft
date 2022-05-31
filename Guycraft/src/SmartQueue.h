@@ -1,6 +1,7 @@
 #pragma once
 #include <mutex>
 #include <deque>
+#include <vector>
 
 //for safety cross threading
 template<typename T>
@@ -34,6 +35,11 @@ public:
 	void pushLock(T d) {
 		lock();
 		push(d);
+		unlock();
+	}
+	void insertFrontLock(std::vector<T> datas) {
+		lock();
+		m_queue.insert(m_queue.begin(), datas.begin(), datas.end());
 		unlock();
 	}
 	void push(T data) {

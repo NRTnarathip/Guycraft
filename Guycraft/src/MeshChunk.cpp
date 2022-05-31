@@ -1,12 +1,12 @@
 #include <MeshChunk.h>
 #include <algorithm>
 int MeshChunk::triangleGPU = 0;
-void MeshChunk::Vertex::SetPos(float x, float y, float z) {
+void MeshChunk::Vertex::setPos(float x, float y, float z) {
 	pos[0] = u16(x * 16);
 	pos[1] = u16(y * 16);
 	pos[2] = u16(z * 16);
 }
-void MeshChunk::Vertex::SetUVTile(uint16_t tileIndex) {
+void MeshChunk::Vertex::setUVTile(uint16_t tileIndex) {
 	int x = tileIndex % TILE_ROW;
 	int y = tileIndex / TILE_ROW;
 	dataUVTNVI = dataUVTNVI | x | y << 4;
@@ -58,11 +58,8 @@ void MeshChunk::clearOnGPU() {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-
 	MeshChunk::triangleGPU -= m_lastTriangleOnGPU;
 	m_lastTriangleOnGPU = 0;
-	// Remove cpu data
-	clearDataOnGenerate();
 }
 void MeshChunk::setupMesh() {
 	//gen buffer 3 type

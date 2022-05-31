@@ -2,18 +2,17 @@
 #include <ChunkManager.h>
 struct VoxelHit {
 	bool isHit;
-	Voxel voxel;
-	glm::ivec3 pos;
-	int voxelGroup;
+	Block block;
+	glm::ivec3 blockPos;
+	int chunkIndex;
 	glm::vec3 worldPos;
-	Chunk* chunk;
-	u32 access;//index of voxel in chunk
+	ChunkSection* chunkSection;
+	uint16_t access;//index of voxel in chunk section
 };
 class VoxelRaycast {
 public:
 	VoxelRaycast();
 	VoxelHit raycast(glm::vec3 rayStart, glm::vec3 rayDirection, float distance);
-
 private:
 	ChunkManager* cManager = nullptr;
 };

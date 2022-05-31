@@ -21,7 +21,9 @@ void SceneMainGame::exit() {
 	isNeedExitToLobby = true;
 
 	chManager->chunkLoader.m_threadPopulate.join();
-	chManager->chunkMeshBuilding.m_thread.join();
+	for (auto &th : chManager->chunkMeshBuilding.m_threads) {
+		th.join();
+	}
 
 	//exist app
 	Game::GetInstance()->exit();

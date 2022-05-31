@@ -1,6 +1,6 @@
 #pragma once
 #include "BlockModel.h"
-#include "Voxel.h"
+#include "Block.h"
 #include <unordered_map>
 
 class BlockDatabase {
@@ -11,8 +11,10 @@ public:
 		m_instance = this;
 	}
 	static BlockDatabase* GetInstance() { return m_instance; }
-	std::unordered_map<uint16_t, BlockModel*> m_models;
+	std::unordered_map<blocktype_t, BlockModel*> m_models;
 	std::unordered_map<std::string, uint16_t> m_texturesTileIndex;
 
 	void init();
+	void addModel(BlockModel* model);
+	void addModels(std::vector<BlockModel*> models);
 };

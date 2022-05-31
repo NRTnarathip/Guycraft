@@ -2,36 +2,15 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
-#include <Voxel.h>
-#include <MeshChunkVoxelGroup.h>
 #include <Renderer/shaderClass.h>
 #include <glm/glm.hpp>
 #include <mutex>
 #include "Types.h"
 #include "SmartUnorderMap.h"
+#include "BlockSystem/Block.h"
+#include <ChunkSection.h>
+#include <ChunkMarco.h>
 
-
-#define CHUNK_SIZE 16
-#define CHUNK_SIZE_INDEX 15
-#define CHUNK_SIZE_SQUARED 256
-#define CHUNK_SIZE_BLOCK 4096
-#define CHUNK_BLOCK_ALL 65536
-#define CHUNK_HEIGHT_MAX 256
-#define CHUNK_HEIGHT_INDEX 255
-#define CHUNK_TOP_HEIGHT 224
-#define VOXELGROUP_COUNT 16
-#define VOXELGROUP_INDEX 15
-
-struct JobPopulate {
-	glm::ivec2 pos;
-	//2 byte * 262144;
-	Voxel voxels[CHUNK_BLOCK_ALL];
-};
-struct JobPopulateSub {
-	glm::ivec2 pos;
-	u8 groupVoxel;
-	Voxel voxels[CHUNK_SIZE_BLOCK];
-};
 //none safe thread
 class Chunk {
 public:
@@ -39,14 +18,11 @@ public:
 	bool isLoad = false;
 	std::mutex mutex;
 	std::mutex mutexNeighbor;
-	//light (0000 lmap):(0000 sun)
 	uint8_t m_light[CHUNK_BLOCK_ALL];
 	glm::ivec2 pos;
-	//x + y<<4 + z<<8 + voxelGroup<<12
-	bool voxelGroupEmpty[VOXELGROUP_COUNT];
-	Voxel voxels[CHUNK_BLOCK_ALL];
-	MeshChunkVoxelGroup meshs[VOXELGROUP_COUNT];
-	SmartUnorderMap<int, MeshChunkVoxelGroup*> m_meshsActive;
+	ChunkSection *m_chunks[CHUNK_SIZE];
+	SmartUnorderMap<int, MeshChunkSection*> m_meshsActive;
+
 	//chunk neighbor 8 direction
 	Chunk* north = nullptr;
 	Chunk* northEast = nullptr;
@@ -56,13 +32,15 @@ public:
 	Chunk* southWest = nullptr;
 	Chunk* east = nullptr;
 	Chunk* west = nullptr;
-	std::vector<Chunk*> getAllChunkNeighbor();
-	int m_allocateChunkNeighbor = 0;
-
-	void changeVoxels(Voxel voxels[CHUNK_BLOCK_ALL]);
-	bool isEmpty(int voxelGroup);
-	u16 getBlockCount();
-	//for threading
+	void changeBlocks(Block blocks[CHUNK_BLOCK_ALL]);
+	Block* getBlock(glm::ivec3 pos);
+	Block* getBlock(int x, int y, int z) {
+		return getBlock({ x,y,z });
+	}
+	void setBlock(glm::ivec3 pos, Block block);
+	//setup when first new create object
+	void init();
+	void newSetupViaChunkPooling(glm::ivec2 newPos);
 	void lock() { mutex.lock(); }
 	void unlock() { mutex.unlock(); }
 	void render(Shader* shaders[2]);
@@ -70,34 +48,7 @@ public:
 	void onload();
 	int getHasChunkNeighborCount();
 	void linkChunkNeighbor(Chunk* chunkNiehgbor[8]);
-	Voxel getvoxel(u8 group, u8 x, u8 y, u8 z);
-	//for generate mesh
-	void generateMesh(int voxelGroup);
-	void genMeshCube(MeshChunk* mesh,u8 groupVoxel, char x, char y, char z, Voxel* voxel,
-		bool useFuncitonGetVoxelOutChunk);
-	void genMeshWater(MeshChunk* mesh, u8 voxelGroup, char x, char y, char z, Voxel* voxel,
-		bool useFuncGetVoxelOutChunk);
-	void genMeshStair(MeshChunk* mesh, u8 voxelGroup, int8_t x, int8_t y, int8_t z, Voxel* voxel,
-		bool useFunc);
-	bool voxelUpIsSolid(u8 group, i8 x, i8 y, i8 z);
-	bool voxelDownIsSolid(u8 group, i8 x, i8 y, i8 z);
-	bool voxelNorthIsSolid(u8 group, i8 x, i8 y, i8 z);
-	bool voxelSouthIsSolid(u8 group, i8 x, i8 y, i8 z);
-	bool voxelEastIsSolid(u8 group, i8 x, i8 y, i8 z);
-	bool voxelWestIsSolid(u8 group, i8 x, i8 y, i8 z);
 
-	void GetVoxSurround(unsigned char(&args)[27],u8 groupVoxel,unsigned char x, unsigned char y, unsigned char z,
-		bool useFuncitonGetVoxelOutChunk);
-	unsigned char GetVoxType(u8 groupVoxel,char x, char y, char z);
-	void MakeQuadFace(MeshChunk* mesh,unsigned char directFace, unsigned char (&voxSurr)[27], unsigned char (&lightSurr)[27]);
-	void GetAO(unsigned char(&refAO)[4], unsigned char directFace, unsigned char(&voxSurr)[27]);
-	void GetVertLightMaping(unsigned char(&ref)[4], unsigned char dir, unsigned char(&voxSurr)[27]);
-	static unsigned char CalculateAO(unsigned char side1, unsigned char side2, unsigned char corner);
-	void setSunLight(uint8_t level,uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup);
-	uint8_t getSunLight(uint8_t x, uint8_t y, uint8_t z, uint8_t voxelGroup);
-	void getLightSurround(uint8_t (&light)[27], uint8_t x, uint8_t y, uint8_t z, 
-		uint8_t voxelGroup,bool useFuncAccessOutChunk);
-	static const unsigned char tileCountRow = 16;
-	static const float tileSize;
+	std::vector<Chunk*> getAllChunkNeighbor();
 };
 #endif // !CHUNK_H
