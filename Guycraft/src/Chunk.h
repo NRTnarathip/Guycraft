@@ -22,7 +22,6 @@ public:
 	glm::ivec2 pos;
 	ChunkSection *m_chunks[CHUNK_SIZE];
 	SmartUnorderMap<int, MeshChunkSection*> m_meshsActive;
-
 	//chunk neighbor 8 direction
 	Chunk* north = nullptr;
 	Chunk* northEast = nullptr;

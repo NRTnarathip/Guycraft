@@ -14,11 +14,6 @@ void useThreadPopulate() {
 	auto cLoader = &cManager->chunkLoader;
 	auto queueJob = &cManager->chunkLoader.m_queueJobPopulate;
 
-	using std::chrono::high_resolution_clock;
-	using std::chrono::duration_cast;
-	using std::chrono::duration;
-	using std::chrono::milliseconds;
-
 	while (not scMainGame->isNeedExitToLobby) {
 		queueJob->lock();
 		if (queueJob->empty()) {
@@ -31,12 +26,7 @@ void useThreadPopulate() {
 		auto job = new JobPopulateChunk();
 		job->pos = posJob;
 
-		auto t1 = high_resolution_clock::now();
 		terrainGen.populate(job);
-		auto t2 = high_resolution_clock::now();
-		auto ms_int = duration_cast<milliseconds>(t2 - t1);
-		//std::cout << "populate chunk: " << ms_int.count() << "ms\n";
-
 		cLoader->m_queueJobPopulateComplete.pushLock(job);
 	}
 }
@@ -110,6 +100,7 @@ void ChunkLoader::update(glm::ivec2 posPlayer) {
 				}
 				chunksNeighbor[i] = nextChunk;
 			}
+
 			//link chunk neightbor, genmesh
 			chunk->mutexNeighbor.lock();
 			chunk->linkChunkNeighbor(chunksNeighbor);

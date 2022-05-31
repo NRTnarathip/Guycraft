@@ -6,10 +6,8 @@
 void ChunkSection::unLoad() {
     m_mesh->lock();
     m_mesh->stateGenerateMesh = StateGenerateMesh::Empty;
-    m_mesh->clear();
-    m_mesh->fluid.clearDataOnGenerate();
-    m_mesh->solid.clearDataOnGenerate();
     m_mesh->unlock();
+    m_mesh->clear();
 }
 
 void ChunkSection::setSunLight(uint8_t x, uint8_t y, uint8_t z)
@@ -64,41 +62,33 @@ void ChunkSection::generateMesh() {
     bool isVoxelOnEdgeZ = false, isVoxelOnEdgeY = false;
     auto cMeshBuilding = ChunkMeshBuilding::GetInstance();
     for (u8 z = 0; z < CHUNK_SIZE; z++) {
-       
-
+        m_mesh->lock();
+        if (m_mesh->stateGenerateMesh == StateGenerateMesh::Empty or
+            m_mesh->stateGenerateMesh == StateGenerateMesh::OnNeedGenerate) {
+            m_mesh->unlock();
+            m_mesh->fluid.clearDataOnGenerate();
+            m_mesh->solid.clearDataOnGenerate();
+            return;
+        }
+        m_mesh->unlock();
         isVoxelOnEdgeZ = (z == 0 or z == CHUNK_SIZE_INDEX);
         for (u8 y = 0; y < CHUNK_SIZE; y++) {
             isVoxelOnEdgeY = (y == 0 or y == CHUNK_SIZE_INDEX);
             for (u8 x = 0; x < CHUNK_SIZE; x++) {
-                m_mesh->lock();
-                if (m_mesh->stateGenerateMesh == StateGenerateMesh::Empty or
-                    m_mesh->stateGenerateMesh == StateGenerateMesh::OnNeedGenerate) {
-                    m_mesh->unlock();
-                    m_mesh->fluid.clearDataOnGenerate();
-                    m_mesh->solid.clearDataOnGenerate();
-                    return;
-                }
-
                 block = &m_blocks[x + (y << 4) + (z << 8)];
                 if (block->type == 0) {
-                    m_mesh->unlock();
-
                     continue; //dont gen block air
                 }
-
                 bool useFuncGetVoxelOutChunk = x == 0 or x == CHUNK_SIZE_INDEX
                     or isVoxelOnEdgeY or isVoxelOnEdgeZ;
-
                 auto blockModel = blockDBModels[block->type];
                 auto blockShape = blockModel->m_shape;
-
                 if (blockShape == BlockModel::Shape::Cube) {
                     genMeshSolid(block, x, y, z,useFuncGetVoxelOutChunk);
                 }
                 else if(blockShape == BlockModel::Shape::Fluid) {
                     genMeshWater(block, x, y, z, useFuncGetVoxelOutChunk);
                 }
-                m_mesh->unlock();
             }
         }
     }

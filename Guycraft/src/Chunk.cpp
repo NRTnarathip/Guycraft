@@ -44,29 +44,40 @@ void Chunk::render(Shader* shaders[2]) {
     auto sdFluid = shaders[1];
     glm::vec3 position = { pos.x, 0.f, pos.y };
     glm::mat4 model = glm::mat4(1.f);
-    std::vector<MeshChunkSection*> meshsActive;
-    for (auto chunkSection : m_chunks) {
-        auto mesh = chunkSection->m_mesh;
-        if (mesh->isActive) {
-            meshsActive.push_back(mesh);
-        }
-    }
-    for (auto m : meshsActive) {
+    std::vector<MeshChunkSection*> meshsUnActive;
+    for (auto &elem : m_meshsActive.m_map) {
+        auto m = elem.second;
+
         auto chunkSection = m->m_chunk;
         glm::vec3 chunkSectionPos = chunkSection->pos;
 
         model = glm::mat4(1.f);
         model = glm::translate(model, chunkSectionPos);
-        //render mesh solid
-        sdSolid->Bind();
-        sdSolid->SetMat4("model", model);
-        m->solid.draw();
-        sdSolid->UnBind();
+        int numMeshHasData = 0;
+        if (m->solid.m_lastTriangleOnGPU > 0) {
+            //render mesh solid
+            sdSolid->Bind();
+            sdSolid->SetMat4("model", model);
+            m->solid.draw();
+            sdSolid->UnBind();
+            numMeshHasData++;
+        }
+        if (m->fluid.m_lastTriangleOnGPU) {
+            sdFluid->Bind();
+            sdFluid->SetMat4("model", model);
+            m->fluid.draw();
+            sdFluid->UnBind();
+            numMeshHasData++;
+        }
 
-        sdFluid->Bind();
-        sdFluid->SetMat4("model", model);
-        m->fluid.draw();
-        sdFluid->UnBind();
+        if (numMeshHasData == 0) {
+            meshsUnActive.push_back(m);
+        }
+    }
+    for (auto mesh : meshsUnActive) {
+        if (m_meshsActive.has(mesh->m_index)) {
+            m_meshsActive.m_map.erase(mesh->m_index);
+        }
     }
 }
 void Chunk::unload() {

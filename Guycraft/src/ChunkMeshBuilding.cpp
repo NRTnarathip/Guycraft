@@ -23,14 +23,22 @@ void useThreadChunkMeshBuilding() {
 		queueJob->unlock();
 
 		auto chunkSection = job.chunkSection;
-		auto chunk = chunkSection->chunk;
+		if (chunkSection->m_mesh->stateGenerateMesh == 0) {
+			continue;
+		}
 
+		auto chunk = chunkSection->chunk;
+		chunk->lock();
+		if (chunk->isLoad == false) {
+			chunk->unlock();
+			continue;
+		}
+		chunk->unlock();
 		auto allocateNeighbor = cLoader->getAllocateChunkNeighbor(chunk);
 		if (chunk->getHasChunkNeighborCount() != allocateNeighbor) {
 			queueJob->pushLock({chunkSection});
 			continue;
 		}
-		
 		chunkSection->generateMesh();
 	}
 }
@@ -56,12 +64,12 @@ void ChunkMeshBuilding::updateMainThread()
 		if (mesh->m_chunk->chunk->isLoad == false) {
 			continue;
 		}
-
-		mesh->isActive = true;
 		mesh->fluid.makeCopyDataJobToComplete();
 		mesh->fluid.transferToGPU();
 		mesh->solid.makeCopyDataJobToComplete();
 		mesh->solid.transferToGPU();
+		auto chunk = mesh->m_chunk->chunk;
+		chunk->m_meshsActive.addNoneExist(mesh->m_index, mesh);
 	}
 }
 
@@ -76,12 +84,11 @@ void ChunkMeshBuilding::addQueue(Chunk* chunk, int index,
 
 			auto mesh = cs->m_mesh;
 			mesh->lock();
-			if (isDontPushIfExist and
-				mesh->stateGenerateMesh >= StateGenerateMesh::OnNeedGenerate) {
+			int state = mesh->stateGenerateMesh;
+			if (isDontPushIfExist and state >= 1) {
 				mesh->unlock();
 				continue;
 			}
-			auto pos = mesh->m_chunk->pos;
 			mesh->stateGenerateMesh = StateGenerateMesh::OnNeedGenerate;
 			mesh->unlock();
 			if (isPushFront)

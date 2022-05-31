@@ -94,7 +94,7 @@ void PlayerController::UpdateInputs()
 	float speed = speedMove;
 	if (input->isKey(GLFW_KEY_LEFT_SHIFT))
 	{
-		speed = speedRun;
+		speed = 400;
 	}
 	// Handles key inputs
 	float cameRotateY = me->transform.rotation.y;
