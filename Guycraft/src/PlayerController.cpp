@@ -22,6 +22,7 @@ void PlayerController::init() {
 	
 	Input::GetInstance().setMouseMode(0);
 	getGameObject()->transform.rotation = glm::vec3(0,-90.f,0);
+	getGameObject()->transform.position.y = 90;
 	//setup corsur
 	auto spriteCursor = ResourceManager::GetInstance()->getSprite("assets/textures/gui/cursor");
 	auto sc = SceneManager::GetInstance()->getCurrent();
@@ -66,21 +67,22 @@ void PlayerController::updateInteractionBlock() {
 	auto rayDirection = glm::vec3(cos(pitch) * cos(yaw),
 		sin(pitch),  cos(pitch) * sin(yaw));
 
-	auto hit = voxelRaycast.raycast(origin, rayDirection, 10.f);
+	auto hit = voxelRaycast.raycast(origin, rayDirection, 10);
 	//on dig
 	meshBlockHighlight.isActive = false;
 	if (hit.isHit) {
 		if (input->onMouseDown(GLFW_MOUSE_BUTTON_LEFT)) {
-			cManager->m_queueDestroyBlock.pushLock(hit.worldPos);
+			cManager->m_queueDestroyBlock.pushLock(hit.posBlockWorld);
 		}
 		else if (input->onMouseDown(GLFW_MOUSE_BUTTON_RIGHT)) {
-			auto placePos = hit.worldPos;
+			auto placePos = hit.posBlockWorld;
+			placePos += hit.normal;
 			cManager->m_queueUpdateBlock.pushLock({ {1,0},placePos });
 		}
 
 		//block highlight
 		meshBlockHighlight.isActive = true;
-		meshBlockHighlight.genMeshCube(hit.worldPos);
+		meshBlockHighlight.genMeshCube(hit.posBlockWorld);
 	}
 }
 void PlayerController::UpdateInputs()

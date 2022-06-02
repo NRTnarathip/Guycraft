@@ -28,15 +28,9 @@ void useThreadChunkMeshBuilding() {
 		}
 
 		auto chunk = chunkSection->chunk;
-		chunk->lock();
-		if (chunk->isLoad == false) {
-			chunk->unlock();
-			continue;
-		}
-		chunk->unlock();
 		auto allocateNeighbor = cLoader->getAllocateChunkNeighbor(chunk);
 		if (chunk->getHasChunkNeighborCount() != allocateNeighbor) {
-			queueJob->pushLock({chunkSection});
+			queueJob->pushFrontLock({chunkSection});
 			continue;
 		}
 		chunkSection->generateMesh();

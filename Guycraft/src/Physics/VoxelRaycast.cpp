@@ -7,19 +7,23 @@
 VoxelRaycast::VoxelRaycast() {
 	cManager = ChunkManager::GetInstance();
 }
-VoxelHit VoxelRaycast::raycast(glm::vec3 rayStart, glm::vec3 direction, float distance)
+VoxelHit VoxelRaycast::raycast(glm::vec3 rayStart, glm::vec3 direction, const int blockDistance)
 {
-	std::queue<glm::vec3> queueTravelVoxel;
+	std::queue<VoxelHit> queueVoxelHit;
+
 	VoxelHit hit;
 	hit.isHit = false;
-	auto ray = direction * distance;
+	auto ray = direction * blockDistance;
 	auto rayEnd = rayStart + ray;
 	glm::ivec3 currentVoxelPos = glm::vec3(floor(rayStart.x),
 		floor(rayStart.y), floor(rayStart.z));
 	glm::ivec3 endVoxelPos = glm::vec3(floor(rayEnd.x) ,
 		floor(rayEnd.y), floor(rayEnd.z));
 
-	queueTravelVoxel.push(currentVoxelPos);
+	hit.posBlockWorld = currentVoxelPos;
+	hit.posHit = rayStart;
+
+	queueVoxelHit.push(hit);
 	int stepX = 0, stepY = 0, stepZ = 0;
 	float tMaxX = FLT_MAX, tMaxY = FLT_MAX, tMaxZ = FLT_MAX;
 	float tDeltaX = FLT_MAX, tDeltaY = FLT_MAX, tDeltaZ = FLT_MAX;
@@ -55,53 +59,69 @@ VoxelHit VoxelRaycast::raycast(glm::vec3 rayStart, glm::vec3 direction, float di
 	tDeltaY = stepY == 0 ? FLT_MAX : 1.f / (direction.y * stepY);
 	tDeltaZ = stepZ == 0 ? FLT_MAX : 1.f / (direction.z * stepZ);
 
-	int loop = 0;
-	while (currentVoxelPos != endVoxelPos) {
-		if (loop > 30) {
-			//printf("errro voxel traversal\n");
-			break;
-		}
-		loop++;
+	glm::vec3 hitPoint = rayStart;
+	int indexTraversal = 0;
+	while (indexTraversal != blockDistance) {
+		VoxelHit hit;
+		hit.normal = glm::vec3(0);
 
 		if (tMaxX < tMaxY && tMaxX < tMaxZ) {
+			float currentXNext = direction.x > 0 ? currentVoxelPos.x + 1 : currentVoxelPos.x;
+			float currentXNextTime = (currentXNext - rayStart.x) / ray.x;
+			hit.posHit = ray * currentXNextTime + rayStart;
+			hit.normal.x = -stepX;
+
 			currentVoxelPos.x += stepX;
 			tMaxX += tDeltaX;
 		}
 		else if (tMaxY < tMaxX && tMaxY < tMaxZ) {
+			float currentYNext = direction.y > 0 ? currentVoxelPos.y + 1 : currentVoxelPos.y;
+			float currentYNextTime = (currentYNext - rayStart.y) / ray.y;
+			hit.posHit = ray * currentYNextTime + rayStart;
+			hit.normal.y = -stepY;
+
 			currentVoxelPos.y += stepY;
 			tMaxY += tDeltaY;
 		}
 		else {
+			float currentZNext = direction.z > 0 ? currentVoxelPos.z + 1 : currentVoxelPos.z;
+			float currentZNextTime = (currentZNext - rayStart.z) / ray.z;
+			hit.posHit = ray * currentZNextTime + rayStart;
+			hit.normal.z = -stepZ;
+
 			currentVoxelPos.z += stepZ;
 			tMaxZ += tDeltaZ;
 		}
-		queueTravelVoxel.push(currentVoxelPos);
+		hit.posBlockWorld = currentVoxelPos;
+		queueVoxelHit.push(hit);
+		indexTraversal++;
 	}
-	while(queueTravelVoxel.size() > 0) {
-		auto voxelPosTravel = queueTravelVoxel.front();
-		queueTravelVoxel.pop();
-		if (voxelPosTravel.y < 0.f or voxelPosTravel.y > CHUNK_HEIGHT_INDEX) continue;
+	while(queueVoxelHit.size() > 0) {
+		auto voxelHit = queueVoxelHit.front();
+		queueVoxelHit.pop();
+		auto posBlockWorld = voxelHit.posBlockWorld;
 
-		auto chunkPos = cManager->ToChunkPosition(voxelPosTravel);
+		if (posBlockWorld.y < 0.f or posBlockWorld.y > CHUNK_HEIGHT_INDEX) continue;
+
+		auto chunkPos = cManager->ToChunkPosition(posBlockWorld);
 		auto chunk = cManager->getChunk({ chunkPos.x, chunkPos.z });
 		if (chunk == nullptr) break;
 
-		glm::vec3 blockPos = voxelPosTravel - chunkPos;
+		glm::vec3 blockPos = posBlockWorld - chunkPos;
 		int chunkIndex = chunkPos.y / CHUNK_SIZE;
 		uint16_t access = (int)blockPos.x + ((int)blockPos.y << 4) + ((int)blockPos.z << 8);
 		auto chunkSection = chunk->m_chunks[chunkIndex];
 		auto block = chunkSection->m_blocks[access];
 		//hit block not air
 		if (block.type > 0) {
-			hit.isHit = true;
-			hit.block = block;
-			hit.chunkSection = chunkSection;
-			hit.worldPos = voxelPosTravel;
-			hit.chunkIndex = chunkIndex;
-			hit.blockPos = blockPos;
-			hit.access = access;
-			break;
+			voxelHit.isHit = true;
+			voxelHit.block = block;
+			voxelHit.posChunk = chunkPos;
+			voxelHit.chunkSection = chunkSection;
+			voxelHit.chunkIndex = chunkIndex;
+			voxelHit.posBlock = blockPos;
+			voxelHit.access = access;
+			return voxelHit;
 		}
 	}
-	return hit;
 }
