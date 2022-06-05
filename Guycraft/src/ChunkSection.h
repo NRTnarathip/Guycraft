@@ -4,6 +4,7 @@
 #include <BlockSystem/BlockModel.h>
 #include <ChunkMarco.h>
 #include <MeshChunkSection.h>
+#include <TextureAtlas.h>
 
 class Chunk;
 typedef Block blocks_t[CHUNK_SIZE_BLOCK];
@@ -29,12 +30,17 @@ public:
 	void setTourchLight(uint8_t x, uint8_t y, uint8_t z);
 
 	void generateMesh();
-	void genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
+	void genMeshCube(Block* block, int8_t x, int8_t y, int8_t z,
 		bool useFuncGetOutChunk);
 	void genMeshWater(Block* block, int8_t x, int8_t y, int8_t z,
 		bool useFuncGetOutChunk);
+	void genMeshStair(Block* block, int8_t x, int8_t y, int8_t z,
+		bool useFuncGetOutChunk);
 
 	//helper for generate mesh
+	void makeVertexFace(MeshChunk* mesh,int direction, glm::vec3 vertexPos[4],
+		TextureUV textureUV);
+
 	void makeFaceBlock(MeshChunk* mesh, uint8_t directFace,
 		uint8_t(&voxSurr)[27], uint8_t(&lightSurr)[27]);
 	void getBlockSurround(uint8_t(&blocks)[27], uint8_t x, uint8_t y, uint8_t z,

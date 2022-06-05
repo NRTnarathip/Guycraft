@@ -27,6 +27,7 @@ public:
 
 		isHasInitial = true;
 	};
+	virtual void exit() {};
 	virtual void beforeUpdate() {};
 	virtual void update() {};
 	virtual void lastUpdate() {};

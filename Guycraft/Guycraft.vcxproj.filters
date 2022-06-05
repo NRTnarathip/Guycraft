@@ -464,5 +464,8 @@
     <ClInclude Include="src\IMutex.h">
       <Filter>src\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="src\ImGUILoader.h">
+      <Filter>src\Graphic 2D</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

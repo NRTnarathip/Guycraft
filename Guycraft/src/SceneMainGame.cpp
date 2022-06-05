@@ -19,7 +19,7 @@ void SceneMainGame::setupScene() {
 }
 void SceneMainGame::exit() {
 	isNeedExitToLobby = true;
-
+	printf("on exit\n");
 	chManager->chunkLoader.m_threadPopulate.join();
 	for (auto &th : chManager->chunkMeshBuilding.m_threads) {
 		th.join();
@@ -35,10 +35,10 @@ void SceneMainGame::playGame() {
 }
 void SceneMainGame::beforeUpdate()
 {
-	auto input = &Input::GetInstance();
+	/*auto input = &Input::GetInstance();
 	if (input->isKeyDown(GLFW_KEY_ESCAPE)) {
 		exit();
-	}
+	}*/
 }
 void SceneMainGame::update() {
 	runtime += Time::deltaTime;

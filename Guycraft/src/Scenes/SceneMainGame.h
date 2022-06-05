@@ -1,19 +1,16 @@
 #pragma once
-#ifndef SCENEMAINGAME_H
-#define SCENEMAINGAME_H
 #include "Scene.h"
 #include <World.h>
 #include <ChunkManager.h>
 
-//main class for play game survival, creative, world
 class SceneMainGame : public Scene {
 public:
-	bool isNeedExitToLobby = false;
 	SceneMainGame(std::string name) : Scene(name) {}
+	bool isNeedExitToLobby = false;
 	World* world = nullptr;
 	ChunkManager* chManager = nullptr;
-public:
 	float runtime = 0.f;
+
 	void init();
 	void setupScene();
 	void playGame();
@@ -22,4 +19,3 @@ public:
 	void render();
 	void exit();
 };
-#endif // !SCENEMAINGAME_H

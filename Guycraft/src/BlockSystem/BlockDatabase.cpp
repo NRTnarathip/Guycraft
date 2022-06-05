@@ -41,7 +41,10 @@ void BlockDatabase::addModel(BlockModel* model)
 
 void BlockDatabase::addModels(std::vector<BlockModel*> models)
 {
+	auto atlas = ResourceManager::GetInstance()->m_textureAtlas["chunk"];
+
 	for (auto model : models) {
+		model->m_atlas = atlas;
 		addModel(model);
 	}
 }

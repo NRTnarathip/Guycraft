@@ -3,6 +3,7 @@
 #include <iostream>
 #include <BlockSystem/Block.h>
 #include <glm/glm.hpp>
+#include <TextureAtlas.h>
 
 enum Shape {
 	Invisible = -1,
@@ -10,6 +11,7 @@ enum Shape {
 	Cross,
 	Tourch,
 	Water,
+	Stair
 };
 enum Material {
 	Opaque,
@@ -37,6 +39,8 @@ public:
 		m_material = Material::Opaque;
 	};
 	
+	static void GetBlockTextureUV(BlockModel *model,TextureUV (&uvs)[6]);
+	TextureAtlas* m_atlas = nullptr;
 	blocktype_t m_type;
 	Shape m_shape;
 	Material m_material;

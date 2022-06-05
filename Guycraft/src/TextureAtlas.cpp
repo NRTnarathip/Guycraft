@@ -35,27 +35,24 @@ void TextureAtlas::reload()
 	int glColorFormat = channels == 4 ? GL_RGBA : GL_RGB;
 	glTexImage2D(GL_TEXTURE_2D, 0, glColorFormat, width, height,
 		0, glColorFormat, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	float maxAnisotropy = 1.f;
+	stbi_image_free(data);
+
+	
 	if (m_mipmalLevel > 0) {
 		m_mipmalLevel = (m_mipmalLevel >= 5) ? 4 : m_mipmalLevel;
 		glGenerateMipmap(GL_TEXTURE_2D);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	}
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, m_lodBias);
+	else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m_mipmalLevel);
-	
 
 	m_texSize.x = width;
 	m_texSize.y = height;
-	stbi_image_free(data);
-
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

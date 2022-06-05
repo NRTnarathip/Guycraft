@@ -19,8 +19,6 @@ public:
 	TextureAtlas(std::string ID, std::string pathFile);
 	std::unordered_map<std::string, TextureUV> m_textures;
 	int m_mipmalLevel = 4;
-	float m_lodBias = -4.f;
-
 	void active(GLenum texture = GL_TEXTURE0);
 	std::string getID() { return m_id; }
 	//image size normal at 16*16

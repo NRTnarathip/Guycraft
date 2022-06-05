@@ -85,10 +85,13 @@ void ChunkSection::generateMesh() {
                 auto blockModel = blockDBModels[block->type];
                 auto blockShape = blockModel->m_shape;
                 if (blockShape == Shape::Cube) {
-                    genMeshSolid(block, x, y, z,useFuncGetVoxelOutChunk);
+                    genMeshCube(block, x, y, z,useFuncGetVoxelOutChunk);
                 }
                 else if(blockShape == Shape::Water) {
                     genMeshWater(block, x, y, z, useFuncGetVoxelOutChunk);
+                }
+                else if (blockShape == Shape::Stair) {
+                    genMeshStair(block, x, y, z, useFuncGetVoxelOutChunk);
                 }
             }
         }
@@ -102,7 +105,7 @@ void ChunkSection::generateMesh() {
     }
 }
 
-void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
+void ChunkSection::genMeshCube(Block* block, int8_t x, int8_t y, int8_t z,
     bool useFuncGetBlockOutChunk)
 {
     char xx = x + 1;
@@ -110,142 +113,65 @@ void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
     char zz = z + 1;
     uint8_t voxSurr[27];
     uint8_t lightSurr[27];//lighting surround
-    MeshChunk::Vertex vert;
     getLightSurround(lightSurr, x, y, z, useFuncGetBlockOutChunk);
     getBlockSurround(voxSurr, x, y, z, useFuncGetBlockOutChunk);
-    glm::vec2 blockUVs[6];
 
-    using FaceDir = BlockModel::FaceDirection;
     auto blockType = block->type;
     auto model = BlockDatabase::GetInstance()->m_models[blockType];
-    auto atlas = ResourceManager::GetInstance()->m_textureAtlas["chunk"];
-    for (auto blockTexture : model->m_textures) {
-        auto dir = blockTexture.dir;
-        std::string textureID = blockTexture.textureID;
-        auto uv = atlas->m_textures[textureID].start;
-        if (dir == FaceDir::All) {
-            blockUVs[0] = uv;
-            blockUVs[1] = uv;
-            blockUVs[2] = uv;
-            blockUVs[3] = uv;
-            blockUVs[4] = uv;
-            blockUVs[5] = uv;
-        }
-        else if (dir == FaceDir::Side) {
-            blockUVs[2] = uv;
-            blockUVs[3] = uv;
-            blockUVs[4] = uv;
-            blockUVs[5] = uv;
-        }
-        else if (dir == FaceDir::Top) {
-            blockUVs[0] = uv;
-        }
-        else if (dir == FaceDir::Buttom) {
-            blockUVs[1] = uv;
-        }
-    }
+    TextureUV blockUVs[6];
+    BlockModel::GetBlockTextureUV(model, blockUVs);
     auto mesh = &m_mesh->solid;
-    auto& vertexs = mesh->vertexs.m_vector;
 
     if (not checkBlockIsShape(Shape::Cube, 0, x, y, z)) {
-        vert.setUV(blockUVs[0]);
-        vert.setNormal(0);
-        vert.setPos(x, yy, z);
-        vertexs.push_back(vert);//0
-        vert.setPos(x, yy, zz);
-        vertexs.push_back(vert);//1
-        vert.setPos(xx, yy, zz);
-        vertexs.push_back(vert);//2
-        vert.setPos(xx, yy, z);
-        vertexs.push_back(vert);//3
+        glm::vec3 vertexPos[4] = {
+            {x,yy,z}, {x,yy,zz},
+            {xx,yy,zz}, {xx,yy,z}, };
+        makeVertexFace(mesh,0, vertexPos, blockUVs[0]);
         makeFaceBlock(mesh, 0, voxSurr, lightSurr);
     }
     if (not checkBlockIsShape(Shape::Cube, 1, x, y, z))
     {
-        vert.setUV(blockUVs[1]);
-        vert.setNormal(1);
-        vert.setPos(x, y, zz);
-        vertexs.push_back(vert);
-
-        vert.setPos(x, y, z);
-        vertexs.push_back(vert);
-
-        vert.setPos(xx, y, z);
-        vertexs.push_back(vert);
-
-        vert.setPos(xx, y, zz);
-        vertexs.push_back(vert);
+        glm::vec3 vertexPos[4] = {
+            {x,y,zz}, {x,y,z},
+            {xx,y,z}, {xx,y,zz},
+        };
+        makeVertexFace(mesh, 1, vertexPos, blockUVs[1]);
         makeFaceBlock(mesh, 1, voxSurr, lightSurr);
     }
     if (not checkBlockIsShape(Shape::Cube, 2, x, y, z))
     {
-        vert.setUV(blockUVs[2]);
-        vert.setNormal(2);
-        vert.setPos(xx, y, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(xx, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(x, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(x, y, zz);
-        mesh->vertexs.push_back(vert);
+        glm::vec3 vertexPos[4] = {
+            {xx,y,zz}, {xx,yy,zz},
+            {x,yy,zz}, {x,y,zz},
+        };
+        makeVertexFace(mesh, 2, vertexPos, blockUVs[2]);
         makeFaceBlock(mesh, 2, voxSurr, lightSurr);
-
     }
     if (not checkBlockIsShape(Shape::Cube, 3, x, y, z))
     {
-        vert.setUV(blockUVs[3]);
-        vert.setNormal(3);
-        vert.setPos(x, y, z);
-
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(x, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(xx, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(xx, y, z);
-        mesh->vertexs.push_back(vert);
+        glm::vec3 vertexPos[4] = {
+            {x,y,z}, {x,yy,z},
+            {xx,yy,z}, {xx,y,z},
+        };
+        makeVertexFace(mesh, 3, vertexPos, blockUVs[3]);
         makeFaceBlock(mesh, 3, voxSurr, lightSurr);
-
     }
     if (not checkBlockIsShape(Shape::Cube, 4, x, y, z))
     {
-        vert.setUV(blockUVs[4]);
-        vert.setNormal(4);
-        vert.setPos(xx, y, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(xx, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(xx, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(xx, y, zz);
-        mesh->vertexs.push_back(vert);
+        glm::vec3 vertexPos[4] = {
+            {xx,y,z},{xx,yy,z},
+            {xx,yy,zz},{xx,y,zz},
+        };
+        makeVertexFace(mesh, 4, vertexPos, blockUVs[4]);
         makeFaceBlock(mesh, 4, voxSurr, lightSurr);
     }
     if (not checkBlockIsShape(Shape::Cube, 5, x, y, z))
     {
-        vert.setUV(blockUVs[5]);
-        vert.setNormal(5);
-        vert.setPos(x, y, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(x, yy, zz);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(x, yy, z);
-        mesh->vertexs.push_back(vert);
-
-        vert.setPos(x, y, z);
-        mesh->vertexs.push_back(vert);
+        glm::vec3 vertexPos[4] = {
+            {x,y,zz}, {x,yy,zz},
+            {x,yy,z}, {x,y,z},
+        };
+        makeVertexFace(mesh, 5, vertexPos, blockUVs[5]);
         makeFaceBlock(mesh, 5, voxSurr, lightSurr);
     }
 }
@@ -263,29 +189,21 @@ void ChunkSection::genMeshWater(Block* block, int8_t x, int8_t y, int8_t z,
     MeshChunk::Vertex vert;
     getLightSurround(lightSurr, x, y, z, useFuncGetBlockOutChunk);
     getBlockSurround(voxSurr, x, y, z, useFuncGetBlockOutChunk);
-    auto blockDB = BlockDatabase::GetInstance();
-    auto model = blockDB->m_models[block->type];
-    auto atlas = ResourceManager::GetInstance()->m_textureAtlas["chunk"];
-    using FaceDir = BlockModel::FaceDirection;
-    glm::vec2 uvTop;
-    for (auto elem : model->m_textures) {
-        if (elem.dir == FaceDir::All) {
-            uvTop = atlas->m_textures[elem.textureID].start;
-        }
-    }
+    
+    auto blockType = block->type;
+    auto model = BlockDatabase::GetInstance()->m_models[blockType];
+    TextureUV blockUVs[6];
+    BlockModel::GetBlockTextureUV(model, blockUVs);
     auto mesh = &m_mesh->fluid;
-    auto& vertexs = mesh->vertexs.m_vector;
+
     if (not checkBlockIsShape(Shape::Water, 0, x, y, z)) {
-        vert.setUV(uvTop);
-        vert.setNormal(0);
-        vert.setPos(x, vertexY, z);
-        vertexs.push_back(vert);//0
-        vert.setPos(x, vertexY, zz);
-        vertexs.push_back(vert);//1
-        vert.setPos(xx, vertexY, zz);
-        vertexs.push_back(vert);//2
-        vert.setPos(xx, vertexY, z);
-        vertexs.push_back(vert);//3
+        glm::vec3 verts[4] = {
+            {x, vertexY,z},
+            {x, vertexY,zz},
+            {xx, vertexY,zz},
+            {xx, vertexY,z},
+        };
+        makeVertexFace(mesh, 0, verts, blockUVs[0]);
         makeFaceBlock(mesh, 0, voxSurr, lightSurr);
     }
 }
@@ -302,17 +220,10 @@ void ChunkSection::makeFaceBlock(MeshChunk* mesh, uint8_t directFace, uint8_t(&v
     u8 lightFace[4];
     getAO(aos, directFace, voxSurr);
     getVertexLightMaping(lightFace, directFace, lightSurr);
-    glm::vec2 uvIndex[4] ={
-        {0, 0},
-        {0, 16},
-        {16, 16},
-        {16, 0},
-    };
     for (u8 i = 0; i < 4; i++) {
         auto vert = &mesh->vertexs.m_vector[vertCount - (4 - i)];
         auto uv = vert->uv;
         vert->setAO(aos[i]);
-        vert->setUV(glm::vec2(uv[0], uv[1]) + uvIndex[i]);
         vert->setLight(lightFace[i]);
     }
 }
@@ -333,6 +244,10 @@ void ChunkSection::getLightSurround(uint8_t(&lights)[27], uint8_t x, uint8_t y, 
             for (int8_t i = x - 1; i <= x + 1; i++) {
                 lights[index++] = 15;
             }
+}
+void ChunkSection::genMeshStair(Block* block, int8_t x, int8_t y, int8_t z, bool useFuncGetOutChunk)
+{
+
 }
 void ChunkSection::getAO(uint8_t(&refAO)[4], uint8_t directFace, uint8_t(&voxSurr)[27])
 {
@@ -429,6 +344,26 @@ void ChunkSection::getVertexLightMaping(uint8_t(&refLight)[4], uint8_t directFac
     refLight[1] = lightSurr[12];
     refLight[2] = lightSurr[12];
     refLight[3] = lightSurr[12];
+}
+void ChunkSection::makeVertexFace(MeshChunk* mesh,int dir, glm::vec3 vertexPos[4], TextureUV textureUV)
+{
+    static const glm::vec2 uvQuad[4] = {
+        {0,0},
+        {0,1},
+        {1,1},
+        {1,0},
+    };
+    MeshChunk::Vertex vertex;
+    vertex.setNormal(dir);
+    for (int i = 0; i < 4;i++) {
+        auto pos = vertexPos[i];
+        auto uv =  uvQuad[i] * textureUV.size;
+        uv += textureUV.start;
+
+        vertex.setPos(pos.x,pos.y,pos.z);
+        vertex.setUV(uv);
+        mesh->vertexs.push_back(vertex);
+    }
 }
 bool ChunkSection::checkBlockIsShape(Shape shapeType, int direction,
     int x, int y, int z) {

@@ -1,9 +1,9 @@
 #include "ClientEngine.h"
 #include <stb/stb_image.h>
 #include "Input.h"
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include "ImGUILoader.h"
+#include "PlayerController.h"
+
 ClientEngine* ClientEngine::instance = nullptr;
 
 void framebuffer_size_callback(GLFWwindow* glWindow, int width, int height)
@@ -115,30 +115,42 @@ int ClientEngine::launch() {
         game->update();
         game->lastUpdate();
 
-        if (m_input->isKeyDown(GLFW_KEY_R)) {
-            m_input->setMouseMode(not m_input->getMouseMode());
-        }
+       
         game->render();
 
         //// Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        auto atlas = m_resouceManager->m_textureAtlas["chunk"];
         {
+            auto atlas = m_resouceManager->m_textureAtlas["chunk"];
             ImGui::Begin("Hello, world!");                         
             ImGui::SliderInt("mipmap level", &atlas->m_mipmalLevel, 0, 4);
-            ImGui::SliderFloat("mipmap lod bias", &atlas->m_lodBias, -8.0f, 0.0f);
             if (ImGui::Button("reload atlas")) {
                 atlas->reload();
             }                          
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
         }
-        // Rendering
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+        bool isNeedExitGame = false;
+        {
+            auto pc = PlayerController::GetInstance();
+            if (pc != nullptr) {
+                ImGui::Begin("Player Controller");
+                ImGui::SliderFloat("mipmap level", &pc->speedRun, 0, 500);
+                if (ImGui::Button("Exit Game")) {
+                    isNeedExitGame = true;
+                    auto sc = m_sceneManager->getCurrent();
+                    sc->exit();
+                }
+                ImGui::End();
+            };
+        }
+        {
+            // Rendering
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
         // Swap the back buffer with the front buffer
         glfwSwapBuffers(glfwWindow);
     }

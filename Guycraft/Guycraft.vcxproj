@@ -113,6 +113,7 @@
     <ClInclude Include="src\GUI.h" />
     <ClInclude Include="src\Biome.h" />
     <ClInclude Include="src\Image.h" />
+    <ClInclude Include="src\ImGUILoader.h" />
     <ClInclude Include="src\IMutex.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\JobGenerateMesh.h" />

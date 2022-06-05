@@ -8,6 +8,8 @@
 #include <GameObject.h>
 #include "Physics/Vector.h"
 #include "glm/ext.hpp"
+#include "ImGUILoader.h"
+
 
 PlayerController* PlayerController::instance = nullptr;
 
@@ -42,6 +44,12 @@ void PlayerController::start() {
 }
 void PlayerController::update() { //update every frame on ECS
 	//move left,right,forward,backward, camera
+	//debug
+	auto &input = Input::GetInstance();
+	if (input.isKeyDown(GLFW_KEY_ESCAPE)) {
+		input.setMouseMode(not input.getMouseMode());
+	}
+
 	UpdateInputs();
 	//for interaction world block
 	if (Input::GetInstance().getMouseMode() == 0) {
@@ -88,7 +96,7 @@ void PlayerController::UpdateInputs()
 	float speed = speedMove;
 	if (input->isKey(GLFW_KEY_LEFT_SHIFT))
 	{
-		speed = 400;
+		speed = speedRun;
 	}
 	// Handles key inputs
 	float cameRotateY = me->transform.rotation.y;
