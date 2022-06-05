@@ -1,9 +1,10 @@
 #pragma once
 #include "Renderer/shaderClass.h"
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include "Sprite.h"
+#include <TextureAtlas.h>
 
 class ResourceManager {
 private:
@@ -13,10 +14,11 @@ public:
         instance = this;
     }
 	static ResourceManager* GetInstance() { return instance; }
-    std::map<std::string, Shader*> m_shaders;
-    std::map<std::string, Sprite*> m_sprites;
+    std::unordered_map<std::string, Shader*> m_shaders;
+    std::unordered_map<std::string, Sprite*> m_sprites;
+    std::unordered_map<std::string, Texture*> m_textures;
+    std::unordered_map<std::string, TextureAtlas*> m_textureAtlas;
 
-    std::map<std::string, Texture*> m_textures;
     Texture* addTexture(const char* pathFile, bool isMipmapping);
     Shader* addShader(std::string pathVertexAndFragment, std::string shaderName);
     Sprite* getSprite(std::string spriteID);

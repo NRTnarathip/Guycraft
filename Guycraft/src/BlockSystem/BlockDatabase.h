@@ -12,8 +12,6 @@ public:
 	}
 	static BlockDatabase* GetInstance() { return m_instance; }
 	std::unordered_map<blocktype_t, BlockModel*> m_models;
-	std::unordered_map<std::string, uint16_t> m_texturesTileIndex;
-
 	void init();
 	void addModel(BlockModel* model);
 	void addModels(std::vector<BlockModel*> models);

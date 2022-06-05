@@ -7,15 +7,16 @@
 class PlayerController : public Component {
 private:
 	static PlayerController* instance;
-	
 	void updateInteractionBlock();
-
 public:
 	PlayerController();
 	static PlayerController* GetInstance();
 	void init();
 	void start();
 	void update();
+	void render() {
+
+	}
 	float speedMove = 3.f;
 	float speedRun = 64.f; 
 	VoxelRaycast voxelRaycast;
@@ -24,6 +25,4 @@ public:
 
 	// Handles camera inputs
 	void UpdateInputs();
-
-	
 };

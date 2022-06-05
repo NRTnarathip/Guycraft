@@ -71,6 +71,7 @@ void Input::update() {
     }
 }
 void Input::setMouseMode(int mode) {
+    m_mouseMode = mode;
     if (mode == 0) {
         glfwSetInputMode(ClientEngine::GetInstance().window->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }

@@ -40,10 +40,6 @@ void Game::init() {
 void Game::render() {
     sceneManager->render();
 }
-void Game::printCounter() {
-    printf("FPS %d\n", Time::fps);
-    printf("Render Mesh Chunk Triangle Count %d\n", MeshChunk::triangleGPU);
-}
 void Game::counterTime() { 
     //update deltatime
     double currentTime = glfwGetTime();
@@ -56,8 +52,6 @@ void Game::counterTime() {
         Time::lastTimeFPS = currentTime;
         Time::fps = (int)Time::framesPerSecond;
         Time::framesPerSecond = 0;
-
-        printCounter();
     }
 }
 void Game::beforeUpdate() {

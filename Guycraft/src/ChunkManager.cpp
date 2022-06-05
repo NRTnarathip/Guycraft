@@ -24,15 +24,14 @@ void ChunkManager::init() {
 
 	auto res = ResourceManager::GetInstance();
 	auto sdSolid = res->m_shaders["chunk_block_solid"];
-	auto sdFulid = res->m_shaders["chunk_block_fluid"];
-	sdSolid->Bind();
-	sdSolid->SetVar("tex", 0);
-	sdSolid->SetFloat("aoStrength", 0.45f);
-
-	sdFulid->Bind();
-	sdFulid->SetVar("tex", 0);
-	sdFulid->SetFloat("aoStrength", 0.45f);
-	sdFulid->SetFloat("time", (float)Time::lastTime);
+	auto sdFluid = res->m_shaders["chunk_block_fluid"];
+	auto atlasChunk = res->m_textureAtlas["chunk"];
+	for (auto s : { sdSolid, sdFluid }) {
+		s->Bind();
+		s->SetVar("tex", 0);
+		s->SetFloat("aoStrength", 0.45f);
+		s->SetVec2("textureAtlasSize", atlasChunk->getSize());
+	}
 }
 glm::vec3 ChunkManager::ToChunkPosition(glm::vec3 worldPos) const
 {
@@ -114,18 +113,14 @@ void ChunkManager::render() {
 	auto res = ResourceManager::GetInstance();
 
 	auto sdSolid = res->m_shaders["chunk_block_solid"];
-	auto sdFulid = res->m_shaders["chunk_block_fluid"];
-	auto mcatlas = res->m_textures["assets/textures/blocks/mcatlas.png"];
-	sdFulid->Bind();
-	mcatlas->Activate(GL_TEXTURE0);
-	sdSolid->Bind();
-	mcatlas->Activate(GL_TEXTURE0);
-	sdFulid->SetFloat("time", Time::lastTime);
-	sdSolid->SetFloat("time", Time::lastTime);
-
-	CameraManager::GetInstance().uploadCameraMatrixToShader(sdSolid);
-	CameraManager::GetInstance().uploadCameraMatrixToShader(sdFulid);
-	Shader* shaders[2]{sdSolid,sdFulid};
+	auto sdFluid = res->m_shaders["chunk_block_fluid"];
+	auto texAtlas = res->m_textureAtlas["chunk"];
+	for (auto shader : { sdSolid, sdFluid }) {
+		shader->Bind();
+		shader->SetFloat("time", Time::lastTime);
+		CameraManager::GetInstance().uploadCameraMatrixToShader(shader);
+	}
+	Shader* shaders[2]{sdSolid, sdFluid};
 	for (auto kvp : chunks.m_container) {
 		kvp.second->render(shaders);
 	}

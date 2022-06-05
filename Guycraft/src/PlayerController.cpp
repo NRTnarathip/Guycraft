@@ -24,7 +24,7 @@ void PlayerController::init() {
 	getGameObject()->transform.rotation = glm::vec3(0,-90.f,0);
 	getGameObject()->transform.position.y = 90;
 	//setup corsur
-	auto spriteCursor = ResourceManager::GetInstance()->getSprite("assets/textures/gui/cursor");
+	auto spriteCursor = ResourceManager::GetInstance()->getSprite("assets/texture/gui/cursor");
 	auto sc = SceneManager::GetInstance()->getCurrent();
 	sc->registerRenderWithoutDepth([] {
 		auto pc = PlayerController::GetInstance();
@@ -43,17 +43,9 @@ void PlayerController::start() {
 void PlayerController::update() { //update every frame on ECS
 	//move left,right,forward,backward, camera
 	UpdateInputs();
-
-
-	//for interaction world
-	//block
-	updateInteractionBlock();
-
-	auto input = &Input::GetInstance();
-	//reload some shader such block_highlight
-	if (input->isKeyDown(GLFW_KEY_R)) {
-		auto shader = ResourceManager::GetInstance()->m_shaders["block_outline"];
-		shader->reload();
+	//for interaction world block
+	if (Input::GetInstance().getMouseMode() == 0) {
+		updateInteractionBlock();
 	}
 }
 void PlayerController::updateInteractionBlock() {
@@ -124,19 +116,20 @@ void PlayerController::UpdateInputs()
 	{
 		posEntity.y -= speed;
 	}
+	if (Input::GetInstance().getMouseMode() == 0) {
+		glm::vec2 mouseAxis = Input::GetInstance().mouseAxis();
+		float cameRotateX = me->transform.rotation.x;
+		float rotRight = (mouseAxis.x * camera->sensitivity);
+		rotRight += cameRotateY;
+		if (rotRight >= 360.f or rotRight <= -360.f) {
+			rotRight = 0.f;
+		}
+		float rotUp = (mouseAxis.y * camera->sensitivity);
+		rotUp += cameRotateX;
+		rotUp = glm::clamp(rotUp, -89.9f, 89.9f);
 
-	glm::vec2 mouseAxis = Input::GetInstance().mouseAxis();
-	float cameRotateX = me->transform.rotation.x;
-	float rotRight = (mouseAxis.x * camera->sensitivity);
-	rotRight += cameRotateY;
-	if (rotRight >= 360.f or rotRight <= -360.f) {
-		rotRight = 0.f;
+		me->transform.rotation = glm::vec3(rotUp, rotRight, 0.f);
 	}
-	float rotUp = (mouseAxis.y * camera->sensitivity);
-	rotUp += cameRotateX;
-	rotUp = glm::clamp(rotUp, -89.9f, 89.9f);
-
-	me->transform.rotation = glm::vec3(rotUp, rotRight, 0.f);
 
 	camera->transform.position = posEntity;
 	camera->transform.rotation = me->transform.rotation;

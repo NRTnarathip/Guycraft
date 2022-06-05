@@ -43,7 +43,7 @@ public:
 		bool useFuncAccessOutChunk);
 	void getAO(uint8_t(&refAO)[4], uint8_t directFace, uint8_t(&blockSurround)[27]);
 	void getVertexLightMaping(uint8_t(&refLight)[4], uint8_t directFace, uint8_t(&lightSurround)[27]);
-	bool checkBlockIsShape(uint8_t shapeType, int direction,
+	bool checkBlockIsShape(Shape shapeType, int direction,
 		int x,int y,int z);
 	Block* tryGetBlock(int direction, int x, int y, int z);
 	BlockModel* tryGetBlockModel(int direction, int x, int y, int z);

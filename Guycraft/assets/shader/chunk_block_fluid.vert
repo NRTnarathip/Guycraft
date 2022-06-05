@@ -1,19 +1,31 @@
 #version 330 core
 //you must convert axis by aPos.x,y,z / 16
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in float aUVTileAndNormal;
-layout (location = 2) in float aLighting;
+layout (location = 1) in vec2 aUV;
+layout (location = 2) in float aNormal;
+layout (location = 3) in float aLighting;
 
 out float sunLightFace;
 out float aoLightFace;
 out float lampLightFace;
+
 out vec2 texcoord;
 out vec3 normal;
 
-const float tileSize = 0.0625;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform vec2 textureAtlasSize;
+
+const vec3 tbNormal[6] = vec3[6](
+	vec3(0.0,1.0,0.0),//up
+	vec3(0.0,-1.0,0.0),//down
+	vec3(0.0,0.0,1.0),//north
+	vec3(0.0,0.0,-1.0),//south
+	vec3(1.0,0.0,0.0),//east
+	vec3(-1.0,0.0,0.0)//west
+);
+
 uniform float time;
 
 int waveHeightPixel = 2;
@@ -42,37 +54,6 @@ float noise (vec2 st) {
             (c - a)* u.y * (1.0 - u.x) +
             (d - b) * u.x * u.y;
 }
-
-
-
-//Warning!!!! u invert axis X
-const vec2 tbUV[4] = vec2[4](
-	vec2(0.0,0.0),//0
-	vec2(0.0,1.0),//1
-	vec2(1.0,1.0),//2
-	vec2(1.0,0.0)//3
-);
-
-const vec3 tbNormal[6] = vec3[6](
-	vec3(0.0,1.0,0.0),//up
-	vec3(0.0,-1.0,0.0),//down
-	vec3(0.0,0.0,1.0),//north
-	vec3(0.0,0.0,-1.0),//south
-	vec3(1.0,0.0,0.0),//east
-	vec3(-1.0,0.0,0.0)//west
-);
-vec2 toTextureCood(float val) {
-	int x = int(val) & 15;
-	int y = (int(val) >> 4) & 15;
-
-	float tileX = x * tileSize;
-	float tileY = y * tileSize;
-
-	int vertIndex = (int(val) >> 8) & 3;
-	vec2 uv = vec2(tileX,tileY);
-	uv += tbUV[vertIndex] * tileSize;
-	return uv;
-};
 float noiseWave(float x, float z) {
 	float offs = time * waveSpeed;
 	vec2 pos = vec2(x + offs, z + offs);
@@ -95,6 +76,6 @@ void main()
 	aoLightFace = (int(aLighting) >> 8) & 3;
 	lampLightFace = (int(aLighting) >> 4) & 15;
 
-	texcoord = toTextureCood(aUVTileAndNormal);
-	normal = tbNormal[( int(aUVTileAndNormal) >> 11) & 7];
+	texcoord = aUV / textureAtlasSize;
+	normal = tbNormal[( int(aNormal) >> 11) & 7];
 }

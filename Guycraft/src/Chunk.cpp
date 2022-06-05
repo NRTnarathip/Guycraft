@@ -45,6 +45,8 @@ void Chunk::render(Shader* shaders[2]) {
     glm::vec3 position = { pos.x, 0.f, pos.y };
     glm::mat4 model = glm::mat4(1.f);
     std::vector<MeshChunkSection*> meshsUnActive;
+    auto atlas = ResourceManager::GetInstance()->m_textureAtlas["chunk"];
+    atlas->active();
     for (auto &elem : m_meshsActive.m_map) {
         auto m = elem.second;
 

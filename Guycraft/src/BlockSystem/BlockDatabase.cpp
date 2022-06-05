@@ -1,4 +1,5 @@
 #include "BlockSystem/BlockDatabase.h"
+#include "ResourceManager.h"
 
 BlockDatabase* BlockDatabase::m_instance = nullptr;
 
@@ -6,23 +7,31 @@ void BlockDatabase::init()
 {
 	using FaceDir = BlockModel::FaceDirection;
 
-	m_texturesTileIndex.emplace("dirt", 1);
-	m_texturesTileIndex.emplace("stone", 2);
-	m_texturesTileIndex.emplace("sand", 3);
-	m_texturesTileIndex.emplace("water", 4);
-	auto* air = new BlockModel(0, -1);
+	//setup texture uv atlas
+	auto atlas = ResourceManager::GetInstance()->m_textureAtlas["chunk"];
+	atlas->addTextureUV("dirt", { 1, 0 });
+	atlas->addTextureUV("dirt_side", { 2, 0 });
+	atlas->addTextureUV("dirt_grass", { 3, 0 });
+	atlas->addTextureUV("stone", { 4, 0 });
+	atlas->addTextureUV("sand", { 5, 0 });
+	atlas->addTextureUV("water", { 6, 0 });
 
-	auto *dirt = new BlockModel(1, 0);
-	dirt->addTexture(FaceDir::All, "dirt");
-	auto* stone = new BlockModel(2, 0);
+
+	auto *dirt = new BlockModel(1, Shape::Cube);
+	dirt->addTexture(FaceDir::Side, "dirt_side");
+	dirt->addTexture(FaceDir::Top, "dirt_grass");
+	dirt->addTexture(FaceDir::Buttom, "dirt");
+
+	auto* stone = new BlockModel(2, Shape::Cube);
 	stone->addTexture(FaceDir::All, "stone");
-	auto* sand = new BlockModel(3, 0);
+	auto* sand = new BlockModel(3, Shape::Cube);
 	sand->addTexture(FaceDir::All, "sand");
 
-	auto* water = new BlockModel(4, BlockModel::Shape::Fluid);
+	auto* water = new BlockModel(4, Shape::Water);
 	water->addTexture(FaceDir::All, "water");
 
-	addModels({air, dirt, stone,sand,water});
+	addModels({ new BlockModel(0, Shape::Invisible),
+		dirt, stone, sand, water});
 }
 
 void BlockDatabase::addModel(BlockModel* model)

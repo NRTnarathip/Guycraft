@@ -27,7 +27,7 @@ public:
     bool isKey(int keycode);
     bool isKeyUp(int keycode);
     bool isKeyDown(int keycode);
-
+    uint32_t getMouseMode() const { return m_mouseMode; }
     bool onMouseUp(int mouseButton);
     bool onMouseDown(int mouseButton);
     bool onMouse(int mouseButton);
@@ -39,7 +39,7 @@ private:
     void registerKeyState(int glfwKeycode, int device);
     std::unordered_map<int, int> m_keyboardKeyState;
     std::unordered_map<int, int> m_mouseKeyState;
-
+    int m_mouseMode = 0;
     static Input* instance;
     glm::vec2 lastCursor = glm::vec2(0, 0);
     glm::vec2 nowCursor = glm::vec2(0, 0);

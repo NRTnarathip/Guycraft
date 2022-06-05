@@ -2,33 +2,45 @@
 #include <vector>
 #include <iostream>
 #include <BlockSystem/Block.h>
+#include <glm/glm.hpp>
 
-class BlockDatabase;
-
+enum Shape {
+	Invisible = -1,
+	Cube,
+	Cross,
+	Tourch,
+	Water,
+};
+enum Material {
+	Opaque,
+	Alpha,
+	Blend,
+	DoubleSide //none backface culling
+};
+struct BlockUV {
+	glm::vec2 start;
+	glm::vec2 end;
+};
 class BlockModel {
 public:
-	enum Shape : uint8_t {
-		Air = -1,
-		Cube = 0,
-		Fluid = 1,
-		Cross = 2
-	};
 	enum FaceDirection {
-		Top, Down, Front, Back, Right,Left, Side, All
+		Top, Buttom, Front, Back, Right,Left, Side, All
 	};
 	struct BlockTexture {
 		FaceDirection dir;
-		std::string texture;
+		BlockUV uv;
+		std::string textureID;
 	};
-	BlockModel(blocktype_t type, uint8_t shape) {
+	BlockModel(blocktype_t type, Shape shape) {
 		m_type = type;
-		m_shape = (Shape)shape;
+		m_shape = shape;
+		m_material = Material::Opaque;
 	};
 	
 	blocktype_t m_type;
 	Shape m_shape;
+	Material m_material;
+
 	std::vector<BlockTexture> m_textures;
-	void addTexture(FaceDirection dir, std::string texture) {
-		m_textures.push_back({ dir, texture });
-	};
+	void addTexture(FaceDirection dir, std::string textureID);
 }; 

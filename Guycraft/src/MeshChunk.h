@@ -11,18 +11,19 @@ public:
 	struct Vertex
 	{
 	public:
-#define TILE_ROW 16
 		uint16_t pos[3];
-		uint16_t dataUVTNVI= 0;
+		float uv[2];
+		//normal
+		uint16_t dataVertex = 0;
 		uint16_t lighting = 0;
 
 		void setPos(float x, float y, float z);
-		void setUVTile(uint16_t tileIndex);
-		void setVertexIndex(int index) {
-			dataUVTNVI = dataUVTNVI | index << 8;
+		void setUV(glm::vec2 newUV) {
+			uv[0] = newUV.x;
+			uv[1] = newUV.y;
 		}
 		void setNormal(unsigned int index) {
-			dataUVTNVI = dataUVTNVI | index << 11;
+			dataVertex = dataVertex | index << 11;
 		}
 		void setAO(unsigned char val) {
 			lighting = lighting | (val << 8);

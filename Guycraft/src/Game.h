@@ -26,7 +26,6 @@ public:
     void update();
     void lastUpdate();
     void render();
-    void printCounter();
     void exit();
     void play();
 };

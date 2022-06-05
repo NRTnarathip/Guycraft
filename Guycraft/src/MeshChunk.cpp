@@ -6,11 +6,6 @@ void MeshChunk::Vertex::setPos(float x, float y, float z) {
 	pos[1] = u16(y * 16);
 	pos[2] = u16(z * 16);
 }
-void MeshChunk::Vertex::setUVTile(uint16_t tileIndex) {
-	int x = tileIndex % TILE_ROW;
-	int y = tileIndex / TILE_ROW;
-	dataUVTNVI = dataUVTNVI | x | y << 4;
-}
 MeshChunk::MeshChunk() {
 	setupMesh();
 }
@@ -77,13 +72,18 @@ void MeshChunk::setupMesh() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
 		(void*)offsetof(Vertex, pos));
-	// uv tile; uv index of table texcoord; normal index of table normal
+	// uv float
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
-		(void*)offsetof(Vertex, dataUVTNVI));
-	// lighting ao,sun,lamp 
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+		(void*)offsetof(Vertex, uv));
+
+	// uv index of table texcoord; normal index of table normal
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
+		(void*)offsetof(Vertex, dataVertex));
+	// lighting ao,sun,lamp 
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex),
 		(void*)offsetof(Vertex, lighting));
 	
 	//UnBine

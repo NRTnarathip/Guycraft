@@ -2,17 +2,18 @@
 
 #include <glad/glad.h>
 #include <string>
+#include <glm/glm.hpp>
 
-// Wrapper for graphics api textures
 class Texture
 {
 public:
 	Texture(const char* path, int wrapMode = GL_REPEAT, int filter = GL_NEAREST);
-	// Getters
 	int GetWidth() const;
 	int GetHeight() const;
 	int GetChannelCount() const;
-
+	glm::ivec2 getSize() const {
+		return glm::ivec2(width_, height_);
+	};
 	// Use this texture to draw
 	void Activate(GLenum texture = 0);
 private:

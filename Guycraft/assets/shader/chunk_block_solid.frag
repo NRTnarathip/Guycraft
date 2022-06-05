@@ -11,6 +11,7 @@ uniform sampler2D tex;
 uniform float aoStrength;
 uniform float worldSunLevel;
 
+
 const float maxLight = 0.94;
 const float minLight = 0.06;
 

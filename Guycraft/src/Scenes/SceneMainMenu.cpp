@@ -14,7 +14,7 @@ void SceneMainMenu::setupMainMenu() {
 	m_UIMenu.setupEntt(&registry);
 	auto contentMainMenu = m_UIMenu.createContainer("mainmenu", { 0 ,0 }, { 800, 600});
 	{
-		auto spriteButton = res->getSprite("assets/textures/gui/button_0");
+		auto spriteButton = res->getSprite("assets/texture/gui/button_0");
 		auto button = contentMainMenu->createButton("play");
 		button->rect.size = { 220, 60 };
 		button->rect.position = { 0, 80 };

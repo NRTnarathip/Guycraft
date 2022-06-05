@@ -93,6 +93,10 @@ void Shader::SetVar(const char* name, int value) const
 	Bind();
 	glUniform1i(glGetUniformLocation(ID, name), value);
 }
+void Shader::SetVec2(const char* uniformName, glm::vec2 value) const
+{
+	glUniform2fv(glGetUniformLocation(ID, uniformName), 1, glm::value_ptr(value));
+}
 void Shader::reload()
 {
 	// Read vertexFile and fragmentFile and store the strings

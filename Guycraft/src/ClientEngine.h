@@ -4,7 +4,6 @@
 #include "TextRenderer.h"
 #include "GUI.h"
 #include "BlockSystem/BlockDatabase.h"
-
 class Input;
 
 class ClientEngine {

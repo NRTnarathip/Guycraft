@@ -1,7 +1,8 @@
 #include "ChunkSection.h"
 #include "ChunkMeshBuilding.h"
 #include "BlockSystem/BlockDatabase.h"
-
+#include "ResourceManager.h"
+#include <glm/gtx/string_cast.hpp>
 
 void ChunkSection::unLoad() {
     m_mesh->lock();
@@ -83,10 +84,10 @@ void ChunkSection::generateMesh() {
                     or isVoxelOnEdgeY or isVoxelOnEdgeZ;
                 auto blockModel = blockDBModels[block->type];
                 auto blockShape = blockModel->m_shape;
-                if (blockShape == BlockModel::Shape::Cube) {
+                if (blockShape == Shape::Cube) {
                     genMeshSolid(block, x, y, z,useFuncGetVoxelOutChunk);
                 }
-                else if(blockShape == BlockModel::Shape::Fluid) {
+                else if(blockShape == Shape::Water) {
                     genMeshWater(block, x, y, z, useFuncGetVoxelOutChunk);
                 }
             }
@@ -112,27 +113,42 @@ void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
     MeshChunk::Vertex vert;
     getLightSurround(lightSurr, x, y, z, useFuncGetBlockOutChunk);
     getBlockSurround(voxSurr, x, y, z, useFuncGetBlockOutChunk);
-    auto blockDB = BlockDatabase::GetInstance();
-    auto model = blockDB->m_models[block->type];
+    glm::vec2 blockUVs[6];
+
     using FaceDir = BlockModel::FaceDirection;
-    uint16_t uvTiles[6];
-    uint16_t uvTileUp, uvTileDown;
-    for (auto elem : model->m_textures) {
-        if (elem.dir == FaceDir::All) {
-            auto tileIndex = blockDB->m_texturesTileIndex[elem.texture];
-            uvTileUp = tileIndex;
-            uvTileDown = tileIndex;
-            uvTiles[2] = tileIndex;
-            uvTiles[3] = tileIndex;
-            uvTiles[4] = tileIndex;
-            uvTiles[5] = tileIndex;
+    auto blockType = block->type;
+    auto model = BlockDatabase::GetInstance()->m_models[blockType];
+    auto atlas = ResourceManager::GetInstance()->m_textureAtlas["chunk"];
+    for (auto blockTexture : model->m_textures) {
+        auto dir = blockTexture.dir;
+        std::string textureID = blockTexture.textureID;
+        auto uv = atlas->m_textures[textureID].start;
+        if (dir == FaceDir::All) {
+            blockUVs[0] = uv;
+            blockUVs[1] = uv;
+            blockUVs[2] = uv;
+            blockUVs[3] = uv;
+            blockUVs[4] = uv;
+            blockUVs[5] = uv;
+        }
+        else if (dir == FaceDir::Side) {
+            blockUVs[2] = uv;
+            blockUVs[3] = uv;
+            blockUVs[4] = uv;
+            blockUVs[5] = uv;
+        }
+        else if (dir == FaceDir::Top) {
+            blockUVs[0] = uv;
+        }
+        else if (dir == FaceDir::Buttom) {
+            blockUVs[1] = uv;
         }
     }
     auto mesh = &m_mesh->solid;
-    auto& vertexs = m_mesh->solid.vertexs.m_vector;
-    if (not checkBlockIsShape(0, 0, x, y, z))
-    {
-        vert.setUVTile(uvTileUp);
+    auto& vertexs = mesh->vertexs.m_vector;
+
+    if (not checkBlockIsShape(Shape::Cube, 0, x, y, z)) {
+        vert.setUV(blockUVs[0]);
         vert.setNormal(0);
         vert.setPos(x, yy, z);
         vertexs.push_back(vert);//0
@@ -144,9 +160,9 @@ void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
         vertexs.push_back(vert);//3
         makeFaceBlock(mesh, 0, voxSurr, lightSurr);
     }
-    if (not checkBlockIsShape(0, 1, x, y, z))
+    if (not checkBlockIsShape(Shape::Cube, 1, x, y, z))
     {
-        vert.setUVTile(uvTileDown);
+        vert.setUV(blockUVs[1]);
         vert.setNormal(1);
         vert.setPos(x, y, zz);
         vertexs.push_back(vert);
@@ -161,9 +177,9 @@ void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
         vertexs.push_back(vert);
         makeFaceBlock(mesh, 1, voxSurr, lightSurr);
     }
-    if (not checkBlockIsShape(0, 2, x, y, z))
+    if (not checkBlockIsShape(Shape::Cube, 2, x, y, z))
     {
-        vert.setUVTile(uvTiles[2]);
+        vert.setUV(blockUVs[2]);
         vert.setNormal(2);
         vert.setPos(xx, y, zz);
         mesh->vertexs.push_back(vert);
@@ -179,9 +195,9 @@ void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
         makeFaceBlock(mesh, 2, voxSurr, lightSurr);
 
     }
-    if (not checkBlockIsShape(0, 3, x, y, z))
+    if (not checkBlockIsShape(Shape::Cube, 3, x, y, z))
     {
-        vert.setUVTile(uvTiles[3]);
+        vert.setUV(blockUVs[3]);
         vert.setNormal(3);
         vert.setPos(x, y, z);
 
@@ -198,9 +214,9 @@ void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
         makeFaceBlock(mesh, 3, voxSurr, lightSurr);
 
     }
-    if (not checkBlockIsShape(0, 4, x, y, z))
+    if (not checkBlockIsShape(Shape::Cube, 4, x, y, z))
     {
-        vert.setUVTile(uvTiles[4]);
+        vert.setUV(blockUVs[4]);
         vert.setNormal(4);
         vert.setPos(xx, y, z);
         mesh->vertexs.push_back(vert);
@@ -215,9 +231,9 @@ void ChunkSection::genMeshSolid(Block* block, int8_t x, int8_t y, int8_t z,
         mesh->vertexs.push_back(vert);
         makeFaceBlock(mesh, 4, voxSurr, lightSurr);
     }
-    if (not checkBlockIsShape(0, 5, x, y, z))
+    if (not checkBlockIsShape(Shape::Cube, 5, x, y, z))
     {
-        vert.setUVTile(uvTiles[5]);
+        vert.setUV(blockUVs[5]);
         vert.setNormal(5);
         vert.setPos(x, y, zz);
         mesh->vertexs.push_back(vert);
@@ -249,24 +265,18 @@ void ChunkSection::genMeshWater(Block* block, int8_t x, int8_t y, int8_t z,
     getBlockSurround(voxSurr, x, y, z, useFuncGetBlockOutChunk);
     auto blockDB = BlockDatabase::GetInstance();
     auto model = blockDB->m_models[block->type];
+    auto atlas = ResourceManager::GetInstance()->m_textureAtlas["chunk"];
     using FaceDir = BlockModel::FaceDirection;
-    uint16_t uvTiles[6];
+    glm::vec2 uvTop;
     for (auto elem : model->m_textures) {
         if (elem.dir == FaceDir::All) {
-            auto tileIndex = blockDB->m_texturesTileIndex[elem.texture];
-            uvTiles[0] = tileIndex;
-            uvTiles[1] = tileIndex;
-            uvTiles[2] = tileIndex;
-            uvTiles[3] = tileIndex;
-            uvTiles[4] = tileIndex;
-            uvTiles[5] = tileIndex;
+            uvTop = atlas->m_textures[elem.textureID].start;
         }
     }
     auto mesh = &m_mesh->fluid;
     auto& vertexs = mesh->vertexs.m_vector;
-    if (tryGetBlockModel(0, x, y, z)->m_type == 0)
-    {
-        vert.setUVTile(uvTiles[0]);
+    if (not checkBlockIsShape(Shape::Water, 0, x, y, z)) {
+        vert.setUV(uvTop);
         vert.setNormal(0);
         vert.setPos(x, vertexY, z);
         vertexs.push_back(vert);//0
@@ -292,10 +302,17 @@ void ChunkSection::makeFaceBlock(MeshChunk* mesh, uint8_t directFace, uint8_t(&v
     u8 lightFace[4];
     getAO(aos, directFace, voxSurr);
     getVertexLightMaping(lightFace, directFace, lightSurr);
+    glm::vec2 uvIndex[4] ={
+        {0, 0},
+        {0, 16},
+        {16, 16},
+        {16, 0},
+    };
     for (u8 i = 0; i < 4; i++) {
         auto vert = &mesh->vertexs.m_vector[vertCount - (4 - i)];
-        vert->setVertexIndex(i);
+        auto uv = vert->uv;
         vert->setAO(aos[i]);
+        vert->setUV(glm::vec2(uv[0], uv[1]) + uvIndex[i]);
         vert->setLight(lightFace[i]);
     }
 }
@@ -413,10 +430,9 @@ void ChunkSection::getVertexLightMaping(uint8_t(&refLight)[4], uint8_t directFac
     refLight[2] = lightSurr[12];
     refLight[3] = lightSurr[12];
 }
-bool ChunkSection::checkBlockIsShape(uint8_t shapeType, int direction,
+bool ChunkSection::checkBlockIsShape(Shape shapeType, int direction,
     int x, int y, int z) {
     auto& models = BlockDatabase::GetInstance()->m_models;
-
     if (direction == 0) {
         if (y == CHUNK_SIZE_INDEX) {
             if (m_index == CHUNK_SIZE_INDEX) return false;
